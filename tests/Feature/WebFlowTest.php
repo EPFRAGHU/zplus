@@ -143,4 +143,21 @@ class WebFlowTest extends TestCase
         $this->post('/attendance', ['project_id' => 1, 'month' => '2026-10']);
         $this->get('/invoices')->assertOk()->assertSee('Attendance started but not locked yet')->assertSee('Open and lock');
     }
+
+    public function test_attendance_shows_and_filters_by_agency_and_client(): void
+    {
+        $this->seed(DemoSeeder::class);
+        $admin = $this->user('admin');
+        $zps = \App\Models\Agency::query()->where('code', 'ZPS')->firstOrFail();
+        $swh = \App\Models\Agency::query()->where('code', 'SWH')->firstOrFail();
+
+        $this->actingAs($admin)->get('/attendance?month=2026-10')->assertOk()
+            ->assertSee('id="f-agency"', false)->assertSee('id="f-client"', false)->assertSee('MPH')->assertSee('ZPS');
+        $this->get('/attendance?month=2026-10&agency='.$swh->id)->assertOk()->assertDontSee('MPH');
+        $this->get('/attendance?month=2026-10&agency='.$zps->id)->assertOk()->assertSee('MPH');
+
+        $this->post('/attendance', ['project_id' => 1, 'month' => '2026-10']);
+        $this->get('/attendance/1')->assertSee('Agency:')->assertSee('M/S Z Plus Surakhya Seva')->assertSee('ICMR-NIHR (RMRCBB), Bhubaneswar');
+        $this->get('/attendance/1/certificate')->assertOk();
+    }
 }

@@ -2,7 +2,9 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Agency;
 use App\Models\AttendanceSheet;
+use App\Models\Client;
 use App\Models\Project;
 use App\Services\Attendance\AttendanceCodes;
 use App\Services\Attendance\AttendanceService;
@@ -24,10 +26,21 @@ class AttendanceController extends Controller
     {
         $month = $this->month($request->input('month'));
         $sheets = AttendanceSheet::query()->where('month', $month->toDateString())->withCount('entries')->with('invoice')->get()->keyBy('project_id');
-        $projects = Project::query()->with('contract.agency')->withCount(['employees' => fn ($q) => $q->whereIn('employees.status', ['active', 'notice'])])
-            ->orderBy('name')->get();
+        $agencyId = $request->integer('agency') ?: null;
+        $clientId = $request->integer('client') ?: null;
+        $projects = Project::query()->with('contract.agency', 'contract.client')
+            ->withCount(['employees' => fn ($q) => $q->whereIn('employees.status', ['active', 'notice'])])
+            ->when($agencyId, fn ($q) => $q->whereHas('contract', fn ($c) => $c->where('agency_id', $agencyId)))
+            ->when($clientId, fn ($q) => $q->whereHas('contract', fn ($c) => $c->where('client_id', $clientId)))
+            ->get()
+            ->sortBy(fn ($p) => $p->contract->agency->name.'|'.$p->contract->client->name.'|'.$p->name)->values();
 
-        return view('attendance.index', compact('month', 'sheets', 'projects'));
+        return view('attendance.index', [
+            'month' => $month, 'sheets' => $sheets, 'projects' => $projects,
+            'agencies' => Agency::query()->orderBy('name')->get(),
+            'clients' => Client::query()->with('agency')->orderBy('name')->get(),
+            'agencyId' => $agencyId, 'clientId' => $clientId,
+        ]);
     }
 
     public function open(Request $request): RedirectResponse
@@ -45,7 +58,7 @@ class AttendanceController extends Controller
 
     public function show(AttendanceSheet $sheet): View
     {
-        $sheet->load('entries.employee.post', 'project.contract', 'invoice');
+        $sheet->load('entries.employee.post', 'project.contract.agency', 'project.contract.client', 'invoice');
 
         return view('attendance.show', ['sheet' => $sheet, 'codes' => AttendanceCodes::LABELS]);
     }
@@ -80,7 +93,7 @@ class AttendanceController extends Controller
     /** Printable "Monthly Attendance and Working Certificate" for the PI to sign. */
     public function certificate(AttendanceSheet $sheet): Response
     {
-        $sheet->load('entries.employee.post', 'project.contract.client');
+        $sheet->load('entries.employee.post', 'project.contract.client', 'project.contract.agency');
         $showBank = Gate::allows('view-bank-details');
 
         return Pdf::loadView('pdf.attendance-certificate', compact('sheet', 'showBank'))
