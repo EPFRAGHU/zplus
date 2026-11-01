@@ -14,6 +14,11 @@ class Agency extends Model
         return $this->hasMany(Client::class);
     }
 
+    public function employees(): HasMany
+    {
+        return $this->hasMany(Employee::class);
+    }
+
     public function contracts(): HasMany
     {
         return $this->hasMany(GemContract::class);

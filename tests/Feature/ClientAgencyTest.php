@@ -135,4 +135,19 @@ class ClientAgencyTest extends TestCase
         $zpsIcmr = Client::query()->where('agency_id', $zps->id)->firstOrFail();
         $this->get('/contracts?client='.$zpsIcmr->id)->assertOk()->assertSee('GEM/2026/B/7972720');
     }
+
+    public function test_agencies_page_lists_each_agencys_clients(): void
+    {
+        $this->seed(DemoSeeder::class);
+        $admin = User::factory()->create(['role' => 'admin']);
+        $swh = Agency::query()->where('code', 'SWH')->firstOrFail();
+
+        $html = $this->actingAs($admin)->get('/agencies')->assertOk()->assertSee('<th>Clients</th>', false)->getContent();
+        $this->assertSame(2, substr_count($html, 'ICMR-NIHR (RMRCBB), Bhubaneswar</a>'));   // listed under both agencies
+        $this->assertStringContainsString('· 1 contract', $html);
+        $this->assertStringContainsString('· 0 contracts', $html);
+
+        // "Add client" from an agency row opens the form with that agency chosen.
+        $this->get('/clients/create?agency='.$swh->id)->assertOk()->assertSee('<option value="'.$swh->id.'" selected>', false);
+    }
 }

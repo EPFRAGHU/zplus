@@ -28,6 +28,9 @@ class ClientController extends Controller
         // "Add for the other agency" pre-fills the form from an existing client.
         $from = $request->integer('copy') ? Client::query()->find($request->integer('copy')) : null;
         $client = $from ? $from->replicate(['agency_id']) : new Client(['state_code' => '21', 'payment_term_days' => 30, 'status' => 'active']);
+        if (! $from && $request->integer('agency')) {
+            $client->agency_id = $request->integer('agency');   // "Add client" from the Agencies page
+        }
 
         return view('clients.form', ['client' => $client, 'agencies' => Agency::query()->orderBy('name')->get(), 'copiedFrom' => $from]);
     }

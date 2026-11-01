@@ -13,7 +13,10 @@ class AgencyController extends Controller
 {
     public function index(): View
     {
-        return view('agencies.index', ['agencies' => Agency::query()->withCount(['contracts', 'clients'])->orderBy('name')->get()]);
+        return view('agencies.index', ['agencies' => Agency::query()
+            ->with(['clients' => fn ($q) => $q->withCount('contracts')->orderBy('name')])
+            ->withCount(['contracts', 'clients', 'employees' => fn ($q) => $q->whereIn('status', ['active', 'notice'])])
+            ->orderBy('name')->get()]);
     }
 
     public function create(): View
