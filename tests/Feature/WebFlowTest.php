@@ -4,6 +4,7 @@ namespace Tests\Feature;
 
 use App\Models\Agency;
 use App\Models\AttendanceSheet;
+use App\Models\Client;
 use App\Models\Employee;
 use App\Models\GemContract;
 use App\Models\GeneratedDocument;
@@ -326,12 +327,12 @@ class WebFlowTest extends TestCase
     {
         $this->seed(DemoSeeder::class);
         $admin = $this->user('admin');
-        $swh = \App\Models\Agency::query()->where('code', 'SWH')->firstOrFail();
-        $swhClient = \App\Models\Client::query()->where('agency_id', $swh->id)->firstOrFail();
-        $k = \App\Models\GemContract::query()->create(['agency_id' => $swh->id, 'client_id' => $swhClient->id, 'bid_no' => 'GEM/2026/B/1', 'contract_no' => 'GEMC-1']);
+        $swh = Agency::query()->where('code', 'SWH')->firstOrFail();
+        $swhClient = Client::query()->where('agency_id', $swh->id)->firstOrFail();
+        $k = GemContract::query()->create(['agency_id' => $swh->id, 'client_id' => $swhClient->id, 'bid_no' => 'GEM/2026/B/1', 'contract_no' => 'GEMC-1']);
         $k->projects()->create(['name' => 'AAA Swachha Project', 'code' => 'AAA']);
-        $service = app(\App\Services\Attendance\AttendanceService::class);
-        $sheet = $service->open(\App\Models\Project::query()->where('code', 'MPH')->firstOrFail(), \Carbon\CarbonImmutable::parse('2026-10-01'));
+        $service = app(AttendanceService::class);
+        $sheet = $service->open(Project::query()->where('code', 'MPH')->firstOrFail(), CarbonImmutable::parse('2026-10-01'));
         $service->lock($sheet, $admin, null);
 
         $html = $this->actingAs($admin)->get('/attendance?month=2026-10')->assertOk()->getContent();
@@ -348,17 +349,17 @@ class WebFlowTest extends TestCase
     public function test_bills_are_split_into_agency_blocks(): void
     {
         $user = $this->user('admin');
-        $service = app(\App\Services\Attendance\AttendanceService::class);
+        $service = app(AttendanceService::class);
         foreach (['SWH' => 'SWACHHA', 'ZPS' => 'M/S Z Plus Surakhya Seva'] as $code => $name) {
-            $agency = \App\Models\Agency::query()->create(['name' => $name, 'code' => $code]);
-            $client = \App\Models\Client::query()->create(['name' => 'ICMR', 'short_code' => 'ICMR', 'agency_id' => $agency->id]);
-            $k = \App\Models\GemContract::query()->create(['agency_id' => $agency->id, 'client_id' => $client->id, 'bid_no' => "B-{$code}", 'contract_no' => "C-{$code}"]);
+            $agency = Agency::query()->create(['name' => $name, 'code' => $code]);
+            $client = Client::query()->create(['name' => 'ICMR', 'short_code' => 'ICMR', 'agency_id' => $agency->id]);
+            $k = GemContract::query()->create(['agency_id' => $agency->id, 'client_id' => $client->id, 'bid_no' => "B-{$code}", 'contract_no' => "C-{$code}"]);
             $project = $k->projects()->create(['name' => "Proj {$code}", 'code' => "P{$code}"]);
             $post = $project->posts()->create(['designation' => 'PTS', 'sanctioned_qty' => 1, 'rate' => 30000]);
-            \App\Models\Employee::query()->create(['emp_code' => "E-{$code}", 'name' => "Staff {$code}", 'post_id' => $post->id, 'agency_id' => $agency->id]);
-            $sheet = $service->open($project, \Carbon\CarbonImmutable::parse('2026-10-01'));
+            Employee::query()->create(['emp_code' => "E-{$code}", 'name' => "Staff {$code}", 'post_id' => $post->id, 'agency_id' => $agency->id]);
+            $sheet = $service->open($project, CarbonImmutable::parse('2026-10-01'));
             $service->lock($sheet, $user, null);
-            app(\App\Services\Billing\InvoiceGenerator::class)->generate($sheet->fresh(), $user);
+            app(InvoiceGenerator::class)->generate($sheet->fresh(), $user);
         }
 
         $html = $this->actingAs($user)->get('/invoices')->assertOk()->getContent();
@@ -369,5 +370,22 @@ class WebFlowTest extends TestCase
         $this->assertLessThan($swh, $zps);                                   // agencies in name order
         $this->assertStringContainsString('1 bill · ₹36,763 billed · ₹0 awaiting payment', $html);
         $this->assertGreaterThan($swh, strpos($html, '>ICMR/PSWH/01/2026</a>'));   // SWACHHA's bill under its heading
+    }
+
+    public function test_dashboard_tables_use_agency_blocks(): void
+    {
+        $this->seed(DemoSeeder::class);
+        $admin = $this->user('admin');
+        $service = app(AttendanceService::class);
+        $sheet = $service->open(Project::query()->where('code', 'MPH')->firstOrFail(), CarbonImmutable::parse(now()->subMonthNoOverflow()->startOfMonth()->toDateString()));
+        $service->lock($sheet, $admin, null);
+        app(InvoiceGenerator::class)->generate($sheet->fresh(), $admin);
+
+        $html = $this->actingAs($admin)->get('/')->assertOk()->getContent();
+        // Z Plus heading appears once per table (clients, projects, recent bills); SWACHHA in the clients table.
+        $this->assertSame(3, substr_count($html, '<b class="fs-6">M/S Z Plus Surakhya Seva</b>'));
+        $this->assertGreaterThanOrEqual(1, substr_count($html, '<b class="fs-6">SWACHHA</b>'));
+        $this->assertStringContainsString('1 client · 1 contract · 2 staff · ₹1,05,387 billed', $html);
+        $this->assertStringContainsString('1 project · 2 / 2 staff · 1 locked · 1 billed for', $html);
     }
 }

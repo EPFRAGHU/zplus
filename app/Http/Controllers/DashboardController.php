@@ -71,7 +71,9 @@ class DashboardController extends Controller
             'projectsBilled' => $invoices()->where('month', $month)->count(),
             'bankProblems' => $employees()->where(fn ($q) => $q->whereNull('ifsc')->orWhereNull('account_last4'))->count(),
             'drafts' => $invoices()->where('status', 'draft')->count(),
-            'recent' => $invoices()->with('project', 'contract.agency', 'contract.client')->latest()->limit(6)->get(),
+            // Latest bills, shown in agency blocks.
+            'recent' => $invoices()->with('project', 'contract.agency', 'contract.client')->latest()->limit(8)->get()
+                ->sortBy(fn ($i) => $i->contract->agency->name)->values(),
             'monthly' => $invoices()->whereYear('month', now()->year)->get(['month', 'rounded_total', 'status'])
                 ->groupBy(fn ($i) => (int) $i->month->format('n'))
                 ->map(fn ($g) => ['billed' => (float) $g->sum('rounded_total'), 'paid' => (float) $g->where('status', 'paid')->sum('rounded_total')]),

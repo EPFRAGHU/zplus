@@ -68,7 +68,16 @@
         <div class="table-responsive"><table class="table table-hover">
           <thead><tr><th>Agency</th><th>Client</th><th class="num">Contracts</th><th class="num">Staff</th><th class="num">Vacant</th><th class="num">{{ $lastMonth->format('M') }} locked</th><th class="num">Billed {{ now()->year }}</th><th class="num">Awaiting payment</th><th></th></tr></thead>
           <tbody>
+          @php($blk = false)
           @forelse($summary as $r)
+            @if($blk === false || $blk !== $r['client']->agency_id)
+              @php($blk = $r['client']->agency_id)
+              @php($rows = $summary->filter(fn ($x) => $x['client']->agency_id === $blk))
+              <tr class="table-secondary"><td colspan="9" class="py-2">
+                <b class="fs-6">{{ $r['client']->agency?->name ?? 'No agency set' }}</b> @if($r['client']->agency)<span class="badge text-bg-dark">{{ $r['client']->agency->code }}</span>@endif
+                <span class="small text-secondary ms-2">{{ $rows->count() }} {{ \Illuminate\Support\Str::plural('client', $rows->count()) }} · {{ $rows->sum('contracts') }} {{ \Illuminate\Support\Str::plural('contract', $rows->sum('contracts')) }} · {{ $rows->sum('employees') }} staff · {{ inr($rows->sum(fn ($x) => (float) $x['billed'])) }} billed · {{ inr($rows->sum(fn ($x) => (float) $x['unpaid'])) }} awaiting payment</span>
+              </td></tr>
+            @endif
             @php($c = $r['client'])
             <tr>
               <td><span class="badge text-bg-light border" title="{{ $c->agency?->name }}">{{ $c->agency?->code ?? '—' }}</span></td>
@@ -93,7 +102,16 @@
         <div class="table-responsive" style="max-height:420px"><table class="table table-hover table-sm">
           <thead class="sticky-top"><tr><th>Agency</th><th>Client</th><th>GeM contract</th><th>Project</th><th class="num">Staff / sanctioned</th><th>{{ $lastMonth->format('M') }} attendance</th><th class="num">Billed {{ now()->year }}</th><th></th></tr></thead>
           <tbody>
+          @php($blk = false)
           @forelse($projectRows as $r)
+            @if($blk === false || $blk !== $r['project']->contract->agency_id)
+              @php($blk = $r['project']->contract->agency_id)
+              @php($rows = $projectRows->filter(fn ($x) => $x['project']->contract->agency_id === $blk))
+              <tr class="table-secondary"><td colspan="8" class="py-2">
+                <b class="fs-6">{{ $r['project']->contract->agency->name }}</b> <span class="badge text-bg-dark">{{ $r['project']->contract->agency->code }}</span>
+                <span class="small text-secondary ms-2">{{ $rows->count() }} {{ \Illuminate\Support\Str::plural('project', $rows->count()) }} · {{ $rows->sum('staff') }} / {{ $rows->sum('sanctioned') }} staff · {{ $rows->whereIn('last', ['locked', 'billed'])->count() }} locked · {{ $rows->where('last', 'billed')->count() }} billed for {{ $lastMonth->format('F') }}</span>
+              </td></tr>
+            @endif
             @php($p = $r['project'])
             @php($badge = ['billed' => 'success', 'locked' => 'primary', 'draft' => 'warning', 'not started' => 'light border'][$r['last']])
             <tr>
@@ -118,7 +136,12 @@
         <div class="table-responsive"><table class="table table-hover">
           <thead><tr><th>Bill no.</th><th>Agency</th><th>Client</th><th>GeM contract</th><th>Project</th><th>Month</th><th class="num">Amount</th><th>Status</th></tr></thead>
           <tbody>
+          @php($blk = false)
           @forelse ($recent as $i)
+            @if($blk === false || $blk !== $i->agency_id)
+              @php($blk = $i->agency_id)
+              <tr class="table-secondary"><td colspan="8" class="py-2"><b class="fs-6">{{ $i->contract->agency->name }}</b> <span class="badge text-bg-dark">{{ $i->contract->agency->code }}</span></td></tr>
+            @endif
             <tr><td><a class="mono" href="{{ route('invoices.show', $i) }}">{{ $i->invoice_no }}</a></td><td><span class="badge text-bg-light border">{{ $i->contract->agency->code }}</span></td><td>{{ $i->contract->client->name }}</td><td class="mono">{{ $i->contract->bid_no }}</td><td>{{ $i->project->name }}</td><td>{{ $i->month->format('M Y') }}</td><td class="num">{{ inr($i->rounded_total) }}</td><td><x-status :value="$i->status" /></td></tr>
           @empty
             <tr><td colspan="8" class="text-center text-secondary py-4">No bills yet. Lock a month's attendance, then make its bill.</td></tr>
