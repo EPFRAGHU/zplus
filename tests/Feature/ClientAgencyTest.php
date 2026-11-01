@@ -1,0 +1,97 @@
+<?php
+
+namespace Tests\Feature;
+
+use App\Models\Agency;
+use App\Models\Client;
+use App\Models\Employee;
+use App\Models\GemContract;
+use App\Models\User;
+use App\Services\Attendance\AttendanceService;
+use App\Services\Billing\InvoiceGenerator;
+use Carbon\CarbonImmutable;
+use Database\Seeders\DemoSeeder;
+use Illuminate\Foundation\Testing\RefreshDatabase;
+use Tests\TestCase;
+
+class ClientAgencyTest extends TestCase
+{
+    use RefreshDatabase;
+
+    private function form(array $over = []): array
+    {
+        return $over + ['name' => 'ICMR-NIHR Bhubaneswar', 'short_code' => 'ICMR', 'state_code' => '21', 'payment_term_days' => 30, 'status' => 'active'];
+    }
+
+    public function test_client_has_one_agency_chosen_from_a_dropdown(): void
+    {
+        $admin = User::factory()->create(['role' => 'admin']);
+        $swh = Agency::query()->create(['name' => 'SWACHHA', 'code' => 'SWH']);
+
+        $this->actingAs($admin)->get('/clients/create')->assertOk()->assertSee('<select id="f-agency_id" name="agency_id"', false);
+        $this->post('/clients', $this->form())->assertSessionHasErrors(['agency_id' => 'Choose the agency this client works with.']);
+        $this->post('/clients', $this->form(['agency_id' => $swh->id]))->assertSessionHasNoErrors();
+        $this->assertSame($swh->id, Client::query()->firstOrFail()->agency_id);
+    }
+
+    public function test_same_client_can_be_added_once_per_agency(): void
+    {
+        $admin = User::factory()->create(['role' => 'admin']);
+        $swh = Agency::query()->create(['name' => 'SWACHHA', 'code' => 'SWH']);
+        $zps = Agency::query()->create(['name' => 'Z Plus', 'code' => 'ZPS']);
+
+        $this->actingAs($admin)->post('/clients', $this->form(['agency_id' => $swh->id]))->assertSessionHasNoErrors();
+        $this->post('/clients', $this->form(['agency_id' => $swh->id]))->assertSessionHasErrors(['short_code' => 'This agency already has a client with this bill code.']);
+
+        $first = Client::query()->firstOrFail();
+        $this->get('/clients/create?copy='.$first->id)->assertOk()->assertSee('Copied from')->assertSee('ICMR-NIHR Bhubaneswar');
+        $this->post('/clients', $this->form(['agency_id' => $zps->id]))->assertSessionHasNoErrors();
+        $this->assertSame(2, Client::query()->where('short_code', 'ICMR')->count());
+        $this->get('/clients')->assertSee('SWH')->assertSee('ZPS');
+    }
+
+    public function test_contract_takes_its_agency_from_the_client(): void
+    {
+        $admin = User::factory()->create(['role' => 'admin']);
+        $zps = Agency::query()->create(['name' => 'Z Plus', 'code' => 'ZPS']);
+        $client = Client::query()->create(['name' => 'ICMR', 'short_code' => 'ICMR', 'agency_id' => $zps->id]);
+
+        $this->actingAs($admin)->post('/contracts', ['client_id' => $client->id, 'bid_no' => 'GEM/2026/B/1', 'contract_no' => 'GEMC-1',
+            'billing_type' => 'monthly', 'service_charge_percent' => '3.85', 'gst_percent' => '18', 'epf_percent' => '13',
+            'esic_percent' => '3.25', 'status' => 'active'])->assertSessionHasNoErrors();
+        $this->assertSame($zps->id, GemContract::query()->firstOrFail()->agency_id);
+    }
+
+    public function test_agency_cannot_change_once_the_client_has_contracts(): void
+    {
+        $this->seed(DemoSeeder::class);
+        $admin = User::factory()->create(['role' => 'admin']);
+        $icmr = Client::query()->whereHas('contracts')->firstOrFail();
+        $other = Agency::query()->whereKeyNot($icmr->agency_id)->value('id');
+
+        // Use a fresh bill code so the only reason to refuse is the existing contracts.
+        $this->actingAs($admin)->put("/clients/{$icmr->id}", $this->form(['name' => $icmr->name, 'short_code' => 'ICMRX', 'agency_id' => $other]))
+            ->assertSessionHasErrors('agency_id');
+        $this->assertNotSame($other, $icmr->fresh()->agency_id);
+    }
+
+    public function test_each_agency_numbers_its_bills_separately(): void
+    {
+        $user = User::factory()->create(['role' => 'accounts']);
+        $numbers = [];
+        foreach (['SWH', 'ZPS'] as $i => $code) {
+            $agency = Agency::query()->create(['name' => $code, 'code' => $code]);
+            $client = Client::query()->create(['name' => 'ICMR', 'short_code' => 'ICMR', 'agency_id' => $agency->id]);
+            $contract = GemContract::query()->create(['agency_id' => $agency->id, 'client_id' => $client->id, 'bid_no' => "B{$i}", 'contract_no' => "C{$i}"]);
+            $project = $contract->projects()->create(['name' => 'Sickle Cell', 'code' => 'SICKLECELL']);
+            $post = $project->posts()->create(['designation' => 'PTS-I', 'sanctioned_qty' => 1, 'rate' => 21600]);
+            Employee::query()->create(['emp_code' => "EMP-{$i}", 'name' => "Staff {$i}", 'post_id' => $post->id]);
+
+            $sheet = app(AttendanceService::class)->open($project, CarbonImmutable::parse('2026-10-01'));
+            app(AttendanceService::class)->lock($sheet, $user, null);
+            $numbers[] = app(InvoiceGenerator::class)->generate($sheet->fresh(), $user)->invoice_no;
+        }
+
+        $this->assertSame(['ICMR/SICKLECELL/01/2026', 'ICMR/SICKLECELL/01/2026'], $numbers);
+    }
+}

@@ -68,9 +68,9 @@ final class GemWorkbookImporter
                 }
                 [$agencyName, $agencyCode] = $c['agency'];
                 $agency = Agency::query()->firstOrCreate(['code' => $agencyCode], ['name' => $agencyName]);
-                $client->agencies()->syncWithoutDetaching([$agency->id]);
+                $agencyClient = $this->clientFor($client, $agency);
                 $contract = GemContract::query()->create([
-                    'agency_id' => $agency->id, 'client_id' => $client->id,
+                    'agency_id' => $agency->id, 'client_id' => $agencyClient->id,
                     'bid_no' => $c['bid_no'], 'contract_no' => $c['contract_no'], 'billing_type' => $c['billing_type'],
                 ]);
                 $created['contracts']++;
@@ -108,6 +108,26 @@ final class GemWorkbookImporter
         });
 
         return $created;
+    }
+
+    /**
+     * Each client record belongs to one agency. Contracts on another agency's sheet go to that
+     * agency's record of the same client (same bill code), copied from the chosen client if missing.
+     */
+    private function clientFor(Client $chosen, Agency $agency): Client
+    {
+        if ($chosen->agency_id === null) {
+            $chosen->update(['agency_id' => $agency->id]);
+        }
+        if ((int) $chosen->agency_id === (int) $agency->id) {
+            return $chosen;
+        }
+
+        return Client::query()->where('agency_id', $agency->id)->where('short_code', $chosen->short_code)->first()
+            ?? tap($chosen->replicate(['agency_id']), function (Client $c) use ($agency) {
+                $c->agency_id = $agency->id;
+                $c->save();
+            });
     }
 
     // ---------------------------------------------------------------- agency sheets

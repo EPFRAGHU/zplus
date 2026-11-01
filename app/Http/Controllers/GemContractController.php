@@ -68,16 +68,12 @@ class GemContractController extends Controller
 
     private function formData(GemContract $contract): array
     {
-        $clients = Client::query()->with('agencies:id')->orderBy('name')->get();
-
-        return ['contract' => $contract, 'agencies' => Agency::query()->orderBy('name')->get(), 'clients' => $clients,
-            'clientAgencies' => $clients->mapWithKeys(fn ($c) => [$c->id => $c->agencies->pluck('id')])];
+        return ['contract' => $contract, 'clients' => Client::query()->with('agency')->orderBy('name')->get()];
     }
 
     private function validated(Request $request, ?GemContract $contract = null): array
     {
         $data = $request->validate([
-            'agency_id' => ['required', 'exists:agencies,id'],
             'client_id' => ['required', 'exists:clients,id'],
             'bid_no' => ['required', 'string', 'max:40'],
             'contract_no' => ['required', 'string', 'max:40', Rule::unique('gem_contracts')->ignore($contract)],
@@ -91,12 +87,12 @@ class GemContractController extends Controller
         ]);
         $data['inter_state'] = $request->boolean('inter_state');
 
-        $client = Client::query()->find($data['client_id']);
-        if (! $client->agencies()->whereKey($data['agency_id'])->exists()) {
-            throw ValidationException::withMessages([
-                'agency_id' => "This agency is not mapped to {$client->name}. Add it on the client's page first.",
-            ]);
+        // The billing agency is always the client's agency.
+        $client = Client::query()->findOrFail($data['client_id']);
+        if (! $client->agency_id) {
+            throw ValidationException::withMessages(['client_id' => "Set the agency on {$client->name} first."]);
         }
+        $data['agency_id'] = $client->agency_id;
 
         return $data;
     }

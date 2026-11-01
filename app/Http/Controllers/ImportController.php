@@ -17,7 +17,7 @@ class ImportController extends Controller
     {
         Gate::authorize('import');
 
-        return view('import.create', ['clients' => Client::query()->orderBy('name')->get()]);
+        return view('import.create', ['clients' => Client::query()->with('agency')->orderBy('name')->get()]);
     }
 
     public function preview(Request $request, GemWorkbookImporter $importer): View|RedirectResponse

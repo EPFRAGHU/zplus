@@ -39,9 +39,10 @@ final class InvoiceGenerator
         return DB::transaction(function () use ($sheet, $project, $contract, $totals, $user, $daysInMonth) {
             $year = $sheet->month->year;
             $prefix = $contract->client->short_code.'/'.$project->code;
-            $seq = DocumentSequence::next("invoice:{$prefix}:{$year}");
+            $seq = DocumentSequence::next("invoice:{$contract->agency_id}:{$prefix}:{$year}");   // separate series per agency
 
             $invoice = Invoice::query()->create([
+                'agency_id' => $contract->agency_id,
                 'invoice_no' => sprintf('%s/%02d/%d', $prefix, $seq, $year),
                 'gem_contract_id' => $contract->id,
                 'project_id' => $project->id,

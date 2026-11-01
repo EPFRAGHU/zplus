@@ -14,28 +14,28 @@ class ClientController extends Controller
 {
     public function index(Request $request): View
     {
-        $clients = Client::query()->with('agencies')->withCount('contracts')
+        $clients = Client::query()->with('agency')->withCount('contracts')
             ->when($request->string('q')->trim()->value(), fn ($q, $s) => $q->where(fn ($w) => $w->where('name', 'like', "%{$s}%")->orWhere('gstin', 'like', "%{$s}%")))
-            ->when($request->integer('agency'), fn ($q, $id) => $q->whereHas('agencies', fn ($a) => $a->whereKey($id)))
+            ->when($request->integer('agency'), fn ($q, $id) => $q->where('agency_id', $id))
             ->orderBy('name')->paginate(25)->withQueryString();
 
         return view('clients.index', ['clients' => $clients, 'agencies' => Agency::query()->orderBy('name')->get()]);
     }
 
-    public function create(): View
+    public function create(Request $request): View
     {
         Gate::authorize('manage-masters');
+        // "Add for the other agency" pre-fills the form from an existing client.
+        $from = $request->integer('copy') ? Client::query()->find($request->integer('copy')) : null;
+        $client = $from ? $from->replicate(['agency_id']) : new Client(['state_code' => '21', 'payment_term_days' => 30, 'status' => 'active']);
 
-        return view('clients.form', ['client' => new Client(['state_code' => '21', 'payment_term_days' => 30, 'status' => 'active']),
-            'agencies' => Agency::query()->orderBy('name')->get(), 'selected' => []]);
+        return view('clients.form', ['client' => $client, 'agencies' => Agency::query()->orderBy('name')->get(), 'copiedFrom' => $from]);
     }
 
     public function store(Request $request): RedirectResponse
     {
         Gate::authorize('manage-masters');
-        $data = $this->validated($request);
-        $client = Client::query()->create($data);
-        $client->agencies()->sync($data['agency_ids']);
+        Client::query()->create($this->validated($request));
 
         return redirect()->route('clients.index')->with('status', 'Client added.');
     }
@@ -45,23 +45,18 @@ class ClientController extends Controller
         Gate::authorize('manage-masters');
 
         return view('clients.form', ['client' => $client, 'agencies' => Agency::query()->orderBy('name')->get(),
-            'selected' => $client->agencies()->pluck('agencies.id')->all(),
-            'locked' => $client->contracts()->distinct()->pluck('agency_id')->all()]);
+            'hasContracts' => $client->contracts()->exists()]);
     }
 
     public function update(Request $request, Client $client): RedirectResponse
     {
         Gate::authorize('manage-masters');
         $data = $this->validated($request, $client);
-        $inUse = $client->contracts()->distinct()->pluck('agency_id')->all();
-        $missing = array_diff($inUse, $data['agency_ids']);
-        if ($missing) {
-            $names = Agency::query()->whereIn('id', $missing)->pluck('name')->join(', ');
-
-            return back()->withInput()->withErrors(['agency_ids' => "{$names} still has GeM contracts with this client, so it cannot be removed."]);
+        if ((int) $data['agency_id'] !== (int) $client->agency_id && $client->contracts()->exists()) {
+            return back()->withInput()->withErrors(['agency_id' => 'This client already has GeM contracts under '
+                .($client->agency?->name ?? 'its agency').'. Add the client again for the other agency instead.']);
         }
         $client->update($data);
-        $client->agencies()->sync($data['agency_ids']);
 
         return redirect()->route('clients.index')->with('status', 'Client saved.');
     }
@@ -69,8 +64,10 @@ class ClientController extends Controller
     private function validated(Request $request, ?Client $client = null): array
     {
         return $request->validate([
+            'agency_id' => ['required', 'exists:agencies,id'],
             'name' => ['required', 'string', 'max:255'],
-            'short_code' => ['required', 'alpha_num', 'max:12', Rule::unique('clients')->ignore($client)],
+            'short_code' => ['required', 'alpha_num', 'max:12',
+                Rule::unique('clients')->where('agency_id', $request->input('agency_id'))->ignore($client)],
             'letter_code' => ['nullable', 'alpha_num', 'max:12'],
             'addressee' => ['nullable', 'string', 'max:255'],
             'billing_address' => ['nullable', 'string', 'max:1000'],
@@ -82,11 +79,10 @@ class ClientController extends Controller
             'gstin' => ['nullable', 'regex:/^\d{2}[A-Z]{5}\d{4}[A-Z][A-Z\d]Z[A-Z\d]$/'],
             'payment_term_days' => ['required', 'integer', 'min:0', 'max:365'],
             'status' => ['required', Rule::in(['active', 'hold', 'inactive'])],
-            'agency_ids' => ['required', 'array', 'min:1'],
-            'agency_ids.*' => ['integer', 'exists:agencies,id'],
         ], [
+            'agency_id.required' => 'Choose the agency this client works with.',
+            'short_code.unique' => 'This agency already has a client with this bill code.',
             'gstin.regex' => 'Enter a 15-character GSTIN, e.g. 21AAAGO1234F1Z5.',
-            'agency_ids.required' => 'Choose at least one agency this client works with.',
         ]);
     }
 }

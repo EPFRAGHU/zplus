@@ -3,7 +3,8 @@
     @csrf
     <p class="mb-3">Upload your <b>GEM PROJECT DETAILS</b> workbook. The app reads the agency sheets (SWACHHA, ZPLUS) for contracts, projects and posts, and the PI sheets for staff salary and bank details. You see every problem it finds before anything is saved.</p>
     <div class="row g-3">
-      <x-select name="client_id" label="These contracts are with" :options="$clients->pluck('name', 'id')" required placeholder="Choose client" col="col-md-5" />
+      <x-select name="client_id" label="These contracts are with" :options="$clients->mapWithKeys(fn ($c) => [$c->id => $c->label()])" required placeholder="Choose client" col="col-md-5"
+        hint="Contracts on the other agency's sheet go to that agency's record of this client, created if needed." />
       <div class="col-md-7"><label class="form-label small fw-semibold text-secondary mb-1" for="wb">Workbook (.xlsx, up to 10 MB)</label>
         <input id="wb" type="file" name="workbook" class="form-control @error('workbook') is-invalid @enderror" accept=".xlsx,.xls" required>
         @error('workbook')<div class="invalid-feedback">{{ $message }}</div>@enderror</div>

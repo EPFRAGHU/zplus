@@ -2,6 +2,7 @@
 
 namespace Tests\Feature;
 
+use App\Models\Agency;
 use App\Models\Client;
 use App\Models\Employee;
 use App\Models\GemContract;
@@ -70,7 +71,8 @@ class GemWorkbookImportTest extends TestCase
 
     public function test_commit_creates_records_and_encrypts_bank_numbers(): void
     {
-        $client = Client::query()->create(['name' => 'ICMR-NIHR Bhubaneswar', 'short_code' => 'ICMR']);
+        $zps = Agency::query()->create(['name' => 'Z Plus', 'code' => 'ZPS']);
+        $client = Client::query()->create(['name' => 'ICMR-NIHR Bhubaneswar', 'short_code' => 'ICMR', 'agency_id' => $zps->id]);
         $importer = new GemWorkbookImporter;
         $plan = $importer->analyse($path = $this->workbook());
 
@@ -78,7 +80,10 @@ class GemWorkbookImportTest extends TestCase
 
         $this->assertSame(2, $result['contracts']);
         $this->assertSame(2, GemContract::query()->count());
-        $this->assertSame(['SWH'], $client->agencies()->pluck('code')->all());   // importer maps the agency to the client
+        // The workbook's SWACHHA sheet goes to SWACHHA's own record of the client, copied from the chosen one.
+        $swhClient = Client::query()->whereHas('agency', fn ($q) => $q->where('code', 'SWH'))->firstOrFail();
+        $this->assertSame('ICMR', $swhClient->short_code);
+        $this->assertSame(2, GemContract::query()->where('client_id', $swhClient->id)->count());
         $manager = Employee::query()->where('name', 'Mr. Test Manager')->firstOrFail();
         $this->assertSame('APM', $manager->post->designation);
         $this->assertSame('55500.00', (string) $manager->rate_override);

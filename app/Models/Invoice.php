@@ -8,7 +8,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
-#[Fillable(['invoice_no', 'gem_contract_id', 'project_id', 'attendance_sheet_id', 'month', 'invoice_date', 'billing_type',
+#[Fillable(['agency_id', 'invoice_no', 'gem_contract_id', 'project_id', 'attendance_sheet_id', 'month', 'invoice_date', 'billing_type',
     'service_charge_percent', 'gst_percent', 'wages', 'epf', 'esic', 'subtotal', 'service_charge', 'taxable',
     'cgst', 'sgst', 'igst', 'total', 'rounded_total', 'status', 'created_by'])]
 class Invoice extends Model

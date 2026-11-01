@@ -19,12 +19,15 @@ class DemoSeeder extends Seeder
         $zplus = Agency::query()->firstOrCreate(['code' => 'ZPS'], ['name' => 'M/S Z Plus Surakhya Seva', 'signatory_title' => 'Managing Partner', 'phone' => '9337219868']);
         Agency::query()->firstOrCreate(['code' => 'SWH'], ['name' => 'SWACHHA', 'email' => 'hr.swachha@gmail.com',
             'address' => "Plot No- 1468/5398/7693, Bhaktamadhu Nagar,\nGandamunda, Bhubaneswar-751030"]);
-        $icmr = Client::query()->firstOrCreate(['short_code' => 'ICMR'], [
+        $swh = Agency::query()->where('code', 'SWH')->firstOrFail();
+        $details = [
             'name' => 'ICMR-NIHR (RMRCBB), Bhubaneswar', 'letter_code' => 'NIHR', 'addressee' => 'The Administrative Officer',
             'billing_address' => "ICMR, RMRCBB, Department of Health Research,\nMinistry of Health & Family Welfare, Govt. of India",
             'district' => 'Khordha', 'state_code' => '21',
-        ]);
-        $icmr->agencies()->syncWithoutDetaching([$zplus->id, Agency::query()->where('code', 'SWH')->value('id')]);
+        ];
+        // ICMR works with both agencies, so it is entered once under each.
+        $icmr = Client::query()->firstOrCreate(['agency_id' => $zplus->id, 'short_code' => 'ICMR'], $details);
+        Client::query()->firstOrCreate(['agency_id' => $swh->id, 'short_code' => 'ICMR'], $details);
         $contract = GemContract::query()->firstOrCreate(['contract_no' => 'GEMC-511687731718030'], [
             'agency_id' => $zplus->id, 'client_id' => $icmr->id, 'bid_no' => 'GEM/2026/B/7972720', 'contract_date' => '2026-10-01',
         ]);
