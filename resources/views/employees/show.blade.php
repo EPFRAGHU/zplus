@@ -11,6 +11,8 @@
         <dl class="row small mb-0">
           <dt class="col-sm-4 text-secondary fw-normal">Employee ID</dt><dd class="col-sm-8 mono">{{ $employee->emp_code }}</dd>
           <dt class="col-sm-4 text-secondary fw-normal">Status</dt><dd class="col-sm-8"><x-status :value="$employee->status" /></dd>
+          <dt class="col-sm-4 text-secondary fw-normal">Agency</dt><dd class="col-sm-8">{{ $employee->agency?->name ?? '—' }}</dd>
+          <dt class="col-sm-4 text-secondary fw-normal">Client</dt><dd class="col-sm-8">{{ $employee->client?->name ?? 'Not assigned to a client yet' }}</dd>
           <dt class="col-sm-4 text-secondary fw-normal">Post</dt><dd class="col-sm-8">{{ $employee->post?->designation ?? 'Not linked to a post' }}</dd>
           <dt class="col-sm-4 text-secondary fw-normal">Project</dt><dd class="col-sm-8">@if($employee->post)<a href="{{ route('contracts.show', $employee->post->project->contract) }}">{{ $employee->post->project->label() }}</a>@else — @endif</dd>
           <dt class="col-sm-4 text-secondary fw-normal">GeM contract</dt><dd class="col-sm-8 mono">{{ $employee->post?->project->contract->contract_no ?? '—' }}</dd>

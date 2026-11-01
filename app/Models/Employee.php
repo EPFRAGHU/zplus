@@ -8,7 +8,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
-#[Fillable(['emp_code', 'post_id', 'name', 'father_name', 'dob', 'gender', 'mobile', 'whatsapp', 'email', 'address',
+#[Fillable(['emp_code', 'agency_id', 'client_id', 'post_id', 'name', 'father_name', 'dob', 'gender', 'mobile', 'whatsapp', 'email', 'address',
     'qualification', 'joining_date', 'exit_date', 'status', 'rate_override', 'bank_name', 'account_holder',
     'account_number', 'ifsc', 'upi_id', 'pan', 'aadhaar', 'uan', 'esic_ip', 'pf_applicable', 'esic_applicable'])]
 #[Hidden(['account_number', 'aadhaar'])]
@@ -46,6 +46,16 @@ class Employee extends Model
                 $e->aadhaar_last4 = $digits === '' ? null : substr($digits, -4);
             }
         });
+    }
+
+    public function agency(): BelongsTo
+    {
+        return $this->belongsTo(Agency::class);
+    }
+
+    public function client(): BelongsTo
+    {
+        return $this->belongsTo(Client::class);
     }
 
     public function post(): BelongsTo

@@ -1,7 +1,28 @@
 <x-layouts.app :title="$employee->exists ? 'Edit '.$employee->name : 'Add employee'" crumb="Masters / Employees">
   <form method="post" action="{{ $employee->exists ? route('employees.update', $employee) : route('employees.store') }}" class="z-card">
     @csrf @if($employee->exists) @method('put') @endif
-    <ul class="nav nav-tabs px-3 pt-2" role="tablist">
+    @php($agencyId = (string) old('agency_id', $employee->agency_id ?? $employee->post?->project->contract->agency_id))
+    @php($clientId = (string) old('client_id', $employee->client_id ?? $employee->post?->project->contract->client_id))
+    @php($postId = (string) old('post_id', $employee->post_id))
+    <div class="row g-3 px-3 pt-3">
+        <div class="col-md-6">
+          <label for="f-agency_id" class="form-label small fw-semibold text-secondary mb-1">Agency <span class="text-danger">*</span></label>
+          <select id="f-agency_id" name="agency_id" class="form-select @error('agency_id') is-invalid @enderror" required>
+            <option value="">Choose agency</option>
+            @foreach($agencies as $a)<option value="{{ $a->id }}" @selected($agencyId === (string) $a->id)>{{ $a->name }}</option>@endforeach
+          </select>
+          @error('agency_id')<div class="invalid-feedback">{{ $message }}</div>@enderror
+        </div>
+        <div class="col-md-6">
+          <label for="f-client_id" class="form-label small fw-semibold text-secondary mb-1">Client</label>
+          <select id="f-client_id" name="client_id" class="form-select @error('client_id') is-invalid @enderror">
+            <option value="">Not assigned to a client yet</option>
+            @foreach($clients as $c)<option value="{{ $c->id }}" data-agency="{{ $c->agency_id }}" @selected($clientId === (string) $c->id)>{{ $c->name }}</option>@endforeach
+          </select>
+          @error('client_id')<div class="invalid-feedback">{{ $message }}</div>@enderror
+        </div>
+    </div>
+    <ul class="nav nav-tabs px-3 pt-3" role="tablist">
       @foreach(['basic' => 'Basic info', 'work' => 'Work info', 'bank' => 'Bank & payout', 'kyc' => 'KYC & statutory'] as $k => $v)
         <li class="nav-item"><button class="nav-link @if($loop->first) active @endif" data-bs-toggle="tab" data-bs-target="#t-{{ $k }}" type="button" role="tab">{{ $v }}</button></li>
       @endforeach
@@ -20,9 +41,19 @@
       </div></div>
       <div class="tab-pane fade" id="t-work" role="tabpanel"><div class="row g-3">
         <x-field name="emp_code" label="Employee ID" :value="$employee->emp_code" required col="col-md-3" class="mono" />
-        <x-select name="post_id" label="GeM post" col="col-md-9" :value="$employee->post_id" placeholder="Not linked to a post"
-          :options="$posts->mapWithKeys(fn ($p) => [$p->id => $p->project->contract->bid_no.' · '.$p->label().' ('.$p->active_employees_count.'/'.$p->sanctioned_qty.' filled)'])"
-          hint="The bill rate comes from the post unless you set a different salary below." />
+        <div class="col-12">
+          <label for="f-post_id" class="form-label small fw-semibold text-secondary mb-1">GeM post (project · designation · rate)</label>
+          <select id="f-post_id" name="post_id" class="form-select @error('post_id') is-invalid @enderror">
+            <option value="">Not placed on a post yet</option>
+            @foreach($posts as $p)
+              @php($k = $p->project->contract)
+              <option value="{{ $p->id }}" data-agency="{{ $k->agency_id }}" data-client="{{ $k->client_id }}" @selected($postId === (string) $p->id)>
+                {{ $k->bid_no }} · {{ $p->label() }} ({{ $p->active_employees_count }}/{{ $p->sanctioned_qty }} filled)</option>
+            @endforeach
+          </select>
+          @error('post_id')<div class="invalid-feedback">{{ $message }}</div>@enderror
+          <div class="form-text">Only posts of the selected client are listed. The bill rate comes from the post unless you set a different salary below.</div>
+        </div>
         <x-field name="joining_date" label="Joining date" type="date" :value="$employee->joining_date?->toDateString()" col="col-md-3" />
         <x-field name="exit_date" label="Exit date" type="date" :value="$employee->exit_date?->toDateString()" col="col-md-3" />
         <x-select name="status" label="Status" :options="\App\Models\Employee::STATUSES" :value="$employee->status" required col="col-md-3" />
@@ -56,6 +87,29 @@
       <button class="btn btn-primary">Save employee</button>
     </div>
   </form>
+  <script>
+    // Agency narrows the clients; client narrows the posts.
+    (function () {
+      const agency = document.getElementById('f-agency_id'), client = document.getElementById('f-client_id'), post = document.getElementById('f-post_id');
+      function narrow(select, test) {
+        [...select.options].forEach(o => { if (o.value) { o.hidden = o.disabled = !test(o); } });
+        if (select.selectedOptions[0] && select.selectedOptions[0].disabled) select.value = '';
+      }
+      function update() {
+        narrow(client, o => !agency.value || o.dataset.agency === agency.value);
+        narrow(post, o => (!agency.value || o.dataset.agency === agency.value) && (!client.value || o.dataset.client === client.value));
+      }
+      agency.addEventListener('change', update);
+      client.addEventListener('change', update);
+      post.addEventListener('change', () => { const o = post.selectedOptions[0]; if (o && o.value) { client.value = o.dataset.client; } });
+      update();
+      // A required field on a hidden tab: open that tab so the browser can point at it.
+      agency.form.addEventListener('invalid', e => {
+        const pane = e.target.closest('.tab-pane');
+        if (pane && !pane.classList.contains('active')) bootstrap.Tab.getOrCreateInstance(document.querySelector('[data-bs-target="#' + pane.id + '"]')).show();
+      }, true);
+    })();
+  </script>
   @if($errors->any())
   <script>document.addEventListener('DOMContentLoaded',()=>{const bad=document.querySelector('.is-invalid');const pane=bad&&bad.closest('.tab-pane');if(pane){bootstrap.Tab.getOrCreateInstance(document.querySelector('[data-bs-target="#'+pane.id+'"]')).show();}});</script>
   @endif

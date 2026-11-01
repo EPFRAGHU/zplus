@@ -108,7 +108,7 @@ class WebFlowTest extends TestCase
         $this->assertStringContainsString('••••4245', $html);
 
         // Saving the form with the field left blank keeps the stored number.
-        $this->put("/employees/{$employee->id}", ['emp_code' => $employee->emp_code, 'name' => $employee->name, 'status' => 'active', 'account_number' => ''])
+        $this->put("/employees/{$employee->id}", ['emp_code' => $employee->emp_code, 'agency_id' => $employee->agency_id, 'name' => $employee->name, 'status' => 'active', 'account_number' => ''])
             ->assertSessionHasNoErrors();
         $this->assertSame('2957101004245', $employee->fresh()->account_number);
     }
@@ -118,7 +118,7 @@ class WebFlowTest extends TestCase
         $this->seed(DemoSeeder::class);
         $employee = Employee::query()->firstOrFail();
         $this->actingAs($this->user('admin'))
-            ->put("/employees/{$employee->id}", ['emp_code' => $employee->emp_code, 'name' => $employee->name, 'status' => 'active', 'ifsc' => 'BARB0VJNIVI00000'])
+            ->put("/employees/{$employee->id}", ['emp_code' => $employee->emp_code, 'agency_id' => $employee->agency_id, 'name' => $employee->name, 'status' => 'active', 'ifsc' => 'BARB0VJNIVI00000'])
             ->assertSessionHasErrors(['ifsc' => 'An IFSC has 11 characters: 4 letters, a zero, then 6 letters or digits.']);
     }
 

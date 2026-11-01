@@ -60,6 +60,7 @@ final class GemWorkbookImporter
 
         DB::transaction(function () use ($plan, $client, &$created) {
             $postIds = [];   // plan post key => Post id
+            $placement = []; // plan post key => [agency_id, client_id]
             foreach ($plan->contracts as $c) {
                 if (GemContract::query()->where('contract_no', $c['contract_no'])->exists()) {
                     $created['skipped_contracts']++;
@@ -82,6 +83,7 @@ final class GemWorkbookImporter
                         $postIds[$post['key']] = $project->posts()->create([
                             'designation' => $post['designation'], 'sanctioned_qty' => $post['qty'], 'rate' => $post['rate'],
                         ])->id;
+                        $placement[$post['key']] = [$agency->id, $agencyClient->id];
                         $created['posts']++;
                     }
                 }
@@ -92,8 +94,18 @@ final class GemWorkbookImporter
                 if ($s['post_key'] !== null && $postId === null) {
                     continue;   // its contract already existed, so it was imported before
                 }
+                if ($postId !== null) {
+                    [$agencyId, $clientId] = $placement[$s['post_key']];
+                } else {
+                    // Not on any agency sheet: the PI sheet's AGENCY column still says who employs them.
+                    [$name, $code] = self::AGENCIES[$this->agencyKey($s['agency'] ?? '')] ?? [null, null];
+                    $agency = $code ? Agency::query()->firstOrCreate(['code' => $code], ['name' => $name]) : null;
+                    [$agencyId, $clientId] = $agency ? [$agency->id, $this->clientFor($client, $agency)->id] : [null, null];
+                }
                 Employee::query()->create([
                     'emp_code' => Employee::nextCode(),
+                    'agency_id' => $agencyId,
+                    'client_id' => $clientId,
                     'post_id' => $postId,
                     'name' => $s['name'],
                     'status' => 'active',
@@ -221,11 +233,13 @@ final class GemWorkbookImporter
         $rows = $sheet->toArray(null, false, false, false);
         foreach ($this->findHeaderRows($sheet, 'name of the employer') as $h) {
             $cols = $this->mapColumns($rows[$h], [
-                'name' => 'name of the employer', 'designation' => ['desiganation', 'designation'], 'salary' => 'salary',
+                'name' => 'name of the employer', 'agency' => 'agency', 'designation' => ['desiganation', 'designation'], 'salary' => 'salary',
                 'sbi' => 'sbi', 'other' => 'other bank', 'ifsc' => ['ifsc code', 'ifsc'],
             ]);
+            $agencyName = null;
             for ($r = $h + 1; $r < count($rows); $r++) {
                 $row = $rows[$r];
+                $agencyName = $this->scalar($row[$cols['agency']] ?? null) ?? $agencyName;
                 if ($this->isHeader($row, 'name of the employer') || Str::startsWith($this->norm($row[0] ?? ''), 'name of the p')) {
                     break;
                 }
@@ -239,7 +253,7 @@ final class GemWorkbookImporter
                 $salary = $row[$cols['salary']] ?? null;
                 $plan->staff[] = [
                     'name' => trim(preg_replace('/\s+/', ' ', $name)),
-                    'sheet' => $sheet->getTitle(), 'row' => $r + 1,
+                    'sheet' => $sheet->getTitle(), 'row' => $r + 1, 'agency' => $agencyName,
                     'designation' => $this->scalar($row[$cols['designation']] ?? null),
                     'salary' => is_numeric($salary) ? number_format((float) $salary, 2, '.', '') : null,
                     'account' => $sbi ?? $other,
@@ -429,6 +443,12 @@ final class GemWorkbookImporter
         }
 
         return trim((string) $v);
+    }
+
+    /** "SWACHHA", "Z PLUS", "ZPLUS" => key of self::AGENCIES */
+    private function agencyKey(string $name): string
+    {
+        return strtoupper(preg_replace('/[^A-Za-z]/', '', $name));
     }
 
     private function nameKey(string $name): string

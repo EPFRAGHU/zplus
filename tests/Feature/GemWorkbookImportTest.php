@@ -86,6 +86,11 @@ class GemWorkbookImportTest extends TestCase
         $this->assertSame(2, GemContract::query()->where('client_id', $swhClient->id)->count());
         $manager = Employee::query()->where('name', 'Mr. Test Manager')->firstOrFail();
         $this->assertSame('APM', $manager->post->designation);
+        $this->assertSame($swhClient->id, $manager->client_id);                 // placed staff carry agency and client
+        $this->assertSame($swhClient->agency_id, $manager->agency_id);
+        $unknown = Employee::query()->where('name', 'Unknown Person')->firstOrFail(); // no post: agency from the PI sheet's AGENCY column
+        $this->assertSame($swhClient->agency_id, $unknown->agency_id);
+        $this->assertNull($unknown->post_id);
         $this->assertSame('55500.00', (string) $manager->rate_override);
         $this->assertSame('0000', $manager->account_last4);
         $this->assertNotSame('2957101000000', $manager->getRawOriginal('account_number'));   // stored encrypted

@@ -39,7 +39,7 @@ class DemoSeeder extends Seeder
 
         foreach ([[$apm, 'Amit Kumar (sample)'], [$apa, 'Ritu Panda (sample)']] as [$post, $name]) {
             Employee::query()->firstOrCreate(['name' => $name], [
-                'emp_code' => Employee::nextCode(), 'post_id' => $post->id, 'joining_date' => '2026-10-01', 'status' => 'active',
+                'emp_code' => Employee::nextCode(), 'agency_id' => $zplus->id, 'client_id' => $icmr->id, 'post_id' => $post->id, 'joining_date' => '2026-10-01', 'status' => 'active',
                 'bank_name' => 'Canara Bank', 'account_holder' => strtoupper($name), 'account_number' => '0000000000'.random_int(100, 999), 'ifsc' => 'CNRB0002957',
             ]);
         }
