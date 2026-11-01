@@ -50,6 +50,7 @@
     @php($block = false)
     @forelse($invoices as $i)
       @if($block === false || $block !== $i->agency_id)
+        @php($clientBlock = false)
         @php($continued = $block === false && $carriedAgency !== false && $carriedAgency === $i->agency_id)
         @php($block = $i->agency_id)
         @php($t = $blockTotals[$i->agency_id] ?? null)
@@ -57,6 +58,11 @@
           <b class="fs-6">{{ $i->contract->agency->name }}</b> <span class="badge text-bg-dark">{{ $i->contract->agency->code }}</span>
           @if($t)<span class="small text-secondary ms-2">{{ $t->bills }} {{ \Illuminate\Support\Str::plural('bill', $t->bills) }} · {{ inr($t->billed) }} billed · {{ inr($t->unpaid) }} awaiting payment{{ $continued ? ' · continued from the previous page' : '' }}</span>@endif
         </td></tr>
+      @endif
+      @if($clientBlock === false || $clientBlock !== $i->contract->client_id)
+        @php($clientBlock = $i->contract->client_id)
+        @php($ct = $clientTotals[$i->contract->client_id] ?? null)
+        <x-client-block :client="$i->contract->client" colspan="9" :meta="$ct ? $ct->bills.' '.\Illuminate\Support\Str::plural('bill', $ct->bills).' · '.inr($ct->billed).' billed · '.inr($ct->unpaid).' awaiting payment' : null" />
       @endif
       <tr><td><a class="mono" href="{{ route('invoices.show', $i) }}">{{ $i->invoice_no }}</a></td><td><span class="badge text-bg-light border" title="{{ $i->contract->agency->name }}">{{ $i->contract->agency->code }}</span></td><td>{{ $i->contract->client->name }}</td>
         <td><a class="mono text-decoration-none" href="{{ route('contracts.show', $i->contract) }}">{{ $i->contract->bid_no }}</a></td>

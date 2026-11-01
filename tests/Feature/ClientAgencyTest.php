@@ -142,12 +142,13 @@ class ClientAgencyTest extends TestCase
         $admin = User::factory()->create(['role' => 'admin']);
         $swh = Agency::query()->where('code', 'SWH')->firstOrFail();
 
-        $html = $this->actingAs($admin)->get('/agencies')->assertOk()->assertSee('<th>Clients</th>', false)->getContent();
-        $this->assertSame(2, substr_count($html, 'ICMR-NIHR (RMRCBB), Bhubaneswar</a>'));   // listed under both agencies
-        $this->assertStringContainsString('· 1 contract', $html);
-        $this->assertStringContainsString('· 0 contracts', $html);
+        $html = $this->actingAs($admin)->get('/agencies')->assertOk()->getContent();
+        $this->assertSame(2, substr_count($html, 'client-block'));                       // one client block under each agency
+        $this->assertSame(2, substr_count($html, '<b>ICMR-NIHR (RMRCBB), Bhubaneswar</b>'));
+        $this->assertStringContainsString('1 contract · 2 employees', $html);            // Z Plus's ICMR
+        $this->assertStringContainsString('0 contracts · 0 employees', $html);           // SWACHHA's ICMR
 
-        // "Add client" from an agency row opens the form with that agency chosen.
+        // "Add client" from an agency block opens the form with that agency chosen.
         $this->get('/clients/create?agency='.$swh->id)->assertOk()->assertSee('<option value="'.$swh->id.'" selected>', false);
     }
 
@@ -155,12 +156,13 @@ class ClientAgencyTest extends TestCase
     {
         $this->seed(DemoSeeder::class);
         $html = $this->actingAs(User::factory()->create(['role' => 'admin']))->get('/clients')->assertOk()
-            ->assertSee('<th>GeM contracts</th><th class="num">Employees</th>', false)->getContent();
+            ->assertSee('<th>GeM contract</th><th>Contract no.</th>', false)->getContent();
 
-        $this->assertStringContainsString('GEM/2026/B/7972720</a>', $html);   // Z Plus's ICMR contract
-        $this->assertStringContainsString('· 1 project', $html);
-        $this->assertStringContainsString('No contracts yet', $html);          // SWACHHA's ICMR record
-        $this->assertMatchesRegularExpression('#/employees\?agency=\d+&amp;client=\d+">2</a>#', $html);
+        $this->assertSame(2, substr_count($html, 'client-block'));
+        $this->assertStringContainsString('Bill code ICMR · 1 contract · 2 employees', $html);   // Z Plus's ICMR block
+        $this->assertStringContainsString('GEM/2026/B/7972720</a>', $html);                     // its contract row
+        $this->assertStringContainsString('No contracts yet for this client.', $html);          // SWACHHA's ICMR
+        $this->assertMatchesRegularExpression('#/employees\?agency=\d+&amp;client=\d+" title="Employees of this client">2 #', $html);
     }
 
     public function test_clients_page_is_split_into_agency_blocks(): void
@@ -193,6 +195,7 @@ class ClientAgencyTest extends TestCase
         $this->assertNotFalse($swhPos);
         $this->assertStringContainsString('1 contract · 1 project · 2 / 2 posts filled', $html);
         $this->assertGreaterThan($swhPos, strpos($html, 'GEM/2026/B/0000001'));   // SWACHHA's contract under its block, even though its number sorts first
-        $this->assertStringContainsString('Client: <b>ICMR-NIHR (RMRCBB), Bhubaneswar</b>', $html);
+        $this->assertStringContainsString('client-block', $html);
+        $this->assertStringContainsString('Add contract for this client', $html);
     }
 }

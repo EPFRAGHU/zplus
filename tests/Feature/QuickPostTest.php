@@ -91,7 +91,7 @@ class QuickPostTest extends TestCase
             ->assertSee('<th>Agency</th><th>Client</th>', false)
             ->assertSee('<b class="fs-6">M/S Z Plus Surakhya Seva</b> <span class="badge text-bg-dark">ZPS</span>', false)
             ->assertSee('2 posts · 2 sanctioned · 2 filled · 1 contract')
-            ->assertSee('<span class="small text-secondary">Client</span> <b>ICMR-NIHR (RMRCBB), Bhubaneswar</b>', false)
+            ->assertSee('client-block', false)->assertSee('<b>ICMR-NIHR (RMRCBB), Bhubaneswar</b>', false)
             ->assertSee('1 contract · 1 project · 2 posts · 2 sanctioned · 2 filled')
             ->assertSee('Add post for this client');
     }

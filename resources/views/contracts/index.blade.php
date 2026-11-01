@@ -30,13 +30,17 @@
       <div class="d-flex align-items-center gap-2 flex-wrap mt-4 mb-2 px-3 py-2 rounded bg-body-secondary border">
         <b class="fs-6">{{ $c->agency->name }}</b> <span class="badge text-bg-dark">{{ $c->agency->code }}</span>
         <span class="small text-secondary">{{ $inAgency->count() }} {{ \Illuminate\Support\Str::plural('contract', $inAgency->count()) }} · @php($nProj = $inAgency->sum(fn ($k) => $k->projects->count())){{ $nProj }} {{ \Illuminate\Support\Str::plural('project', $nProj) }} · {{ $aPosts->sum('active_employees_count') }} / {{ $aPosts->sum('sanctioned_qty') }} posts filled</span>
-        @can('manage-masters')<a class="small ms-auto" href="{{ route('contracts.create') }}"><i class="bi bi-plus"></i>Add contract</a>@endcan
+        @can('manage-masters')<a class="small ms-auto" href="{{ route('contracts.create', ['agency' => $c->agency_id]) }}"><i class="bi bi-plus"></i>Add contract</a>@endcan
       </div>
     @endif
     @if($group !== $c->client_id)
       @php($group = $c->client_id)
       @php($inGroup = $contracts->where('client_id', $c->client_id))
-      <div class="small mb-2 ps-3">Client: <b>{{ $c->client->name }}</b> <span class="text-secondary ms-1">{{ $inGroup->count() }} {{ \Illuminate\Support\Str::plural('contract', $inGroup->count()) }}</span></div>
+      @php($cPosts = $inGroup->flatMap(fn ($k) => $k->projects->flatMap->posts))
+      @php($cProj = $inGroup->sum(fn ($k) => $k->projects->count()))
+      <x-client-block :client="$c->client" :meta="$inGroup->count().' '.\Illuminate\Support\Str::plural('contract', $inGroup->count()).' · '.$cProj.' '.\Illuminate\Support\Str::plural('project', $cProj).' · '.$cPosts->sum('active_employees_count').' / '.$cPosts->sum('sanctioned_qty').' posts filled'">
+        @can('manage-masters')<a class="btn btn-sm btn-outline-primary" href="{{ route('contracts.create', ['agency' => $c->agency_id, 'client' => $c->client_id]) }}"><i class="bi bi-plus-lg"></i> Add contract for this client</a>@endcan
+      </x-client-block>
     @endif
     @php($posts = $c->projects->flatMap->posts) @php($s = $posts->sum('sanctioned_qty')) @php($f = $posts->sum('active_employees_count'))
     <div class="z-card mb-2">

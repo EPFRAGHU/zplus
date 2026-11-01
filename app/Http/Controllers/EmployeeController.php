@@ -42,12 +42,14 @@ class EmployeeController extends Controller
             ->orderByRaw('agency_id is null')->orderBy($agencyName)->orderBy($clientName)->orderBy('name')
             ->paginate(50)->withQueryString();
         $blockCounts = (clone $filtered)->selectRaw('agency_id, count(*) as total')->groupBy('agency_id')->pluck('total', 'agency_id');
+        $clientCounts = (clone $filtered)->selectRaw('agency_id, client_id, count(*) as total, sum(case when post_id is null then 0 else 1 end) as placed')
+            ->groupBy('agency_id', 'client_id')->get()->keyBy(fn ($r) => $r->agency_id.'-'.$r->client_id);
         // Agency of the last employee on the previous page, so a block split across pages says "continued".
         $carriedAgency = $employees->onFirstPage() ? false : (clone $filtered)
             ->orderByRaw('agency_id is null')->orderBy($agencyName)->orderBy($clientName)->orderBy('name')
             ->skip(($employees->currentPage() - 1) * $employees->perPage() - 1)->take(1)->value('agency_id');
 
-        return view('employees.index', ['employees' => $employees, 'blockCounts' => $blockCounts, 'carriedAgency' => $carriedAgency, 'projects' => Project::query()->with('contract')->orderBy('name')->get(),
+        return view('employees.index', ['employees' => $employees, 'blockCounts' => $blockCounts, 'carriedAgency' => $carriedAgency, 'clientCounts' => $clientCounts, 'projects' => Project::query()->with('contract')->orderBy('name')->get(),
             'contracts' => GemContract::query()->orderBy('bid_no')->get(['id', 'agency_id', 'client_id', 'bid_no']),
             'agencies' => Agency::query()->orderBy('name')->get(), 'clients' => Client::query()->with('agency')->orderBy('name')->get()]);
     }

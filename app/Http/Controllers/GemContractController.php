@@ -32,12 +32,14 @@ class GemContractController extends Controller
             'agencyId' => $request->integer('agency') ?: null, 'clientId' => $request->integer('client') ?: null]);
     }
 
-    public function create(): View
+    public function create(Request $request): View
     {
         Gate::authorize('manage-masters');
 
         return view('contracts.form', $this->formData(new GemContract([
             'billing_type' => 'monthly', 'service_charge_percent' => '3.85', 'gst_percent' => '18', 'epf_percent' => '13', 'esic_percent' => '3.25',
+            // "Add contract for this client" pre-fills the agency and client.
+            'agency_id' => $request->integer('agency') ?: null, 'client_id' => $request->integer('client') ?: null,
         ])));
     }
 

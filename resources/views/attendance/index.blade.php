@@ -32,10 +32,8 @@
         @if($clientBlock !== $p->contract->client_id)
           @php($clientBlock = $p->contract->client_id)
           @php($inClient = $projects->filter(fn ($x) => $x->contract->client_id === $clientBlock))
-          <tr class="table-light"><td colspan="8" class="py-1 ps-4 small">
-            Client: <b>{{ $p->contract->client->name }}</b>
-            <span class="text-secondary ms-2">{{ $inClient->count() }} {{ \Illuminate\Support\Str::plural('project', $inClient->count()) }} · {{ $sheets->only($inClient->pluck('id')->all())->where('status', 'locked')->count() }} locked</span>
-          </td></tr>
+          @php($cSheets = $sheets->only($inClient->pluck('id')->all()))
+          <x-client-block :client="$p->contract->client" colspan="8" :meta="$inClient->count().' '.\Illuminate\Support\Str::plural('project', $inClient->count()).' · '.$cSheets->where('status', 'locked')->count().' locked · '.$cSheets->filter(fn ($sh) => $sh->invoice)->count().' billed for '.$month->format('F')" />
         @endif
         <tr>
           <td><span class="badge text-bg-light border" title="{{ $p->contract->agency->name }}">{{ $p->contract->agency->code }}</span></td>

@@ -343,7 +343,8 @@ class WebFlowTest extends TestCase
         $this->assertStringContainsString('1 project · 1 locked · 0 billed for October', $html);   // Z Plus block
         $this->assertStringContainsString('1 project · 0 locked · 0 billed for October', $html);   // SWACHHA block
         $this->assertGreaterThan($swhHead, strpos($html, '<td class="fw-semibold">AAA Swachha Project</td>'));   // table row, not the filter list
-        $this->assertStringContainsString('Client: <b>ICMR-NIHR (RMRCBB), Bhubaneswar</b>', $html);
+        $this->assertStringContainsString('client-block', $html);
+        $this->assertStringContainsString('1 project · 1 locked · 0 billed for October', $html);   // Z Plus's ICMR client block
     }
 
     public function test_bills_are_split_into_agency_blocks(): void
@@ -387,5 +388,24 @@ class WebFlowTest extends TestCase
         $this->assertGreaterThanOrEqual(1, substr_count($html, '<b class="fs-6">SWACHHA</b>'));
         $this->assertStringContainsString('1 client · 1 contract · 2 staff · ₹1,05,387 billed', $html);
         $this->assertStringContainsString('1 project · 2 / 2 staff · 1 locked · 1 billed for', $html);
+    }
+
+    public function test_every_list_shows_client_blocks_inside_agency_blocks(): void
+    {
+        $this->seed(DemoSeeder::class);
+        $admin = $this->user('admin');
+        $service = app(AttendanceService::class);
+        $sheet = $service->open(Project::query()->where('code', 'MPH')->firstOrFail(), CarbonImmutable::parse('2026-10-01'));
+        $service->lock($sheet, $admin, null);
+        app(InvoiceGenerator::class)->generate($sheet->fresh(), $admin);
+
+        foreach (['/agencies', '/clients', '/contracts', '/posts', '/employees', '/attendance?month=2026-10', '/invoices'] as $url) {
+            $html = $this->actingAs($admin)->get($url)->assertOk()->getContent();
+            $this->assertStringContainsString('client-block', $html, "No client block on {$url}");
+            $this->assertStringContainsString('<span class="badge text-bg-dark">ZPS</span>', $html, "No agency block on {$url}");
+            $this->assertDoesNotMatchRegularExpression('/@(else|endif|endforeach|endcan)\b/', strip_tags($html), "Stray template code on {$url}");
+        }
+        $this->get('/employees')->assertSee('2 employees · 2 placed on posts');
+        $this->get('/invoices')->assertSee('1 bill · ₹1,05,387 billed · ₹0 awaiting payment');
     }
 }

@@ -111,8 +111,8 @@ class EmployeePlacementTest extends TestCase
         }
 
         $html = $this->actingAs(User::factory()->create(['role' => 'admin']))->get('/employees')->assertOk()->getContent();
-        $zpsHead = strpos($html, '<b>M/S Z Plus Surakhya Seva</b>');
-        $swhHead = strpos($html, '<b>SWACHHA</b>');
+        $zpsHead = strpos($html, '<b class="fs-6">M/S Z Plus Surakhya Seva</b>');
+        $swhHead = strpos($html, '<b class="fs-6">SWACHHA</b>');
         $this->assertNotFalse($zpsHead);
         $this->assertNotFalse($swhHead);
         $this->assertStringContainsString('2 employees', $html);
@@ -121,6 +121,6 @@ class EmployeePlacementTest extends TestCase
         $this->assertGreaterThan($zpsHead, strpos($html, 'Amit Kumar (sample)'));
         $this->assertLessThan($swhHead, strpos($html, 'Ritu Panda (sample)'));
         $this->assertGreaterThan($swhHead, strpos($html, 'Aaron Swachha'));
-        $this->assertSame(1, substr_count($html, '<b>SWACHHA</b>'));
+        $this->assertSame(1, substr_count($html, '<b class="fs-6">SWACHHA</b>'));
     }
 }

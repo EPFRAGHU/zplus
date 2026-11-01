@@ -21,16 +21,22 @@
     @php($block = false)
     @forelse ($employees as $e)
       @if($block === false || $block !== $e->agency_id)
+        @php($clientBlock = false)
         @php($starts = $block === false && $carriedAgency !== false && $carriedAgency === $e->agency_id)
         @php($block = $e->agency_id)
-        <tr class="table-light"><td colspan="9" class="py-2">
+        <tr class="table-secondary"><td colspan="9" class="py-2">
           @if($e->agency)
-            <b>{{ $e->agency->name }}</b> <span class="badge text-bg-dark">{{ $e->agency->code }}</span>
+            <b class="fs-6">{{ $e->agency->name }}</b> <span class="badge text-bg-dark">{{ $e->agency->code }}</span>
           @else
-            <b>No agency set</b>
+            <b class="fs-6">No agency set</b>
           @endif
           <span class="small text-secondary ms-2">{{ $blockCounts[$e->agency_id ?? ''] ?? 0 }} {{ \Illuminate\Support\Str::plural('employee', $blockCounts[$e->agency_id ?? ''] ?? 0) }}{{ $starts ? ' · continued from the previous page' : '' }}</span>
         </td></tr>
+      @endif
+      @if($clientBlock === false || $clientBlock !== $e->client_id)
+        @php($clientBlock = $e->client_id)
+        @php($cc = $clientCounts[$e->agency_id.'-'.$e->client_id] ?? null)
+        <x-client-block :client="$e->client" colspan="9" :meta="$cc ? $cc->total.' '.\Illuminate\Support\Str::plural('employee', $cc->total).' · '.$cc->placed.' placed on posts' : null" />
       @endif
       <tr>
         <td><a class="fw-semibold text-decoration-none" href="{{ route('employees.show', $e) }}">{{ $e->name }}</a><div class="mono text-secondary">{{ $e->emp_code }}</div></td>

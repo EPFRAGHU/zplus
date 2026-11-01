@@ -1,26 +1,31 @@
 <x-layouts.app title="Agencies" crumb="Masters / <span class='text-danger'>Agencies</span>">
   <x-slot:actions>@can('manage-masters')<a class="btn btn-primary" href="{{ route('agencies.create') }}"><i class="bi bi-plus-lg me-1"></i>Add agency</a>@endcan</x-slot:actions>
-  <div class="z-card"><div class="table-responsive"><table class="table table-hover">
-    <thead><tr><th>Agency</th><th>Code</th><th>Clients</th><th class="num">Contracts</th><th class="num">Employees</th><th>GSTIN</th><th>Signatory</th><th></th></tr></thead>
-    <tbody>
-    @forelse ($agencies as $a)
-      <tr>
-        <td class="fw-semibold">{{ $a->name }}</td><td class="mono">{{ $a->code }}</td>
-        <td>
-          @forelse($a->clients as $c)
-            <div><a href="{{ route('contracts.index', ['agency' => $a->id, 'client' => $c->id]) }}" class="text-decoration-none">{{ $c->name }}</a>
-              <span class="small text-secondary">· {{ $c->contracts_count }} {{ \Illuminate\Support\Str::plural('contract', $c->contracts_count) }}</span></div>
-          @empty
-            <span class="text-secondary">No clients yet</span>
-          @endforelse
-          @can('manage-masters')<a class="small" href="{{ route('clients.create', ['agency' => $a->id]) }}"><i class="bi bi-plus"></i>Add client</a>@endcan
-        </td>
-        <td class="num">{{ $a->contracts_count }}</td>
-        <td class="num"><a href="{{ route('employees.index', ['agency' => $a->id]) }}">{{ $a->employees_count }}</a></td>
-        <td class="mono">{{ $a->gstin ?? '—' }}</td><td>{{ $a->signatory_name ?? '—' }}</td>
-        <td class="text-end">@can('manage-masters')<a class="btn btn-sm btn-outline-secondary" href="{{ route('agencies.edit', $a) }}">Edit</a>@endcan</td></tr>
-    @empty
-      <tr><td colspan="8" class="text-center text-secondary py-4">No agencies yet. Add SWACHHA and Z Plus Surakhya Seva, or import your GeM workbook.</td></tr>
-    @endforelse
-    </tbody></table></div></div>
+  @forelse ($agencies as $a)
+    <div class="z-card mb-3">
+      <div class="d-flex align-items-center gap-2 flex-wrap px-3 py-2 rounded-top bg-body-secondary border-bottom">
+        <b class="fs-6">{{ $a->name }}</b> <span class="badge text-bg-dark">{{ $a->code }}</span>
+        <span class="small text-secondary">{{ $a->clients_count }} {{ \Illuminate\Support\Str::plural('client', $a->clients_count) }} · {{ $a->contracts_count }} {{ \Illuminate\Support\Str::plural('contract', $a->contracts_count) }} ·
+          <a href="{{ route('employees.index', ['agency' => $a->id]) }}">{{ $a->employees_count }} {{ \Illuminate\Support\Str::plural('employee', $a->employees_count) }}</a></span>
+        <span class="small text-secondary">· GSTIN <span class="mono">{{ $a->gstin ?? '—' }}</span> · Signatory {{ $a->signatory_name ?? '—' }}</span>
+        @can('manage-masters')
+          <div class="ms-auto d-flex gap-2">
+            <a class="btn btn-sm btn-outline-primary" href="{{ route('clients.create', ['agency' => $a->id]) }}"><i class="bi bi-plus-lg"></i> Add client</a>
+            <a class="btn btn-sm btn-outline-secondary" href="{{ route('agencies.edit', $a) }}">Edit</a>
+          </div>
+        @endcan
+      </div>
+      <div class="p-3 pb-1">
+        @forelse($a->clients as $c)
+          <x-client-block :client="$c" :meta="$c->contracts_count.' '.\Illuminate\Support\Str::plural('contract', $c->contracts_count).' · '.$c->employees_count.' '.\Illuminate\Support\Str::plural('employee', $c->employees_count)">
+            <a class="btn btn-sm btn-outline-secondary" href="{{ route('contracts.index', ['agency' => $a->id, 'client' => $c->id]) }}">Contracts</a>
+            <a class="btn btn-sm btn-outline-secondary" href="{{ route('employees.index', ['agency' => $a->id, 'client' => $c->id]) }}">Employees</a>
+          </x-client-block>
+        @empty
+          <p class="small text-secondary mb-2">No clients yet. Use <b>Add client</b> to add the first one.</p>
+        @endforelse
+      </div>
+    </div>
+  @empty
+    <div class="z-card p-4 text-center text-secondary">No agencies yet. Add SWACHHA and Z Plus Surakhya Seva, or import your GeM workbook.</div>
+  @endforelse
 </x-layouts.app>
