@@ -127,4 +127,38 @@ class LetterheadTest extends TestCase
         $this->assertSame('banner', $agency->fresh()->letterhead_style);
         $this->put("/agencies/{$agency->id}", ['name' => 'SWACHHA', 'code' => 'SWH', 'letterhead_style' => 'fancy'])->assertSessionHasErrors('letterhead_style');
     }
+
+    public function test_swachha_tax_invoice_prints_the_banner_letterhead(): void
+    {
+        Storage::fake('local');
+        $this->seed(DemoSeeder::class);
+        $admin = User::factory()->create(['role' => 'admin']);
+        $swh = Agency::query()->where('code', 'SWH')->firstOrFail();
+        $contract = \App\Models\GemContract::query()->firstOrFail();
+        $contract->update(['agency_id' => $swh->id, 'client_id' => \App\Models\Client::query()->where('agency_id', $swh->id)->value('id')]);
+        $service = app(AttendanceService::class);
+        $sheet = $service->open(Project::query()->where('code', 'MPH')->firstOrFail(), CarbonImmutable::parse('2026-10-01'));
+        $service->lock($sheet, $admin, null);
+        $invoice = app(InvoiceGenerator::class)->generate($sheet->fresh(), $admin);
+        $tax = app(\App\Services\Billing\TaxInvoiceBuilder::class)->create($contract->fresh()->client, CarbonImmutable::parse('2026-10-01'), [$invoice->id], $admin);
+
+        $tax->load('agency', 'client', 'subBills.project', 'subBills.contract');
+        $html = view('pdf.tax-invoice', ['tax' => $tax, 'agency' => $tax->agency, 'client' => $tax->client])->render();
+        $this->assertStringContainsString('&ldquo;SWACHHA&rdquo;', $html);
+        $this->assertStringContainsString('Regd. Office Address:', $html);
+        $this->assertStringContainsString(':21AADAS8034Q1Z6', $html);
+        $this->assertStringContainsString('TAX INVOICE', $html);
+
+        $this->actingAs($admin)->get("/tax-invoices/{$tax->id}/pdf")->assertOk()->assertHeader('content-type', 'application/pdf');
+    }
+
+    public function test_swachha_switches_to_banner_even_when_details_were_typed_in(): void
+    {
+        $agency = Agency::query()->create(['name' => 'SWACHHA', 'code' => 'SWA', 'tagline' => 'Manpower services', 'letterhead_style' => 'classic']);
+        (require database_path('migrations/2026_11_04_000200_use_banner_letterhead_for_swachha.php'))->up();
+        $agency->refresh();
+        $this->assertSame('banner', $agency->letterhead_style);
+        $this->assertSame('Manpower services', $agency->tagline);   // typed details are kept
+        $this->assertSame('21AADAS8034Q1Z6', $agency->gstin);       // empty ones are filled
+    }
 }
