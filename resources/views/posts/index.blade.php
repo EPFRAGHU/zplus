@@ -15,16 +15,23 @@
   <div class="z-card"><div class="table-responsive"><table class="table table-hover">
     <thead><tr><th>Agency</th><th>Client</th><th>GeM contract</th><th>Project</th><th>Designation</th><th class="num">Sanctioned</th><th class="num">Filled</th><th class="num">Rate</th><th></th></tr></thead>
     <tbody>
-    @php($group = null)
+    @php($agencyBlock = null) @php($group = null)
     @forelse($posts as $p)
       @php($k = $p->project->contract)
+      @if($agencyBlock !== $k->agency_id)
+        @php($agencyBlock = $k->agency_id) @php($group = null)
+        @php($inAgency = $posts->filter(fn ($x) => $x->project->contract->agency_id === $k->agency_id))
+        <tr class="table-secondary"><td colspan="9" class="py-2">
+          <b class="fs-6">{{ $k->agency->name }}</b> <span class="badge text-bg-dark">{{ $k->agency->code }}</span>
+          <span class="small text-secondary ms-2">{{ $inAgency->count() }} {{ \Illuminate\Support\Str::plural('post', $inAgency->count()) }} · {{ $inAgency->sum('sanctioned_qty') }} sanctioned · {{ $inAgency->sum('active_employees_count') }} filled · {{ $inAgency->pluck('project.gem_contract_id')->unique()->count() }} {{ \Illuminate\Support\Str::plural('contract', $inAgency->pluck('project.gem_contract_id')->unique()->count()) }}</span>
+        </td></tr>
+      @endif
       @if($group !== $k->client_id)
         @php($group = $k->client_id)
         @php($inGroup = $posts->filter(fn ($x) => $x->project->contract->client_id === $k->client_id))
-        <tr class="table-light"><td colspan="9" class="py-2">
-          <b>{{ $k->agency->name }}</b> <span class="badge text-bg-light border">{{ $k->agency->code }}</span>
-          <span class="text-secondary mx-1">·</span> <b>{{ $k->client->name }}</b>
-          <span class="small text-secondary ms-2">{{ $inGroup->count() }} {{ \Illuminate\Support\Str::plural('post', $inGroup->count()) }} · {{ $inGroup->sum('sanctioned_qty') }} sanctioned · {{ $inGroup->sum('active_employees_count') }} filled</span>
+        <tr class="table-light"><td colspan="9" class="py-1 ps-4 small">
+          Client: <b>{{ $k->client->name }}</b>
+          <span class="text-secondary ms-2">{{ $inGroup->count() }} {{ \Illuminate\Support\Str::plural('post', $inGroup->count()) }} · {{ $inGroup->sum('sanctioned_qty') }} sanctioned · {{ $inGroup->sum('active_employees_count') }} filled</span>
         </td></tr>
       @endif
       <tr>

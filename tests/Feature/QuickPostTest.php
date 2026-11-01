@@ -89,8 +89,9 @@ class QuickPostTest extends TestCase
         $this->seed(DemoSeeder::class);
         $this->actingAs(User::factory()->create(['role' => 'admin']))->get('/posts')->assertOk()
             ->assertSee('<th>Agency</th><th>Client</th>', false)
-            ->assertSee('<b>M/S Z Plus Surakhya Seva</b>', false)
-            ->assertSee('2 posts · 2 sanctioned · 2 filled');
+            ->assertSee('<b class="fs-6">M/S Z Plus Surakhya Seva</b> <span class="badge text-bg-dark">ZPS</span>', false)
+            ->assertSee('2 posts · 2 sanctioned · 2 filled · 1 contract')
+            ->assertSee('Client: <b>ICMR-NIHR (RMRCBB), Bhubaneswar</b>', false);
     }
 
     public function test_posts_page_filters_by_contract_and_project(): void
