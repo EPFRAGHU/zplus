@@ -88,11 +88,13 @@
   radios('contract_mode').concat(radios('project_mode')).forEach(r => r.addEventListener('change', refresh));
 
   // Opening from the employee form carries over its agency and client.
-  $('addPostModal').addEventListener('show.bs.modal', () => {
-    const ea = document.getElementById('f-agency_id'), ec = document.getElementById('f-client_id');
-    if (ea && ea.value) agency.value = ea.value;
-    refresh();
-    if (ec && ec.value) client.value = ec.value;
+  $('addPostModal').addEventListener('show.bs.modal', e => {
+    // A button may carry data-agency / data-client (Posts page client blocks); otherwise use the employee form's fields.
+    const btn = e.relatedTarget, ea = document.getElementById('f-agency_id'), ec = document.getElementById('f-client_id');
+    const a = (btn && btn.dataset.agency) || (ea && ea.value) || '';
+    const c = (btn && btn.dataset.client) || (ec && ec.value) || '';
+    agency.value = a; refresh();
+    client.value = c;
     errors.hidden = true; refresh();
   });
 

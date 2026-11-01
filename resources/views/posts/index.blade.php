@@ -29,9 +29,18 @@
       @if($group !== $k->client_id)
         @php($group = $k->client_id)
         @php($inGroup = $posts->filter(fn ($x) => $x->project->contract->client_id === $k->client_id))
-        <tr class="table-light"><td colspan="9" class="py-1 ps-4 small">
-          Client: <b>{{ $k->client->name }}</b>
-          <span class="text-secondary ms-2">{{ $inGroup->count() }} {{ \Illuminate\Support\Str::plural('post', $inGroup->count()) }} · {{ $inGroup->sum('sanctioned_qty') }} sanctioned · {{ $inGroup->sum('active_employees_count') }} filled</span>
+        @php($nContracts = $inGroup->pluck('project.gem_contract_id')->unique()->count())
+        @php($nProjects = $inGroup->pluck('project_id')->unique()->count())
+        <tr class="table-info"><td colspan="9" class="py-2 ps-4">
+          <div class="d-flex align-items-center gap-2 flex-wrap">
+            <i class="bi bi-bank text-secondary"></i>
+            <span class="small text-secondary">Client</span> <b>{{ $k->client->name }}</b> <span class="badge text-bg-light border">{{ $k->agency->code }}</span>
+            <span class="small text-secondary">{{ $nContracts }} {{ \Illuminate\Support\Str::plural('contract', $nContracts) }} · {{ $nProjects }} {{ \Illuminate\Support\Str::plural('project', $nProjects) }} · {{ $inGroup->count() }} {{ \Illuminate\Support\Str::plural('post', $inGroup->count()) }} · {{ $inGroup->sum('sanctioned_qty') }} sanctioned · {{ $inGroup->sum('active_employees_count') }} filled</span>
+            @can('manage-masters')
+              <button type="button" class="btn btn-sm btn-outline-primary ms-auto" data-bs-toggle="modal" data-bs-target="#addPostModal"
+                data-agency="{{ $k->agency_id }}" data-client="{{ $k->client_id }}"><i class="bi bi-plus-lg"></i> Add post for this client</button>
+            @endcan
+          </div>
         </td></tr>
       @endif
       <tr>
