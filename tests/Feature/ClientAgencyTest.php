@@ -50,16 +50,41 @@ class ClientAgencyTest extends TestCase
         $this->get('/clients')->assertSee('SWH')->assertSee('ZPS');
     }
 
-    public function test_contract_takes_its_agency_from_the_client(): void
+    public function test_contract_form_shows_agency_and_client_and_they_must_match(): void
     {
         $admin = User::factory()->create(['role' => 'admin']);
         $zps = Agency::query()->create(['name' => 'Z Plus', 'code' => 'ZPS']);
+        $swh = Agency::query()->create(['name' => 'SWACHHA', 'code' => 'SWH']);
         $client = Client::query()->create(['name' => 'ICMR', 'short_code' => 'ICMR', 'agency_id' => $zps->id]);
+        $form = ['client_id' => $client->id, 'bid_no' => 'GEM/2026/B/1', 'contract_no' => 'GEMC-1', 'billing_type' => 'monthly',
+            'service_charge_percent' => '3.85', 'gst_percent' => '18', 'epf_percent' => '13', 'esic_percent' => '3.25', 'status' => 'active'];
 
-        $this->actingAs($admin)->post('/contracts', ['client_id' => $client->id, 'bid_no' => 'GEM/2026/B/1', 'contract_no' => 'GEMC-1',
-            'billing_type' => 'monthly', 'service_charge_percent' => '3.85', 'gst_percent' => '18', 'epf_percent' => '13',
-            'esic_percent' => '3.25', 'status' => 'active'])->assertSessionHasNoErrors();
+        $this->actingAs($admin)->get('/contracts/create')->assertOk()
+            ->assertSee('id="f-agency_id"', false)->assertSee('id="f-client_id"', false)->assertSee('data-agency="'.$zps->id.'"', false);
+        $this->post('/contracts', $form)->assertSessionHasErrors(['agency_id' => 'Choose the agency that raises bills on this contract.']);
+        $this->post('/contracts', $form + ['agency_id' => $swh->id])->assertSessionHasErrors('client_id');
+        $this->post('/contracts', $form + ['agency_id' => $zps->id])->assertSessionHasNoErrors();
         $this->assertSame($zps->id, GemContract::query()->firstOrFail()->agency_id);
+        $this->get('/contracts')->assertSee('ICMR');
+    }
+
+    public function test_contract_agency_and_client_are_fixed_once_billed(): void
+    {
+        $this->seed(DemoSeeder::class);
+        $user = User::factory()->create(['role' => 'admin']);
+        $contract = GemContract::query()->firstOrFail();
+        $sheet = app(AttendanceService::class)->open($contract->projects()->first(), CarbonImmutable::parse('2026-10-01'));
+        app(AttendanceService::class)->lock($sheet, $user, null);
+        app(InvoiceGenerator::class)->generate($sheet->fresh(), $user);
+
+        $swh = Agency::query()->where('code', 'SWH')->firstOrFail();
+        $swhClient = Client::query()->where('agency_id', $swh->id)->firstOrFail();
+        $this->actingAs($user)->get("/contracts/{$contract->id}/edit")->assertSee('Bills exist on this contract');
+        $this->put("/contracts/{$contract->id}", ['agency_id' => $swh->id, 'client_id' => $swhClient->id, 'bid_no' => $contract->bid_no,
+            'contract_no' => $contract->contract_no, 'billing_type' => 'monthly', 'service_charge_percent' => '3.85', 'gst_percent' => '18',
+            'epf_percent' => '13', 'esic_percent' => '3.25', 'status' => 'active'])
+            ->assertSessionHasErrors(['agency_id' => 'Bills have already been made on this contract, so its agency and client cannot change.']);
+        $this->assertSame($contract->agency_id, $contract->fresh()->agency_id);
     }
 
     public function test_agency_cannot_change_once_the_client_has_contracts(): void

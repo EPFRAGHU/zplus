@@ -2,8 +2,26 @@
   <form method="post" action="{{ $contract->exists ? route('contracts.update', $contract) : route('contracts.store') }}" class="z-card p-3">
     @csrf @if($contract->exists) @method('put') @endif
     <div class="row g-3">
-      <x-select name="client_id" label="Client · agency" :options="$clients->mapWithKeys(fn ($c) => [$c->id => $c->label()])" :value="$contract->client_id" required placeholder="Choose client" col="col-md-8"
-        hint="The bill is raised by the client's agency. Each client appears once per agency it works with." />
+      @php($agencyId = (string) old('agency_id', $contract->agency_id))
+      @php($clientId = (string) old('client_id', $contract->client_id))
+      <div class="col-md-4">
+        <label for="f-agency_id" class="form-label small fw-semibold text-secondary mb-1">Agency <span class="text-danger">*</span></label>
+        <select id="f-agency_id" name="agency_id" class="form-select @error('agency_id') is-invalid @enderror" required>
+          <option value="">Choose agency</option>
+          @foreach($agencies as $a)<option value="{{ $a->id }}" @selected($agencyId === (string) $a->id)>{{ $a->name }}</option>@endforeach
+        </select>
+        @error('agency_id')<div class="invalid-feedback">{{ $message }}</div>@enderror
+        <div class="form-text">{{ $locked ? 'Bills exist on this contract, so the agency and client are fixed.' : 'The agency that raises the bills.' }}</div>
+      </div>
+      <div class="col-md-4">
+        <label for="f-client_id" class="form-label small fw-semibold text-secondary mb-1">Client <span class="text-danger">*</span></label>
+        <select id="f-client_id" name="client_id" class="form-select @error('client_id') is-invalid @enderror" required>
+          <option value="">Choose client</option>
+          @foreach($clients as $c)<option value="{{ $c->id }}" data-agency="{{ $c->agency_id }}" @selected($clientId === (string) $c->id)>{{ $c->name }}</option>@endforeach
+        </select>
+        @error('client_id')<div class="invalid-feedback">{{ $message }}</div>@enderror
+        <div class="form-text">Only clients of the selected agency are listed.</div>
+      </div>
       <x-select name="status" label="Status" :options="['active' => 'Active', 'closed' => 'Closed']" :value="$contract->status ?? 'active'" required col="col-md-4" />
       <x-field name="bid_no" label="GeM bid no." :value="$contract->bid_no" required col="col-md-4" class="mono" hint="e.g. GEM/2026/B/7972720" />
       <x-field name="contract_no" label="GeM contract no." :value="$contract->contract_no" required col="col-md-4" class="mono" hint="e.g. GEMC-511687731718030" />
@@ -17,4 +35,14 @@
     </div>
     <div class="d-flex gap-2 justify-content-end mt-3"><a class="btn btn-outline-secondary" href="{{ $contract->exists ? route('contracts.show', $contract) : route('contracts.index') }}">Cancel</a><button class="btn btn-primary">Save contract</button></div>
   </form>
+  <script>
+    (function () {
+      const agency = document.getElementById('f-agency_id'), client = document.getElementById('f-client_id');
+      function update() {
+        [...client.options].forEach(o => { if (o.value) { o.hidden = o.disabled = !!agency.value && o.dataset.agency !== agency.value; } });
+        if (client.selectedOptions[0] && client.selectedOptions[0].disabled) client.value = '';
+      }
+      agency.addEventListener('change', update); update();
+    })();
+  </script>
 </x-layouts.app>

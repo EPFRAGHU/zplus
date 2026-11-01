@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Agency;
 use App\Models\Client;
 use App\Models\GemContract;
+use App\Models\Invoice;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Gate;
@@ -68,12 +69,15 @@ class GemContractController extends Controller
 
     private function formData(GemContract $contract): array
     {
-        return ['contract' => $contract, 'clients' => Client::query()->with('agency')->orderBy('name')->get()];
+        return ['contract' => $contract, 'agencies' => Agency::query()->orderBy('name')->get(),
+            'clients' => Client::query()->with('agency')->orderBy('name')->get(),
+            'locked' => $contract->exists && Invoice::query()->where('gem_contract_id', $contract->id)->exists()];
     }
 
     private function validated(Request $request, ?GemContract $contract = null): array
     {
         $data = $request->validate([
+            'agency_id' => ['required', 'exists:agencies,id'],
             'client_id' => ['required', 'exists:clients,id'],
             'bid_no' => ['required', 'string', 'max:40'],
             'contract_no' => ['required', 'string', 'max:40', Rule::unique('gem_contracts')->ignore($contract)],
@@ -84,15 +88,20 @@ class GemContractController extends Controller
             'epf_percent' => ['required', 'numeric', 'between:0,100', 'decimal:0,4'],
             'esic_percent' => ['required', 'numeric', 'between:0,100', 'decimal:0,4'],
             'status' => ['required', Rule::in(['active', 'closed'])],
+        ], [
+            'agency_id.required' => 'Choose the agency that raises bills on this contract.',
+            'client_id.required' => 'Choose the client this contract is with.',
         ]);
         $data['inter_state'] = $request->boolean('inter_state');
 
-        // The billing agency is always the client's agency.
         $client = Client::query()->findOrFail($data['client_id']);
-        if (! $client->agency_id) {
-            throw ValidationException::withMessages(['client_id' => "Set the agency on {$client->name} first."]);
+        if ((int) $client->agency_id !== (int) $data['agency_id']) {
+            throw ValidationException::withMessages(['client_id' => 'This client belongs to a different agency. Choose a client of the selected agency.']);
         }
-        $data['agency_id'] = $client->agency_id;
+        if ($contract && ((int) $contract->agency_id !== (int) $data['agency_id'] || (int) $contract->client_id !== (int) $data['client_id'])
+            && $contract->projects()->whereHas('attendanceSheets', fn ($q) => $q->whereHas('invoice'))->exists()) {
+            throw ValidationException::withMessages(['agency_id' => 'Bills have already been made on this contract, so its agency and client cannot change.']);
+        }
 
         return $data;
     }

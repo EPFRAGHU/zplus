@@ -24,7 +24,7 @@
       <div class="z-card-h">
         <span class="badge text-bg-light border">{{ $c->agency->code }}</span>
         <div><a class="fw-bold text-decoration-none" href="{{ route('contracts.show', $c) }}">{{ $c->bid_no }}</a><div class="mono text-secondary">{{ $c->contract_no }}</div></div>
-        <div class="small text-secondary">{{ $c->projects->pluck('name')->join(' · ') }}</div>
+        <div class="small"><div class="fw-semibold">{{ $c->client->name }}</div><div class="text-secondary">{{ $c->projects->pluck('name')->join(' · ') }}</div></div>
         <div class="ms-auto d-flex gap-2 align-items-center">
           @if($c->isDaily())<span class="badge text-bg-light border">Daily rate × days + EPF/ESIC</span>@endif
           <span class="badge rounded-pill text-bg-{{ $f < $s ? 'warning' : 'success' }}">{{ $f }}/{{ $s }} filled</span>
