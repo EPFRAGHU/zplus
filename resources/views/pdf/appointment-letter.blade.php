@@ -1,5 +1,6 @@
 <html><head><meta charset="utf-8">@include('pdf._style')</head><body class="letter">
 <table><tr><td>Ref:- {{ $number }}</td><td class="r">Date:- {{ ($employee->joining_date ?? now())->format('d/m/Y') }}</td></tr></table>
+<table style="font-size:11px;margin:4px 0 6px"><tr><td><b>Agency:</b> {{ $agency->name }} ({{ $agency->code }})</td><td class="r"><b>Client:</b> {{ $contract->client->name }}</td></tr></table>
 <p>From,<br>O/o The {{ $agency->name }}<br>{!! nl2br(e($agency->address)) !!}@if($agency->email)<br>Email- {{ $agency->email }}@endif</p>
 <p>To,<br>{{ $employee->name }}@if($employee->mobile)<br>Mob.: {{ $employee->mobile }}@endif @if($employee->email)<br>E-mail: {{ $employee->email }}@endif</p>
 <p><b>Subject: Appointment as {{ $employee->post->designation }}</b><br><b>Project: "{{ $project->name }}"</b></p>

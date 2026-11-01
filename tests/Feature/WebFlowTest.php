@@ -226,4 +226,19 @@ class WebFlowTest extends TestCase
 
         $this->actingAs($admin)->get("/invoices/{$invoice->id}/pdf")->assertOk()->assertHeader('content-type', 'application/pdf');
     }
+
+    public function test_appointment_letter_names_the_agency_and_client(): void
+    {
+        $this->seed(DemoSeeder::class);
+        $employee = Employee::query()->with('post.project.contract.agency', 'post.project.contract.client')->firstOrFail();
+        $project = $employee->post->project;
+
+        $html = view('pdf.appointment-letter', ['employee' => $employee, 'project' => $project, 'contract' => $project->contract,
+            'agency' => $project->contract->agency, 'number' => 'ZPS/NIHR/MPH/01/26', 'rate' => '55000',
+            'rateWords' => 'Rupees Fifty Five Thousand Only'])->render();
+        $this->assertStringContainsString('<b>Agency:</b> M/S Z Plus Surakhya Seva (ZPS)', $html);
+        $this->assertStringContainsString('<b>Client:</b> ICMR-NIHR (RMRCBB), Bhubaneswar', $html);
+
+        $this->actingAs($this->user('admin'))->get("/employees/{$employee->id}/appointment-letter")->assertOk()->assertHeader('content-type', 'application/pdf');
+    }
 }
