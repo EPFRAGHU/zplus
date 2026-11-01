@@ -22,6 +22,7 @@ class DemoSeeder extends Seeder
         Agency::query()->firstOrCreate(['code' => 'SWH'], ['name' => 'SWACHHA', 'email' => 'hr.swachha@gmail.com',
             'address' => "Plot No- 1468/5398/7693, Bhaktamadhu Nagar,\nGandamunda, Bhubaneswar-751030"]);
         $swh = Agency::query()->where('code', 'SWH')->firstOrFail();
+        KnownLetterheads::applySwachha($swh);
         $details = [
             'name' => 'ICMR-NIHR (RMRCBB), Bhubaneswar', 'letter_code' => 'NIHR', 'addressee' => 'The Administrative Officer',
             'billing_address' => "ICMR, RMRCBB, Department of Health Research,\nMinistry of Health & Family Welfare, Govt. of India",

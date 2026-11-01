@@ -27,6 +27,15 @@
       <div class="col-md-9 row g-3 m-0 p-0">
         <x-field name="tagline" label="Tagline" :value="$agency->tagline" col="col-12" hint="e.g. A leading Organization of Manpower & Security Services" />
         <x-textarea name="registrations" label="Registration lines (one per line)" :value="$agency->registrations" rows="3" />
+        <div class="col-12">
+          <label class="form-label" for="f-letterhead_style">Letterhead layout</label>
+          <select id="f-letterhead_style" name="letterhead_style" class="form-select">
+            @foreach(['classic' => 'Centred, with website and mobiles in the footer (Z Plus)', 'banner' => 'Logo, name, registrations column and address box (SWACHHA)'] as $v => $l)
+              <option value="{{ $v }}" @selected(old('letterhead_style', $agency->letterhead_style ?? 'classic') === $v)>{{ $l }}</option>
+            @endforeach
+          </select>
+          <div class="form-text">For the banner layout, write registration lines as "Label: value", e.g. "PAN No: AADAS8034Q". The GST line is added from the GSTIN field.</div>
+        </div>
       </div>
       <x-field name="website" label="Website" :value="$agency->website" col="col-md-4" />
       <x-field name="letterhead_emails" label="E-mails on letterhead" :value="$agency->letterhead_emails" col="col-md-5" hint="Separate with commas" />

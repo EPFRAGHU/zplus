@@ -69,6 +69,7 @@ class AgencyController extends Controller
             'signatory_title' => ['nullable', 'string', 'max:255'],
             'tagline' => ['nullable', 'string', 'max:255'],
             'registrations' => ['nullable', 'string', 'max:1000'],
+            'letterhead_style' => ['sometimes', Rule::in(['classic', 'banner'])],
             'website' => ['nullable', 'string', 'max:255'],
             'letterhead_emails' => ['nullable', 'string', 'max:255'],
             'phones' => ['nullable', 'string', 'max:100'],

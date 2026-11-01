@@ -1,6 +1,8 @@
 {{-- Agency letterhead for PDFs. Falls back to a plain name block when the agency has no letterhead details. --}}
 @php($logo = $agency->logoDataUri())
-@if($agency->hasLetterhead())
+@if($agency->hasLetterhead() && $agency->letterhead_style === 'banner')
+@include('pdf._letterhead-banner')
+@elseif($agency->hasLetterhead())
 <table style="width:100%;border-collapse:collapse">
   <tr>
     @if($logo)<td style="width:92px;vertical-align:middle"><img src="{{ $logo }}" style="width:84px;height:84px" alt=""></td>@endif

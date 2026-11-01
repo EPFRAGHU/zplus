@@ -91,4 +91,40 @@ class LetterheadTest extends TestCase
         $this->put("/agencies/{$swh->id}", ['name' => 'SWACHHA', 'code' => 'SWH', 'logo' => UploadedFile::fake()->create('big.png', 2048, 'image/png')])
             ->assertSessionHasErrors('logo');
     }
+
+    public function test_swachha_gets_its_banner_letterhead(): void
+    {
+        Storage::fake('local');
+        $this->seed(DemoSeeder::class);
+        $swh = Agency::query()->where('code', 'SWH')->firstOrFail();
+
+        $this->assertSame('banner', $swh->letterhead_style);
+        $this->assertSame('21AADAS8034Q1Z6', $swh->gstin);   // the printed GSTIN has an extra "A"
+        $this->assertSame([['IGR Regd No', '2710/300'], ['PAN No', 'AADAS8034Q'], ['GST No', '21AADAS8034Q1Z6'],
+            ['ESIC No', '44000594740000999'], ['EPF No', 'ORBBS2612050000']], $swh->registrationPairs());
+
+        $html = view('pdf._letterhead', ['agency' => $swh])->render().view('pdf._letterhead-footer', ['agency' => $swh])->render();
+        $this->assertStringContainsString('&ldquo;SWACHHA&rdquo;', $html);
+        $this->assertStringContainsString('Since-1972', $html);
+        $this->assertStringContainsString(':21AADAS8034Q1Z6', $html);
+        $this->assertStringContainsString('Regd. Office Address:', $html);
+        $this->assertStringContainsString('hr.swachha@gmail.com, swachha38@yahoo.com', $html);
+        $this->assertStringContainsString('Mob No: 9337219868', $html);
+        $this->assertStringContainsString('<img src="data:image/png;base64,', $html);
+        $this->assertStringNotContainsString('position:fixed', $html);   // no Z Plus style footer
+
+        // Z Plus keeps its own layout.
+        $zps = Agency::query()->where('code', 'ZPS')->firstOrFail();
+        $this->assertSame('classic', $zps->letterhead_style);
+        $this->assertStringNotContainsString('Regd. Office Address:', view('pdf._letterhead', ['agency' => $zps])->render());
+    }
+
+    public function test_letterhead_layout_can_be_changed_on_the_agency_form(): void
+    {
+        $admin = User::factory()->create(['role' => 'admin']);
+        $agency = Agency::query()->create(['name' => 'SWACHHA', 'code' => 'SWH']);
+        $this->actingAs($admin)->put("/agencies/{$agency->id}", ['name' => 'SWACHHA', 'code' => 'SWH', 'letterhead_style' => 'banner'])->assertSessionHasNoErrors();
+        $this->assertSame('banner', $agency->fresh()->letterhead_style);
+        $this->put("/agencies/{$agency->id}", ['name' => 'SWACHHA', 'code' => 'SWH', 'letterhead_style' => 'fancy'])->assertSessionHasErrors('letterhead_style');
+    }
 }
