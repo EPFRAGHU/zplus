@@ -5,8 +5,10 @@ namespace App\Http\Controllers;
 use App\Models\Agency;
 use App\Models\AttendanceSheet;
 use App\Models\Client;
+use App\Models\GemContract;
 use App\Models\GeneratedDocument;
 use App\Models\Invoice;
+use App\Models\Project;
 use App\Services\Billing\InvoiceGenerator;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Http\RedirectResponse;
@@ -28,6 +30,8 @@ class InvoiceController extends Controller
         $invoices = Invoice::query()->with('project', 'contract.agency', 'contract.client')
             ->when($agencyId, fn ($q) => $q->whereHas('contract', fn ($c) => $c->where('agency_id', $agencyId)))
             ->when($clientId, fn ($q) => $q->whereHas('contract', fn ($c) => $c->where('client_id', $clientId)))
+            ->when($request->integer('contract'), fn ($q, $id) => $q->where('gem_contract_id', $id))
+            ->when($request->integer('project'), fn ($q, $id) => $q->where('project_id', $id))
             ->when($request->string('status')->value(), fn ($q, $s) => $q->where('status', $s))
             ->when($request->input('month'), fn ($q, $m) => $q->where('month', $m.'-01'))
             ->latest('month')->latest('id')->paginate(30)->withQueryString();
@@ -44,6 +48,8 @@ class InvoiceController extends Controller
             'agencies' => Agency::query()->orderBy('name')->get(),
             'clients' => Client::query()->with('agency')->orderBy('name')->get(),
             'agencyId' => $agencyId, 'clientId' => $clientId,
+            'contracts' => GemContract::query()->orderBy('bid_no')->get(['id', 'agency_id', 'client_id', 'bid_no']),
+            'allProjects' => Project::query()->with('contract:id,agency_id,client_id')->orderBy('name')->get(['id', 'gem_contract_id', 'name', 'pi_name']),
         ]);
     }
 

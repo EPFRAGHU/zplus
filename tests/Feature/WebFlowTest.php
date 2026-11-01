@@ -144,7 +144,7 @@ class WebFlowTest extends TestCase
     {
         $this->seed(DemoSeeder::class);
         $admin = $this->user('admin');
-        $this->actingAs($admin)->get('/invoices')->assertOk()->assertSee('How a bill is made')->assertSee('No attendance has been started yet');
+        $this->actingAs($admin)->get('/invoices')->assertOk()->assertSee('How a bill is made')->assertSee('No attendance is waiting to be locked');
 
         $this->post('/attendance', ['project_id' => 1, 'month' => '2026-10']);
         $this->get('/invoices')->assertOk()->assertSee('Attendance started but not locked yet')->assertSee('Open and lock');
@@ -282,5 +282,24 @@ class WebFlowTest extends TestCase
 
         $this->actingAs($admin)->get('/attendance?month=2026-10')->assertSee('1 of 1 projects locked');
         $this->get('/attendance?month=2026-10&agency='.$swh->id)->assertSee('0 of 0 projects locked');   // MPH is Z Plus's
+    }
+
+    public function test_bills_show_and_filter_by_contract_and_project(): void
+    {
+        $this->seed(DemoSeeder::class);
+        $admin = $this->user('admin');
+        $service = app(AttendanceService::class);
+        $mph = Project::query()->where('code', 'MPH')->firstOrFail();
+        $sheet = $service->open($mph, CarbonImmutable::parse('2026-10-01'));
+        $service->lock($sheet, $admin, null);
+        app(InvoiceGenerator::class)->generate($sheet->fresh(), $admin);
+        $other = $mph->contract->projects()->create(['name' => 'Second Project', 'code' => 'SECOND']);
+
+        $this->actingAs($admin)->get('/invoices')->assertOk()
+            ->assertSee('<th>GeM contract</th><th>Project</th>', false)
+            ->assertSee('GEM/2026/B/7972720</a>', false)->assertSee('PI: Dr. S. Kanungo')
+            ->assertSee('id="f-contract"', false)->assertSee('id="f-project"', false);
+        $this->get('/invoices?contract='.$mph->gem_contract_id)->assertSee('ICMR/MPH/01/2026');
+        $this->get('/invoices?project='.$other->id)->assertDontSee('ICMR/MPH/01/2026</a>', false);
     }
 }

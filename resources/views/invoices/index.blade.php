@@ -4,7 +4,7 @@
     <div class="z-card-h"><h2>Ready to bill</h2><span class="small text-secondary">Locked attendance without a bill</span></div>
     <ul class="list-group list-group-flush">
       @foreach($ready as $s)
-        <li class="list-group-item d-flex align-items-center gap-2 flex-wrap"><span class="badge text-bg-light border">{{ $s->project->contract->agency->code }}</span><span>{{ $s->project->contract->client->name }}</span><b>{{ $s->project->name }}</b><span class="text-secondary">{{ $s->month->format('F Y') }}</span>
+        <li class="list-group-item d-flex align-items-center gap-2 flex-wrap"><span class="badge text-bg-light border">{{ $s->project->contract->agency->code }}</span><span>{{ $s->project->contract->client->name }}</span><span class="mono small text-secondary">{{ $s->project->contract->bid_no }}</span><b>{{ $s->project->name }}</b><span class="text-secondary">{{ $s->month->format('F Y') }}</span>
           @can('billing')<form method="post" action="{{ route('invoices.store') }}" class="ms-auto">@csrf<input type="hidden" name="attendance_sheet_id" value="{{ $s->id }}"><button class="btn btn-sm btn-primary">Make bill</button></form>@endcan</li>
       @endforeach
     </ul>
@@ -22,12 +22,12 @@
       <div class="small text-secondary mb-1">Attendance started but not locked yet:</div>
       <ul class="list-group list-group-flush small">
         @foreach($drafts as $s)
-          <li class="list-group-item d-flex gap-2 align-items-center px-0"><span class="badge text-bg-light border">{{ $s->project->contract->agency->code }}</span><span>{{ $s->project->contract->client->name }}</span><b>{{ $s->project->name }}</b><span class="text-secondary">{{ $s->month->format('F Y') }}</span>
+          <li class="list-group-item d-flex gap-2 align-items-center px-0"><span class="badge text-bg-light border">{{ $s->project->contract->agency->code }}</span><span>{{ $s->project->contract->client->name }}</span><span class="mono small text-secondary">{{ $s->project->contract->bid_no }}</span><b>{{ $s->project->name }}</b><span class="text-secondary">{{ $s->month->format('F Y') }}</span>
             <a class="btn btn-sm btn-outline-secondary ms-auto" href="{{ route('attendance.show', $s) }}">Open and lock</a></li>
         @endforeach
       </ul>
     @else
-      <div class="small text-secondary">No attendance has been started yet.</div>
+      <div class="small text-secondary">No attendance is waiting to be locked.</div>
     @endif
   </div>
   @endif
@@ -37,28 +37,42 @@
       <select id="f-agency" name="agency" class="form-select"><option value="">All agencies</option>@foreach($agencies as $a)<option value="{{ $a->id }}" @selected($agencyId === $a->id)>{{ $a->name }}</option>@endforeach</select></div>
     <div><label class="form-label small text-secondary mb-1" for="f-client">Client</label>
       <select id="f-client" name="client" class="form-select"><option value="">All clients</option>@foreach($clients as $c)<option value="{{ $c->id }}" data-agency="{{ $c->agency_id }}" @selected($clientId === $c->id)>{{ $c->name }}</option>@endforeach</select></div>
+    <div><label class="form-label small text-secondary mb-1" for="f-contract">GeM contract</label>
+      <select id="f-contract" name="contract" class="form-select"><option value="">All contracts</option>@foreach($contracts as $k)<option value="{{ $k->id }}" data-agency="{{ $k->agency_id }}" data-client="{{ $k->client_id }}" @selected(request('contract') == $k->id)>{{ $k->bid_no }}</option>@endforeach</select></div>
+    <div><label class="form-label small text-secondary mb-1" for="f-project">Project</label>
+      <select id="f-project" name="project" class="form-select"><option value="">All projects</option>@foreach($allProjects as $pp)<option value="{{ $pp->id }}" data-agency="{{ $pp->contract->agency_id }}" data-client="{{ $pp->contract->client_id }}" data-contract="{{ $pp->gem_contract_id }}" @selected(request('project') == $pp->id)>{{ $pp->label() }}</option>@endforeach</select></div>
     <div><label class="form-label small text-secondary mb-1" for="s">Status</label><select id="s" name="status" class="form-select"><option value="">Any</option>@foreach(\App\Models\Invoice::STATUSES as $k => $v)<option value="{{ $k }}" @selected(request('status') === $k)>{{ $v }}</option>@endforeach</select></div>
     <button class="btn btn-outline-secondary">Filter</button>
   </form>
   <div class="z-card"><div class="table-responsive"><table class="table table-hover">
-    <thead><tr><th>Bill no.</th><th>Agency</th><th>Client</th><th>Project</th><th>Month</th><th class="num">Before GST</th><th class="num">Bill amount</th><th>Status</th></tr></thead>
+    <thead><tr><th>Bill no.</th><th>Agency</th><th>Client</th><th>GeM contract</th><th>Project</th><th>Month</th><th class="num">Before GST</th><th class="num">Bill amount</th><th>Status</th></tr></thead>
     <tbody>
     @forelse($invoices as $i)
-      <tr><td><a class="mono" href="{{ route('invoices.show', $i) }}">{{ $i->invoice_no }}</a></td><td><span class="badge text-bg-light border" title="{{ $i->contract->agency->name }}">{{ $i->contract->agency->code }}</span></td><td>{{ $i->contract->client->name }}</td><td>{{ $i->project->name }}</td><td>{{ $i->month->format('M Y') }}</td>
+      <tr><td><a class="mono" href="{{ route('invoices.show', $i) }}">{{ $i->invoice_no }}</a></td><td><span class="badge text-bg-light border" title="{{ $i->contract->agency->name }}">{{ $i->contract->agency->code }}</span></td><td>{{ $i->contract->client->name }}</td>
+        <td><a class="mono text-decoration-none" href="{{ route('contracts.show', $i->contract) }}">{{ $i->contract->bid_no }}</a></td>
+        <td><span class="fw-semibold">{{ $i->project->name }}</span>@if($i->project->pi_name) <div class="small text-secondary">PI: {{ $i->project->pi_name }}</div> @endif</td><td>{{ $i->month->format('M Y') }}</td>
         <td class="num">{{ inr($i->taxable, true) }}</td><td class="num fw-semibold">{{ inr($i->rounded_total, true) }}</td><td><x-status :value="$i->status" /></td></tr>
     @empty
-      <tr><td colspan="8" class="text-center text-secondary py-4">No bills match. Bills appear here after you click <b>Make bill</b> on a locked month.</td></tr>
+      <tr><td colspan="9" class="text-center text-secondary py-4">No bills match. Bills appear here after you click <b>Make bill</b> on a locked month.</td></tr>
     @endforelse
     </tbody></table></div></div>
   <div class="mt-3">{{ $invoices->links() }}</div>
   <script>
     (function () {
-      const agency = document.getElementById('f-agency'), client = document.getElementById('f-client');
-      function update() {
-        [...client.options].forEach(o => { if (o.value) { o.hidden = o.disabled = !!agency.value && o.dataset.agency !== agency.value; } });
-        if (client.selectedOptions[0] && client.selectedOptions[0].disabled) client.value = '';
+      // Agency narrows clients; agency and client narrow contracts; contract narrows projects.
+      const agency = document.getElementById('f-agency'), client = document.getElementById('f-client'),
+            contract = document.getElementById('f-contract'), project = document.getElementById('f-project');
+      function narrow(select, test) {
+        [...select.options].forEach(o => { if (o.value) { o.hidden = o.disabled = !test(o); } });
+        if (select.selectedOptions[0] && select.selectedOptions[0].disabled) select.value = '';
       }
-      agency.addEventListener('change', update); update();
+      function update() {
+        narrow(client, o => !agency.value || o.dataset.agency === agency.value);
+        const fits = o => (!agency.value || o.dataset.agency === agency.value) && (!client.value || o.dataset.client === client.value);
+        narrow(contract, fits);
+        narrow(project, o => fits(o) && (!contract.value || o.dataset.contract === contract.value));
+      }
+      [agency, client, contract].forEach(el => el.addEventListener('change', update)); update();
     })();
   </script>
 </x-layouts.app>
