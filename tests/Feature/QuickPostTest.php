@@ -92,4 +92,19 @@ class QuickPostTest extends TestCase
             ->assertSee('<b>M/S Z Plus Surakhya Seva</b>', false)
             ->assertSee('2 posts · 2 sanctioned · 2 filled');
     }
+
+    public function test_posts_page_filters_by_contract_and_project(): void
+    {
+        $this->seed(DemoSeeder::class);
+        $contract = GemContract::query()->firstOrFail();
+        $other = $contract->projects()->create(['name' => 'Second Project', 'code' => 'SECOND', 'pi_name' => 'Dr. Other']);
+        $other->posts()->create(['designation' => 'Field Worker', 'sanctioned_qty' => 3, 'rate' => 21600]);
+
+        $this->actingAs(User::factory()->create(['role' => 'admin']))->get('/posts')->assertOk()
+            ->assertSee('id="f-contract"', false)->assertSee('id="f-project"', false)
+            ->assertSee('<th>GeM contract</th><th>Project</th>', false)->assertSee('PI: Dr. Other')
+            ->assertSee('GEM/2026/B/7972720</a>', false);
+        $this->get('/posts?project='.$other->id)->assertSee('Field Worker')->assertDontSee('Academic Programme Manager</td>', false);
+        $this->get('/posts?contract='.$contract->id)->assertSee('Field Worker')->assertSee('Academic Programme Manager');
+    }
 }

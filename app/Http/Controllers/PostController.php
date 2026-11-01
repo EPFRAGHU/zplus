@@ -26,6 +26,7 @@ class PostController extends Controller
             ->whereHas('project.contract', fn ($q) => $q
                 ->when($agencyId, fn ($c) => $c->where('agency_id', $agencyId))
                 ->when($clientId, fn ($c) => $c->where('client_id', $clientId)))
+            ->when($request->integer('contract'), fn ($q, $id) => $q->whereHas('project', fn ($p) => $p->where('gem_contract_id', $id)))
             ->when($request->integer('project'), fn ($q, $id) => $q->where('project_id', $id))
             ->get()
             ->sortBy(fn ($p) => $p->project->contract->agency->name.'|'.$p->project->contract->client->name.'|'.$p->project->name.'|'.$p->designation)->values();
