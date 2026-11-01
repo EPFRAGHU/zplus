@@ -7,7 +7,21 @@
   <div class="z-card"><div class="table-responsive"><table class="table table-hover">
     <thead><tr><th>Client</th><th>Agency</th><th>Bill code</th><th>Contact</th><th>District</th><th>GSTIN</th><th class="num">Term</th><th>GeM contracts</th><th class="num">Employees</th><th>Status</th><th></th></tr></thead>
     <tbody>
+    @php($block = false)
     @forelse ($clients as $c)
+      @if($block === false || $block !== $c->agency_id)
+        @php($block = $c->agency_id)
+        @php($t = $blockTotals[$c->agency_id] ?? null)
+        <tr class="table-secondary"><td colspan="11" class="py-2">
+          @if($c->agency)
+            <b class="fs-6">{{ $c->agency->name }}</b> <span class="badge text-bg-dark">{{ $c->agency->code }}</span>
+            <span class="small text-secondary ms-2">{{ $t->clients_count }} {{ \Illuminate\Support\Str::plural('client', $t->clients_count) }} · {{ $t->contracts_count }} {{ \Illuminate\Support\Str::plural('contract', $t->contracts_count) }} · {{ $t->employees_count }} {{ \Illuminate\Support\Str::plural('employee', $t->employees_count) }}</span>
+            @can('manage-masters')<a class="small ms-2" href="{{ route('clients.create', ['agency' => $c->agency_id]) }}"><i class="bi bi-plus"></i>Add client to {{ $c->agency->code }}</a>@endcan
+          @else
+            <b class="fs-6">No agency set</b>
+          @endif
+        </td></tr>
+      @endif
       <tr><td class="fw-semibold">{{ $c->name }}</td>
         <td>@if($c->agency)<span class="badge text-bg-light border" title="{{ $c->agency->name }}">{{ $c->agency->code }}</span>@else<span class="badge text-bg-warning">No agency</span>@endif</td>
         <td class="mono">{{ $c->short_code }}</td><td>{{ $c->contact_person ?? '—' }}<div class="small text-secondary">{{ $c->phone }}</div></td><td>{{ $c->district ?? '—' }}</td>

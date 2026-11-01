@@ -162,4 +162,20 @@ class ClientAgencyTest extends TestCase
         $this->assertStringContainsString('No contracts yet', $html);          // SWACHHA's ICMR record
         $this->assertMatchesRegularExpression('#/employees\?agency=\d+&amp;client=\d+">2</a>#', $html);
     }
+
+    public function test_clients_page_is_split_into_agency_blocks(): void
+    {
+        $this->seed(DemoSeeder::class);
+        $swh = Agency::query()->where('code', 'SWH')->firstOrFail();
+        Client::query()->create(['agency_id' => $swh->id, 'name' => 'AAA First Client', 'short_code' => 'AAA']);
+
+        $html = $this->actingAs(User::factory()->create(['role' => 'admin']))->get('/clients')->assertOk()->getContent();
+        $zpsHead = strpos($html, '<b class="fs-6">M/S Z Plus Surakhya Seva</b>');
+        $swhHead = strpos($html, '<b class="fs-6">SWACHHA</b>');
+        $this->assertNotFalse($zpsHead);
+        $this->assertNotFalse($swhHead);
+        $this->assertStringContainsString('2 clients · 0 contracts', $html);          // SWACHHA block totals
+        $this->assertGreaterThan($swhHead, strpos($html, 'AAA First Client'));       // under SWACHHA, not first alphabetically
+        $this->assertStringContainsString('Add client to SWH', $html);
+    }
 }

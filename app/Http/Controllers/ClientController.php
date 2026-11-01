@@ -19,9 +19,17 @@ class ClientController extends Controller
             ->withCount(['contracts', 'employees' => fn ($q) => $q->whereIn('status', ['active', 'notice'])])
             ->when($request->string('q')->trim()->value(), fn ($q, $s) => $q->where(fn ($w) => $w->where('name', 'like', "%{$s}%")->orWhere('gstin', 'like', "%{$s}%")))
             ->when($request->integer('agency'), fn ($q, $id) => $q->where('agency_id', $id))
-            ->orderBy('name')->paginate(25)->withQueryString();
+            // One block per agency: sort by agency name, then client name.
+            ->orderByRaw('agency_id is null')
+            ->orderBy(Agency::query()->select('name')->whereColumn('agencies.id', 'clients.agency_id'))
+            ->orderBy('name')->paginate(50)->withQueryString();
 
-        return view('clients.index', ['clients' => $clients, 'agencies' => Agency::query()->orderBy('name')->get()]);
+        // Totals for each agency block heading (all of the agency's clients, not just this page).
+        $blockTotals = Agency::query()
+            ->withCount(['clients', 'contracts', 'employees' => fn ($q) => $q->whereIn('status', ['active', 'notice'])])
+            ->get()->keyBy('id');
+
+        return view('clients.index', ['clients' => $clients, 'agencies' => Agency::query()->orderBy('name')->get(), 'blockTotals' => $blockTotals]);
     }
 
     public function create(Request $request): View
