@@ -14,7 +14,9 @@ class ClientController extends Controller
 {
     public function index(Request $request): View
     {
-        $clients = Client::query()->with('agency')->withCount('contracts')
+        $clients = Client::query()
+            ->with(['agency', 'contracts' => fn ($q) => $q->withCount('projects')->orderBy('bid_no')])
+            ->withCount(['contracts', 'employees' => fn ($q) => $q->whereIn('status', ['active', 'notice'])])
             ->when($request->string('q')->trim()->value(), fn ($q, $s) => $q->where(fn ($w) => $w->where('name', 'like', "%{$s}%")->orWhere('gstin', 'like', "%{$s}%")))
             ->when($request->integer('agency'), fn ($q, $id) => $q->where('agency_id', $id))
             ->orderBy('name')->paginate(25)->withQueryString();

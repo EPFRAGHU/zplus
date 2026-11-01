@@ -150,4 +150,16 @@ class ClientAgencyTest extends TestCase
         // "Add client" from an agency row opens the form with that agency chosen.
         $this->get('/clients/create?agency='.$swh->id)->assertOk()->assertSee('<option value="'.$swh->id.'" selected>', false);
     }
+
+    public function test_clients_page_lists_contracts_and_employee_counts(): void
+    {
+        $this->seed(DemoSeeder::class);
+        $html = $this->actingAs(User::factory()->create(['role' => 'admin']))->get('/clients')->assertOk()
+            ->assertSee('<th>GeM contracts</th><th class="num">Employees</th>', false)->getContent();
+
+        $this->assertStringContainsString('GEM/2026/B/7972720</a>', $html);   // Z Plus's ICMR contract
+        $this->assertStringContainsString('· 1 project', $html);
+        $this->assertStringContainsString('No contracts yet', $html);          // SWACHHA's ICMR record
+        $this->assertMatchesRegularExpression('#/employees\?agency=\d+&amp;client=\d+">2</a>#', $html);
+    }
 }
