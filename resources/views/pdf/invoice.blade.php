@@ -6,6 +6,14 @@
   <td class="r" style="vertical-align:top"><h2>TAX INVOICE</h2><div>Bill No.: <b>{{ $invoice->invoice_no }}</b></div><div>Date: {{ $invoice->invoice_date->format('d/m/Y') }}</div><div>Month: {{ $invoice->month->format('M-Y') }}</div></td>
 </tr></table>
 <hr>
+<table class="grid" style="margin-bottom:8px">
+  <tr>
+    <th style="width:12%;text-align:left">Agency</th>
+    <td style="width:38%"><b>{{ $agency->name }}</b> ({{ $agency->code }})@if($agency->gstin)<br>GSTIN: {{ $agency->gstin }}@endif</td>
+    <th style="width:12%;text-align:left">Client</th>
+    <td><b>{{ $client->name }}</b> ({{ $client->short_code }})@if($client->gstin)<br>GSTIN: {{ $client->gstin }}@endif</td>
+  </tr>
+</table>
 <table><tr>
   <td style="width:55%;vertical-align:top"><div class="muted">Bill to</div><div class="b">{{ $client->addressee }}</div><div>{{ $client->name }}</div><div>{!! nl2br(e($client->billing_address)) !!}</div>@if($client->gstin)<div>GSTIN: {{ $client->gstin }}</div>@endif</td>
   <td style="vertical-align:top"><div>GeM Contract No.: {{ $contract->contract_no }}</div><div>GeM Bid No.: {{ $contract->bid_no }}</div><div>Project: {{ $project->title ?: $project->name }}</div>@if($project->pi_name)<div>PI: {{ $project->pi_name }}</div>@endif<div>SAC: 998519 (Manpower supply services)</div></td>

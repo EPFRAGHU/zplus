@@ -202,4 +202,28 @@ class WebFlowTest extends TestCase
         $this->get('/?agency='.$swh->id)->assertOk()->assertSee('Showing SWACHHA')->assertDontSee('ICMR/MPH/');
         $this->get('/?agency='.$zps->id)->assertOk()->assertSee('ICMR/MPH/')->assertSee('₹1,05,387');
     }
+
+    public function test_bill_pdf_names_the_agency_and_client(): void
+    {
+        $this->seed(DemoSeeder::class);
+        $admin = $this->user('admin');
+        $service = app(AttendanceService::class);
+        $sheet = $service->open(Project::query()->firstOrFail(), CarbonImmutable::parse('2026-10-01'));
+        $service->lock($sheet, $admin, null);
+        $invoice = app(InvoiceGenerator::class)->generate($sheet->fresh(), $admin);
+
+        // Render the PDF templates as HTML to check their content.
+        $html = view('pdf.invoice', ['invoice' => $invoice->load('lines'), 'agency' => $invoice->contract->agency,
+            'client' => $invoice->contract->client, 'project' => $invoice->project, 'contract' => $invoice->contract])->render();
+        $this->assertStringContainsString('<th style="width:12%;text-align:left">Agency</th>', $html);
+        $this->assertStringContainsString('M/S Z Plus Surakhya Seva</b> (ZPS)', $html);
+        $this->assertStringContainsString('ICMR-NIHR (RMRCBB), Bhubaneswar</b> (ICMR)', $html);
+
+        $letter = view('pdf.covering-letter', ['invoice' => $invoice, 'agency' => $invoice->contract->agency,
+            'client' => $invoice->contract->client, 'project' => $invoice->project, 'contract' => $invoice->contract])->render();
+        $this->assertStringContainsString('<b>Agency:</b> M/S Z Plus Surakhya Seva', $letter);
+        $this->assertStringContainsString('<b>Client:</b> ICMR-NIHR (RMRCBB), Bhubaneswar', $letter);
+
+        $this->actingAs($admin)->get("/invoices/{$invoice->id}/pdf")->assertOk()->assertHeader('content-type', 'application/pdf');
+    }
 }

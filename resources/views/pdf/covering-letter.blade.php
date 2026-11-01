@@ -1,5 +1,6 @@
 <html><head><meta charset="utf-8">@include('pdf._style')</head><body class="letter">
 <p>To,<br>{{ $client->addressee ?? 'The Administrative Officer' }},<br>{!! nl2br(e($client->billing_address ?: $client->name)) !!}</p>
+<table style="font-size:11px;margin-bottom:6px"><tr><td><b>Agency:</b> {{ $agency->name }}</td><td class="r"><b>Client:</b> {{ $client->name }}</td></tr></table>
 <p><b>Sub:</b> Submission of bill for the Month of {{ $invoice->month->format('M-Y') }}</p>
 <p><b>Ref:</b> Your good office work Order No GeM Contract No:- {{ $contract->contract_no }} &amp; Bid No:- {{ $contract->bid_no }}@if($contract->contract_date) Dated :- {{ $contract->contract_date->format('d/m/Y') }}@endif</p>
 <p>Sir,</p>
