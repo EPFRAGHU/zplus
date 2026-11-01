@@ -9,6 +9,7 @@ use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Validation\Rule;
+use Illuminate\Validation\ValidationException;
 use Illuminate\View\View;
 
 class GemContractController extends Controller
@@ -67,7 +68,10 @@ class GemContractController extends Controller
 
     private function formData(GemContract $contract): array
     {
-        return ['contract' => $contract, 'agencies' => Agency::query()->orderBy('name')->get(), 'clients' => Client::query()->orderBy('name')->get()];
+        $clients = Client::query()->with('agencies:id')->orderBy('name')->get();
+
+        return ['contract' => $contract, 'agencies' => Agency::query()->orderBy('name')->get(), 'clients' => $clients,
+            'clientAgencies' => $clients->mapWithKeys(fn ($c) => [$c->id => $c->agencies->pluck('id')])];
     }
 
     private function validated(Request $request, ?GemContract $contract = null): array
@@ -86,6 +90,13 @@ class GemContractController extends Controller
             'status' => ['required', Rule::in(['active', 'closed'])],
         ]);
         $data['inter_state'] = $request->boolean('inter_state');
+
+        $client = Client::query()->find($data['client_id']);
+        if (! $client->agencies()->whereKey($data['agency_id'])->exists()) {
+            throw ValidationException::withMessages([
+                'agency_id' => "This agency is not mapped to {$client->name}. Add it on the client's page first.",
+            ]);
+        }
 
         return $data;
     }

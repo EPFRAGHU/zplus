@@ -24,6 +24,7 @@ class DemoSeeder extends Seeder
             'billing_address' => "ICMR, RMRCBB, Department of Health Research,\nMinistry of Health & Family Welfare, Govt. of India",
             'district' => 'Khordha', 'state_code' => '21',
         ]);
+        $icmr->agencies()->syncWithoutDetaching([$zplus->id, Agency::query()->where('code', 'SWH')->value('id')]);
         $contract = GemContract::query()->firstOrCreate(['contract_no' => 'GEMC-511687731718030'], [
             'agency_id' => $zplus->id, 'client_id' => $icmr->id, 'bid_no' => 'GEM/2026/B/7972720', 'contract_date' => '2026-10-01',
         ]);

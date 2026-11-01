@@ -1,6 +1,21 @@
 <x-layouts.app :title="$client->exists ? 'Edit client' : 'Add client'" crumb="Masters / Clients">
   <form method="post" action="{{ $client->exists ? route('clients.update', $client) : route('clients.store') }}" class="z-card p-3">
     @csrf @if($client->exists) @method('put') @endif
+    @php($locked = $locked ?? [])
+    @php($checked = array_map('intval', old('agency_ids', $selected)))
+    <fieldset class="mb-3">
+      <legend class="form-label small fw-semibold text-secondary mb-1">Agencies this client works with <span class="text-danger">*</span></legend>
+      @forelse($agencies as $a)
+        <div class="form-check form-check-inline">
+          <input class="form-check-input @error('agency_ids') is-invalid @enderror" type="checkbox" name="agency_ids[]" value="{{ $a->id }}" id="ag{{ $a->id }}" @checked(in_array($a->id, $checked, true))>
+          <label class="form-check-label" for="ag{{ $a->id }}">{{ $a->name }} <span class="mono text-secondary">{{ $a->code }}</span>@if(in_array($a->id, $locked, true)) <span class="badge text-bg-light border">has contracts</span>@endif</label>
+        </div>
+      @empty
+        <div class="small text-danger">Add an agency first under <a href="{{ route('agencies.create') }}">Agencies</a>.</div>
+      @endforelse
+      @error('agency_ids')<div class="text-danger small mt-1">{{ $message }}</div>@enderror
+      <div class="form-text">GeM contracts for this client can only be raised under the agencies ticked here.</div>
+    </fieldset>
     <div class="row g-3">
       <x-field name="name" label="Client name" :value="$client->name" required hint="e.g. ICMR-NIHR (RMRCBB), Bhubaneswar" />
       <x-field name="short_code" label="Bill code" :value="$client->short_code" required col="col-md-3" hint="Bill numbers start with this, e.g. ICMR" />

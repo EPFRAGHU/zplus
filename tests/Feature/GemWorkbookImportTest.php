@@ -78,6 +78,7 @@ class GemWorkbookImportTest extends TestCase
 
         $this->assertSame(2, $result['contracts']);
         $this->assertSame(2, GemContract::query()->count());
+        $this->assertSame(['SWH'], $client->agencies()->pluck('code')->all());   // importer maps the agency to the client
         $manager = Employee::query()->where('name', 'Mr. Test Manager')->firstOrFail();
         $this->assertSame('APM', $manager->post->designation);
         $this->assertSame('55500.00', (string) $manager->rate_override);

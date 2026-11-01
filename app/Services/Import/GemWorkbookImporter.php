@@ -68,6 +68,7 @@ final class GemWorkbookImporter
                 }
                 [$agencyName, $agencyCode] = $c['agency'];
                 $agency = Agency::query()->firstOrCreate(['code' => $agencyCode], ['name' => $agencyName]);
+                $client->agencies()->syncWithoutDetaching([$agency->id]);
                 $contract = GemContract::query()->create([
                     'agency_id' => $agency->id, 'client_id' => $client->id,
                     'bid_no' => $c['bid_no'], 'contract_no' => $c['contract_no'], 'billing_type' => $c['billing_type'],
