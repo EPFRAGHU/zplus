@@ -1,7 +1,10 @@
 @php($days = $sheet->month->daysInMonth)
 @php($word = ['SAT' => 'SAT', 'SUN' => 'SUN', 'H' => 'HOL'])
 <html><head><meta charset="utf-8">@include('pdf._style')
-<style>@page{margin:20px 22px} .grid td,.grid th{padding:3px 2px;font-size:8.5px;text-align:center} .grid td.l{text-align:left;padding-left:4px}</style></head><body>
+<style>@page{margin:20px 22px 52px} .grid td,.grid th{padding:3px 2px;font-size:8.5px;text-align:center} .grid td.l{text-align:left;padding-left:4px}</style></head><body>
+@php($agency = $sheet->project->contract->agency)
+@include('pdf._letterhead-footer')
+@include('pdf._letterhead')
 <div class="c b" style="font-size:12px">{{ strtoupper($sheet->project->contract->client->name) }}</div>
 <div class="c">Programme / Project: <b>{{ $sheet->project->title ?: $sheet->project->name }}</b></div>
 <div class="c b" style="margin:4px 0 6px">Monthly Attendance and Working Certificate for the Month of {{ $sheet->month->format('F, Y') }}</div>

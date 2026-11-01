@@ -161,4 +161,26 @@ class LetterheadTest extends TestCase
         $this->assertSame('Manpower services', $agency->tagline);   // typed details are kept
         $this->assertSame('21AADAS8034Q1Z6', $agency->gstin);       // empty ones are filled
     }
+
+    public function test_attendance_certificate_prints_the_agency_letterhead(): void
+    {
+        Storage::fake('local');
+        $this->seed(DemoSeeder::class);
+        $admin = User::factory()->create(['role' => 'admin']);
+        $sheet = app(AttendanceService::class)->open(Project::query()->where('code', 'MPH')->firstOrFail(), CarbonImmutable::parse('2026-10-01'));
+        $sheet->load('project.contract.agency', 'project.contract.client', 'entries.employee.post');
+
+        $html = view('pdf.attendance-certificate', ['sheet' => $sheet, 'showBank' => false])->render();
+        $this->assertStringContainsString('GSTIN No.-21AAAFZ5965B1ZD', $html);   // Z Plus letterhead
+
+        $swh = Agency::query()->where('code', 'SWH')->firstOrFail();
+        $sheet->project->contract->update(['agency_id' => $swh->id]);
+        $sheet->load('project.contract.agency');
+        $html = view('pdf.attendance-certificate', ['sheet' => $sheet, 'showBank' => false])->render();
+        $this->assertStringContainsString('&ldquo;SWACHHA&rdquo;', $html);
+        $this->assertStringContainsString('Regd. Office Address:', $html);
+        $this->assertStringContainsString('Monthly Attendance and Working Certificate', $html);
+
+        $this->actingAs($admin)->get("/attendance/{$sheet->id}/certificate")->assertOk();
+    }
 }
