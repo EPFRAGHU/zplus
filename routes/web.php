@@ -25,6 +25,7 @@ Route::middleware('auth')->group(function () {
 
     // Masters
     Route::resource('agencies', AgencyController::class)->except(['show', 'destroy']);
+    Route::get('agencies/{agency}/logo', [AgencyController::class, 'logo'])->name('agencies.logo');
     Route::resource('clients', ClientController::class)->except(['show', 'destroy']);
     Route::resource('contracts', GemContractController::class)->except(['destroy']);
     Route::post('contracts/{contract}/projects', [ProjectController::class, 'store'])->name('projects.store');

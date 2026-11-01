@@ -6,6 +6,7 @@ use App\Models\Agency;
 use App\Models\Client;
 use App\Models\Employee;
 use App\Models\GemContract;
+use App\Support\KnownLetterheads;
 use Illuminate\Database\Seeder;
 
 /**
@@ -16,7 +17,8 @@ class DemoSeeder extends Seeder
 {
     public function run(): void
     {
-        $zplus = Agency::query()->firstOrCreate(['code' => 'ZPS'], ['name' => 'M/S Z Plus Surakhya Seva', 'signatory_title' => 'Managing Partner', 'phone' => '9337219868']);
+        $zplus = Agency::query()->firstOrCreate(['code' => 'ZPS'], ['name' => 'M/S Z Plus Surakhya Seva']);
+        KnownLetterheads::applyZplus($zplus);   // letterhead details from the printed letterhead
         Agency::query()->firstOrCreate(['code' => 'SWH'], ['name' => 'SWACHHA', 'email' => 'hr.swachha@gmail.com',
             'address' => "Plot No- 1468/5398/7693, Bhaktamadhu Nagar,\nGandamunda, Bhubaneswar-751030"]);
         $swh = Agency::query()->where('code', 'SWH')->firstOrFail();

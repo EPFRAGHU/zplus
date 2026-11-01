@@ -1,4 +1,7 @@
 <html><head><meta charset="utf-8">@include('pdf._style')</head><body class="letter">
+@include('pdf._letterhead-footer')
+<div style="font-family:'DejaVu Sans',sans-serif">@include('pdf._letterhead')</div>
+<table style="font-size:11px;margin-bottom:4px"><tr><td>Ref. No. {{ $invoice->invoice_no }}</td><td class="r">Date: {{ $invoice->invoice_date->format('d/m/Y') }}</td></tr></table>
 <p>To,<br>{{ $client->addressee ?? 'The Administrative Officer' }},<br>{!! nl2br(e($client->billing_address ?: $client->name)) !!}</p>
 <table style="font-size:11px;margin-bottom:6px"><tr><td><b>Agency:</b> {{ $agency->name }}</td><td class="r"><b>Client:</b> {{ $client->name }}</td></tr></table>
 <p><b>Sub:</b> Submission of bill for the Month of {{ $invoice->month->format('M-Y') }}</p>

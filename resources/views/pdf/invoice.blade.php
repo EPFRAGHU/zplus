@@ -1,11 +1,11 @@
 @php($rs = fn ($v) => 'Rs. '.ltrim(inr($v, true), '₹'))
 <html><head><meta charset="utf-8">@include('pdf._style')</head><body>
+@include('pdf._letterhead-footer')
+@include('pdf._letterhead')
 <table><tr>
-  <td><h1>{{ $agency->name }}</h1><div class="muted">{!! nl2br(e($agency->address)) !!}</div>
-    @if($agency->gstin)<div>GSTIN: {{ $agency->gstin }}</div>@endif @if($agency->pan)<div>PAN: {{ $agency->pan }}</div>@endif</td>
-  <td class="r" style="vertical-align:top"><h2>TAX INVOICE</h2><div>Bill No.: <b>{{ $invoice->invoice_no }}</b></div><div>Date: {{ $invoice->invoice_date->format('d/m/Y') }}</div><div>Month: {{ $invoice->month->format('M-Y') }}</div></td>
+  <td style="vertical-align:top"><h2>TAX INVOICE</h2></td>
+  <td class="r" style="vertical-align:top"><div>Bill No.: <b>{{ $invoice->invoice_no }}</b></div><div>Date: {{ $invoice->invoice_date->format('d/m/Y') }}</div><div>Month: {{ $invoice->month->format('M-Y') }}</div></td>
 </tr></table>
-<hr>
 <table class="grid" style="margin-bottom:8px">
   <tr>
     <th style="width:12%;text-align:left">Agency</th>

@@ -1,5 +1,5 @@
 <style>
-  @page { margin: 28px 34px; }
+  @page { margin: 28px 34px 52px; }
   body { font-family: "DejaVu Sans", sans-serif; font-size: 11px; color: #111; }
   h1 { font-size: 15px; margin: 0; } h2 { font-size: 13px; margin: 0; }
   table { width: 100%; border-collapse: collapse; }
