@@ -17,8 +17,26 @@
     <div class="table-responsive"><table class="table align-middle">
       <thead><tr><th>Agency</th><th>Client</th><th>GeM contract</th><th>Project</th><th>PI</th><th class="num">Staff</th><th>Status</th><th style="min-width:330px"></th></tr></thead>
       <tbody>
+      @php($agencyBlock = null) @php($clientBlock = null)
       @forelse($projects as $p)
         @php($sheet = $sheets[$p->id] ?? null)
+        @if($agencyBlock !== $p->contract->agency_id)
+          @php($agencyBlock = $p->contract->agency_id) @php($clientBlock = null)
+          @php($inAgency = $projects->filter(fn ($x) => $x->contract->agency_id === $agencyBlock))
+          @php($agencySheets = $sheets->only($inAgency->pluck('id')->all()))
+          <tr class="table-secondary"><td colspan="8" class="py-2">
+            <b class="fs-6">{{ $p->contract->agency->name }}</b> <span class="badge text-bg-dark">{{ $p->contract->agency->code }}</span>
+            <span class="small text-secondary ms-2">{{ $inAgency->count() }} {{ \Illuminate\Support\Str::plural('project', $inAgency->count()) }} · {{ $agencySheets->where('status', 'locked')->count() }} locked · {{ $agencySheets->filter(fn ($sh) => $sh->invoice)->count() }} billed for {{ $month->format('F') }}</span>
+          </td></tr>
+        @endif
+        @if($clientBlock !== $p->contract->client_id)
+          @php($clientBlock = $p->contract->client_id)
+          @php($inClient = $projects->filter(fn ($x) => $x->contract->client_id === $clientBlock))
+          <tr class="table-light"><td colspan="8" class="py-1 ps-4 small">
+            Client: <b>{{ $p->contract->client->name }}</b>
+            <span class="text-secondary ms-2">{{ $inClient->count() }} {{ \Illuminate\Support\Str::plural('project', $inClient->count()) }} · {{ $sheets->only($inClient->pluck('id')->all())->where('status', 'locked')->count() }} locked</span>
+          </td></tr>
+        @endif
         <tr>
           <td><span class="badge text-bg-light border" title="{{ $p->contract->agency->name }}">{{ $p->contract->agency->code }}</span></td>
           <td>{{ $p->contract->client->name }}</td>

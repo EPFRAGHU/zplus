@@ -321,4 +321,27 @@ class WebFlowTest extends TestCase
         $this->get('/?project='.$other->id)->assertOk()->assertSee('₹0')->assertDontSee('PI: Dr. S. Kanungo');
         $this->get('/?contract='.$mph->gem_contract_id)->assertOk()->assertSee('₹1,05,387');
     }
+
+    public function test_attendance_is_split_into_agency_blocks(): void
+    {
+        $this->seed(DemoSeeder::class);
+        $admin = $this->user('admin');
+        $swh = \App\Models\Agency::query()->where('code', 'SWH')->firstOrFail();
+        $swhClient = \App\Models\Client::query()->where('agency_id', $swh->id)->firstOrFail();
+        $k = \App\Models\GemContract::query()->create(['agency_id' => $swh->id, 'client_id' => $swhClient->id, 'bid_no' => 'GEM/2026/B/1', 'contract_no' => 'GEMC-1']);
+        $k->projects()->create(['name' => 'AAA Swachha Project', 'code' => 'AAA']);
+        $service = app(\App\Services\Attendance\AttendanceService::class);
+        $sheet = $service->open(\App\Models\Project::query()->where('code', 'MPH')->firstOrFail(), \Carbon\CarbonImmutable::parse('2026-10-01'));
+        $service->lock($sheet, $admin, null);
+
+        $html = $this->actingAs($admin)->get('/attendance?month=2026-10')->assertOk()->getContent();
+        $zpsHead = strpos($html, '<b class="fs-6">M/S Z Plus Surakhya Seva</b>');
+        $swhHead = strpos($html, '<b class="fs-6">SWACHHA</b>');
+        $this->assertNotFalse($zpsHead);
+        $this->assertNotFalse($swhHead);
+        $this->assertStringContainsString('1 project · 1 locked · 0 billed for October', $html);   // Z Plus block
+        $this->assertStringContainsString('1 project · 0 locked · 0 billed for October', $html);   // SWACHHA block
+        $this->assertGreaterThan($swhHead, strpos($html, '<td class="fw-semibold">AAA Swachha Project</td>'));   // table row, not the filter list
+        $this->assertStringContainsString('Client: <b>ICMR-NIHR (RMRCBB), Bhubaneswar</b>', $html);
+    }
 }
