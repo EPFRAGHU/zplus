@@ -10,6 +10,27 @@
     </ul>
   </div>
   @endif
+  @if($ready->isEmpty())
+  <div class="z-card p-3 mb-3">
+    <h2 class="h6 fw-bold">How a bill is made</h2>
+    <ol class="mb-2 small">
+      <li>Open <a href="{{ route('attendance.index') }}">Attendance</a>, choose the month and click <b>Start sheet</b> on the project.</li>
+      <li>Check the daily codes, upload the certificate signed by the PI and click <b>Lock month</b>.</li>
+      <li>The month then appears here under <b>Ready to bill</b>. Click <b>Make bill</b>.</li>
+    </ol>
+    @if($drafts->isNotEmpty())
+      <div class="small text-secondary mb-1">Attendance started but not locked yet:</div>
+      <ul class="list-group list-group-flush small">
+        @foreach($drafts as $s)
+          <li class="list-group-item d-flex gap-2 align-items-center px-0"><b>{{ $s->project->name }}</b><span class="text-secondary">{{ $s->month->format('F Y') }}</span>
+            <a class="btn btn-sm btn-outline-secondary ms-auto" href="{{ route('attendance.show', $s) }}">Open and lock</a></li>
+        @endforeach
+      </ul>
+    @else
+      <div class="small text-secondary">No attendance has been started yet.</div>
+    @endif
+  </div>
+  @endif
   <form class="z-card p-3 mb-3 d-flex gap-2 flex-wrap align-items-end">
     <div><label class="form-label small text-secondary mb-1" for="m">Bill month</label><input id="m" type="month" name="month" value="{{ request('month') }}" class="form-control"></div>
     <div><label class="form-label small text-secondary mb-1" for="s">Status</label><select id="s" name="status" class="form-select"><option value="">Any</option>@foreach(\App\Models\Invoice::STATUSES as $k => $v)<option value="{{ $k }}" @selected(request('status') === $k)>{{ $v }}</option>@endforeach</select></div>
@@ -22,7 +43,7 @@
       <tr><td><a class="mono" href="{{ route('invoices.show', $i) }}">{{ $i->invoice_no }}</a></td><td>{{ $i->contract->agency->code }}</td><td>{{ $i->project->name }}</td><td>{{ $i->month->format('M Y') }}</td>
         <td class="num">{{ inr($i->taxable, true) }}</td><td class="num fw-semibold">{{ inr($i->rounded_total, true) }}</td><td><x-status :value="$i->status" /></td></tr>
     @empty
-      <tr><td colspan="7" class="text-center text-secondary py-4">No bills yet.</td></tr>
+      <tr><td colspan="7" class="text-center text-secondary py-4">No bills match. Bills appear here after you click <b>Make bill</b> on a locked month.</td></tr>
     @endforelse
     </tbody></table></div></div>
   <div class="mt-3">{{ $invoices->links() }}</div>

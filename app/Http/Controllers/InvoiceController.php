@@ -28,7 +28,10 @@ class InvoiceController extends Controller
 
         $ready = AttendanceSheet::query()->where('status', 'locked')->doesntHave('invoice')->with('project')->orderByDesc('month')->get();
 
-        return view('invoices.index', compact('invoices', 'ready'));
+        // Months still being filled in, so an empty Bills page says what is holding bills up.
+        $drafts = AttendanceSheet::query()->where('status', 'draft')->with('project')->orderByDesc('month')->limit(20)->get();
+
+        return view('invoices.index', compact('invoices', 'ready', 'drafts'));
     }
 
     public function store(Request $request, InvoiceGenerator $generator): RedirectResponse

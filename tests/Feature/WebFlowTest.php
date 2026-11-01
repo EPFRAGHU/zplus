@@ -133,4 +133,14 @@ class WebFlowTest extends TestCase
         $this->get("/employees/{$employee->id}")->assertSee('ZPS/NIHR/MPH/01/26');
         $this->assertSame(1, GeneratedDocument::query()->count());
     }
+
+    public function test_empty_bills_page_explains_how_to_make_a_bill_and_lists_unlocked_months(): void
+    {
+        $this->seed(DemoSeeder::class);
+        $admin = $this->user('admin');
+        $this->actingAs($admin)->get('/invoices')->assertOk()->assertSee('How a bill is made')->assertSee('No attendance has been started yet');
+
+        $this->post('/attendance', ['project_id' => 1, 'month' => '2026-10']);
+        $this->get('/invoices')->assertOk()->assertSee('Attendance started but not locked yet')->assertSee('Open and lock');
+    }
 }
