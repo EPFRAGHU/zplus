@@ -30,6 +30,7 @@ return new class extends Migration
             $table->id();
             $table->string('name');
             $table->string('short_code', 12)->unique();       // ICMR: used in bill numbers
+            $table->string('letter_code', 12)->nullable();     // NIHR: used in appointment letter numbers
             $table->string('addressee')->nullable();           // "The Administrative Officer"
             $table->text('billing_address')->nullable();
             $table->string('contact_person')->nullable();

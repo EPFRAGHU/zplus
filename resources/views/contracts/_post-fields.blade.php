@@ -1,0 +1,3 @@
+<div class="col-md-4"><label class="form-label small text-secondary mb-1">Post / designation</label><input class="form-control form-control-sm" name="designation" value="{{ $post?->designation }}" required></div>
+<div class="col-md-2"><label class="form-label small text-secondary mb-1">Sanctioned</label><input class="form-control form-control-sm" type="number" min="0" name="sanctioned_qty" value="{{ $post?->sanctioned_qty ?? 1 }}" required></div>
+<div class="col-md-3"><label class="form-label small text-secondary mb-1">Rate (₹)</label><input class="form-control form-control-sm" type="number" step="0.01" min="0" name="rate" value="{{ $post?->rate }}" required></div>
