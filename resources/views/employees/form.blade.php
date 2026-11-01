@@ -42,7 +42,10 @@
       <div class="tab-pane fade" id="t-work" role="tabpanel"><div class="row g-3">
         <x-field name="emp_code" label="Employee ID" :value="$employee->emp_code" required col="col-md-3" class="mono" />
         <div class="col-12">
-          <label for="f-post_id" class="form-label small fw-semibold text-secondary mb-1">GeM post (project · designation · rate)</label>
+          <div class="d-flex align-items-end justify-content-between gap-2">
+            <label for="f-post_id" class="form-label small fw-semibold text-secondary mb-1">GeM post (project · designation · rate)</label>
+            @can('manage-masters')<button type="button" class="btn btn-sm btn-outline-primary mb-1" data-bs-toggle="modal" data-bs-target="#addPostModal"><i class="bi bi-plus-lg"></i> Add new post</button>@endcan
+          </div>
           <select id="f-post_id" name="post_id" class="form-select @error('post_id') is-invalid @enderror">
             <option value="">Not placed on a post yet</option>
             @foreach($posts as $p)
@@ -53,11 +56,12 @@
           </select>
           @error('post_id')<div class="invalid-feedback">{{ $message }}</div>@enderror
           <div class="form-text">Only posts of the selected agency and client are listed. The bill rate comes from the post unless you set a different salary below.</div>
+          <div id="post-added" class="alert alert-success small py-2 mt-2 mb-0" hidden>New post added and selected.</div>
           <div id="no-posts" class="alert alert-warning small py-2 mt-2 mb-0" hidden>
             <span id="no-posts-text"></span>
-            @can('manage-masters') <a href="{{ route('contracts.create') }}">Add a GeM contract</a>@endcan
-            @can('import') or <a href="{{ route('import.create') }}">import your GeM workbook</a>@endcan.
-            You can still save the employee now and choose the post later.
+            @can('manage-masters') Click <b>Add new post</b> to enter it now (you can create the GeM contract and project in the same window).@endcan
+            @can('import') Or <a href="{{ route('import.create') }}">import your GeM workbook</a>.@endcan
+            You can also save the employee now and choose the post later.
           </div>
         </div>
         <x-field name="joining_date" label="Joining date" type="date" :value="$employee->joining_date?->toDateString()" col="col-md-3" />
@@ -93,6 +97,7 @@
       <button class="btn btn-primary">Save employee</button>
     </div>
   </form>
+  @can('manage-masters')@include('posts._add-modal', ['onSaved' => 'select'])@endcan
   <script>
     // Agency narrows the clients; client narrows the posts.
     (function () {

@@ -52,6 +52,7 @@ body{font-size:.9rem}
       <a class="{{ $is('agencies.*') }}" href="{{ route('agencies.index') }}"><i class="bi bi-building"></i>Agencies</a>
       <a class="{{ $is('clients.*') }}" href="{{ route('clients.index') }}"><i class="bi bi-bank"></i>Clients</a>
       <a class="{{ $is('contracts.*') }}" href="{{ route('contracts.index') }}"><i class="bi bi-file-earmark-text"></i>GeM Contracts</a>
+      <a class="{{ $is('posts.*') }}" href="{{ route('posts.index') }}"><i class="bi bi-diagram-3"></i>Posts</a>
       <a class="{{ $is('employees.*') }}" href="{{ route('employees.index') }}"><i class="bi bi-people"></i>Employees</a>
       <div class="z-label">Operations</div>
       <a class="{{ $is('attendance.*') }}" href="{{ route('attendance.index') }}"><i class="bi bi-calendar-check"></i>Attendance</a>

@@ -29,6 +29,8 @@ Route::middleware('auth')->group(function () {
     Route::resource('contracts', GemContractController::class)->except(['destroy']);
     Route::post('contracts/{contract}/projects', [ProjectController::class, 'store'])->name('projects.store');
     Route::put('projects/{project}', [ProjectController::class, 'update'])->name('projects.update');
+    Route::get('posts', [PostController::class, 'index'])->name('posts.index');
+    Route::post('posts/quick', [PostController::class, 'quickStore'])->name('posts.quick');
     Route::post('projects/{project}/posts', [PostController::class, 'store'])->name('posts.store');
     Route::put('posts/{post}', [PostController::class, 'update'])->name('posts.update');
     Route::delete('posts/{post}', [PostController::class, 'destroy'])->name('posts.destroy');

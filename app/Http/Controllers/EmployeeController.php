@@ -111,7 +111,7 @@ class EmployeeController extends Controller
             'clients' => Client::query()->with('agency')->orderBy('name')->get(),
             'posts' => Post::query()->with('project.contract')->withCount('activeEmployees')->get()
                 ->sortBy(fn ($p) => $p->project->contract->bid_no.$p->project->name.$p->designation),
-        ];
+        ] + PostController::pickerData();   // own keys (agencies with post counts) win
     }
 
     /** Client must belong to the agency, and the post must be under that client (the post decides both if given). */
