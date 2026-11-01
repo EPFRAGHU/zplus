@@ -344,4 +344,30 @@ class WebFlowTest extends TestCase
         $this->assertGreaterThan($swhHead, strpos($html, '<td class="fw-semibold">AAA Swachha Project</td>'));   // table row, not the filter list
         $this->assertStringContainsString('Client: <b>ICMR-NIHR (RMRCBB), Bhubaneswar</b>', $html);
     }
+
+    public function test_bills_are_split_into_agency_blocks(): void
+    {
+        $user = $this->user('admin');
+        $service = app(\App\Services\Attendance\AttendanceService::class);
+        foreach (['SWH' => 'SWACHHA', 'ZPS' => 'M/S Z Plus Surakhya Seva'] as $code => $name) {
+            $agency = \App\Models\Agency::query()->create(['name' => $name, 'code' => $code]);
+            $client = \App\Models\Client::query()->create(['name' => 'ICMR', 'short_code' => 'ICMR', 'agency_id' => $agency->id]);
+            $k = \App\Models\GemContract::query()->create(['agency_id' => $agency->id, 'client_id' => $client->id, 'bid_no' => "B-{$code}", 'contract_no' => "C-{$code}"]);
+            $project = $k->projects()->create(['name' => "Proj {$code}", 'code' => "P{$code}"]);
+            $post = $project->posts()->create(['designation' => 'PTS', 'sanctioned_qty' => 1, 'rate' => 30000]);
+            \App\Models\Employee::query()->create(['emp_code' => "E-{$code}", 'name' => "Staff {$code}", 'post_id' => $post->id, 'agency_id' => $agency->id]);
+            $sheet = $service->open($project, \Carbon\CarbonImmutable::parse('2026-10-01'));
+            $service->lock($sheet, $user, null);
+            app(\App\Services\Billing\InvoiceGenerator::class)->generate($sheet->fresh(), $user);
+        }
+
+        $html = $this->actingAs($user)->get('/invoices')->assertOk()->getContent();
+        $zps = strpos($html, '<b class="fs-6">M/S Z Plus Surakhya Seva</b>');
+        $swh = strpos($html, '<b class="fs-6">SWACHHA</b>');
+        $this->assertNotFalse($zps);
+        $this->assertNotFalse($swh);
+        $this->assertLessThan($swh, $zps);                                   // agencies in name order
+        $this->assertStringContainsString('1 bill · ₹36,763 billed · ₹0 awaiting payment', $html);
+        $this->assertGreaterThan($swh, strpos($html, '>ICMR/PSWH/01/2026</a>'));   // SWACHHA's bill under its heading
+    }
 }

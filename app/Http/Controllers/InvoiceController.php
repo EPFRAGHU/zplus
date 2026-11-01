@@ -27,14 +27,23 @@ class InvoiceController extends Controller
     {
         $agencyId = $request->integer('agency') ?: null;
         $clientId = $request->integer('client') ?: null;
-        $invoices = Invoice::query()->with('project', 'contract.agency', 'contract.client')
+        $filtered = Invoice::query()
             ->when($agencyId, fn ($q) => $q->whereHas('contract', fn ($c) => $c->where('agency_id', $agencyId)))
             ->when($clientId, fn ($q) => $q->whereHas('contract', fn ($c) => $c->where('client_id', $clientId)))
             ->when($request->integer('contract'), fn ($q, $id) => $q->where('gem_contract_id', $id))
             ->when($request->integer('project'), fn ($q, $id) => $q->where('project_id', $id))
             ->when($request->string('status')->value(), fn ($q, $s) => $q->where('status', $s))
-            ->when($request->input('month'), fn ($q, $m) => $q->where('month', $m.'-01'))
-            ->latest('month')->latest('id')->paginate(30)->withQueryString();
+            ->when($request->input('month'), fn ($q, $m) => $q->where('month', $m.'-01'));
+
+        // One block per agency: sort by agency name, then newest bill first.
+        $agencyName = Agency::query()->select('name')->whereColumn('agencies.id', 'invoices.agency_id');
+        $sorted = fn () => (clone $filtered)->orderByRaw('agency_id is null')->orderBy($agencyName)->latest('month')->latest('id');
+        $invoices = $sorted()->with('project', 'contract.agency', 'contract.client')->paginate(50)->withQueryString();
+        $blockTotals = (clone $filtered)->groupBy('agency_id')
+            ->selectRaw("agency_id, count(*) as bills, sum(rounded_total) as billed, sum(case when status in ('approved','submitted') then rounded_total else 0 end) as unpaid")
+            ->get()->keyBy('agency_id');
+        $carriedAgency = $invoices->onFirstPage() ? false
+            : $sorted()->skip(($invoices->currentPage() - 1) * $invoices->perPage() - 1)->take(1)->value('agency_id');
 
         $ready = AttendanceSheet::query()->where('status', 'locked')->doesntHave('invoice')
             ->with('project.contract.agency', 'project.contract.client')->orderByDesc('month')->get();
@@ -44,7 +53,7 @@ class InvoiceController extends Controller
             ->with('project.contract.agency', 'project.contract.client')->orderByDesc('month')->limit(20)->get();
 
         return view('invoices.index', [
-            'invoices' => $invoices, 'ready' => $ready, 'drafts' => $drafts,
+            'invoices' => $invoices, 'ready' => $ready, 'drafts' => $drafts, 'blockTotals' => $blockTotals, 'carriedAgency' => $carriedAgency,
             'agencies' => Agency::query()->orderBy('name')->get(),
             'clients' => Client::query()->with('agency')->orderBy('name')->get(),
             'agencyId' => $agencyId, 'clientId' => $clientId,

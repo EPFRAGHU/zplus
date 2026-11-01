@@ -47,7 +47,17 @@
   <div class="z-card"><div class="table-responsive"><table class="table table-hover">
     <thead><tr><th>Bill no.</th><th>Agency</th><th>Client</th><th>GeM contract</th><th>Project</th><th>Month</th><th class="num">Before GST</th><th class="num">Bill amount</th><th>Status</th></tr></thead>
     <tbody>
+    @php($block = false)
     @forelse($invoices as $i)
+      @if($block === false || $block !== $i->agency_id)
+        @php($continued = $block === false && $carriedAgency !== false && $carriedAgency === $i->agency_id)
+        @php($block = $i->agency_id)
+        @php($t = $blockTotals[$i->agency_id] ?? null)
+        <tr class="table-secondary"><td colspan="9" class="py-2">
+          <b class="fs-6">{{ $i->contract->agency->name }}</b> <span class="badge text-bg-dark">{{ $i->contract->agency->code }}</span>
+          @if($t)<span class="small text-secondary ms-2">{{ $t->bills }} {{ \Illuminate\Support\Str::plural('bill', $t->bills) }} · {{ inr($t->billed) }} billed · {{ inr($t->unpaid) }} awaiting payment{{ $continued ? ' · continued from the previous page' : '' }}</span>@endif
+        </td></tr>
+      @endif
       <tr><td><a class="mono" href="{{ route('invoices.show', $i) }}">{{ $i->invoice_no }}</a></td><td><span class="badge text-bg-light border" title="{{ $i->contract->agency->name }}">{{ $i->contract->agency->code }}</span></td><td>{{ $i->contract->client->name }}</td>
         <td><a class="mono text-decoration-none" href="{{ route('contracts.show', $i->contract) }}">{{ $i->contract->bid_no }}</a></td>
         <td><span class="fw-semibold">{{ $i->project->name }}</span>@if($i->project->pi_name) <div class="small text-secondary">PI: {{ $i->project->pi_name }}</div> @endif</td><td>{{ $i->month->format('M Y') }}</td>
