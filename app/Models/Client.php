@@ -21,6 +21,11 @@ class Client extends Model
         return $this->name.($this->agency ? ' · '.$this->agency->code : '');
     }
 
+    public function employees(): HasMany
+    {
+        return $this->hasMany(Employee::class);
+    }
+
     public function contracts(): HasMany
     {
         return $this->hasMany(GemContract::class);

@@ -2,11 +2,16 @@
 
 namespace Tests\Feature;
 
+use App\Models\Agency;
 use App\Models\AttendanceSheet;
 use App\Models\Employee;
 use App\Models\GeneratedDocument;
 use App\Models\Invoice;
+use App\Models\Project;
 use App\Models\User;
+use App\Services\Attendance\AttendanceService;
+use App\Services\Billing\InvoiceGenerator;
+use Carbon\CarbonImmutable;
 use Database\Seeders\DemoSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\UploadedFile;
@@ -148,8 +153,8 @@ class WebFlowTest extends TestCase
     {
         $this->seed(DemoSeeder::class);
         $admin = $this->user('admin');
-        $zps = \App\Models\Agency::query()->where('code', 'ZPS')->firstOrFail();
-        $swh = \App\Models\Agency::query()->where('code', 'SWH')->firstOrFail();
+        $zps = Agency::query()->where('code', 'ZPS')->firstOrFail();
+        $swh = Agency::query()->where('code', 'SWH')->firstOrFail();
 
         $this->actingAs($admin)->get('/attendance?month=2026-10')->assertOk()
             ->assertSee('id="f-agency"', false)->assertSee('id="f-client"', false)->assertSee('MPH')->assertSee('ZPS');
@@ -165,10 +170,10 @@ class WebFlowTest extends TestCase
     {
         $this->seed(DemoSeeder::class);
         $admin = $this->user('admin');
-        $zps = \App\Models\Agency::query()->where('code', 'ZPS')->firstOrFail();
-        $swh = \App\Models\Agency::query()->where('code', 'SWH')->firstOrFail();
-        $sheet = app(\App\Services\Attendance\AttendanceService::class)->open(\App\Models\Project::query()->firstOrFail(), \Carbon\CarbonImmutable::parse('2026-10-01'));
-        app(\App\Services\Attendance\AttendanceService::class)->lock($sheet, $admin, null);
+        $zps = Agency::query()->where('code', 'ZPS')->firstOrFail();
+        $swh = Agency::query()->where('code', 'SWH')->firstOrFail();
+        $sheet = app(AttendanceService::class)->open(Project::query()->firstOrFail(), CarbonImmutable::parse('2026-10-01'));
+        app(AttendanceService::class)->lock($sheet, $admin, null);
 
         $this->actingAs($admin)->get('/invoices')->assertOk()->assertSee('Ready to bill')->assertSee('ZPS')->assertSee('ICMR-NIHR (RMRCBB), Bhubaneswar');
         $this->post('/invoices', ['attendance_sheet_id' => $sheet->id]);
@@ -177,5 +182,24 @@ class WebFlowTest extends TestCase
         $this->get('/invoices?agency='.$swh->id)->assertDontSee('ICMR/MPH/01/2026');
         $this->get('/invoices?agency='.$zps->id)->assertSee('ICMR/MPH/01/2026');
         $this->get('/invoices/1')->assertSee('Agency:')->assertSee('M/S Z Plus Surakhya Seva')->assertSee('Client:');
+    }
+
+    public function test_dashboard_shows_and_filters_by_agency_and_client(): void
+    {
+        $this->seed(DemoSeeder::class);
+        $admin = $this->user('admin');
+        $zps = Agency::query()->where('code', 'ZPS')->firstOrFail();
+        $swh = Agency::query()->where('code', 'SWH')->firstOrFail();
+        $sheet = app(AttendanceService::class)->open(Project::query()->firstOrFail(), CarbonImmutable::parse(now()->subMonthNoOverflow()->startOfMonth()->toDateString()));
+        app(AttendanceService::class)->lock($sheet, $admin, null);
+        app(InvoiceGenerator::class)->generate($sheet->fresh(), $admin);
+
+        $all = $this->actingAs($admin)->get('/')->assertOk()
+            ->assertSee('id="f-agency"', false)->assertSee('id="f-client"', false)
+            ->assertSee('By agency and client')->assertSee('ZPS')->assertSee('SWH')->assertSee('₹1,05,387');
+
+        // SWACHHA has no staff or bills in the demo data, so its view shows zero billed.
+        $this->get('/?agency='.$swh->id)->assertOk()->assertSee('Showing SWACHHA')->assertDontSee('ICMR/MPH/');
+        $this->get('/?agency='.$zps->id)->assertOk()->assertSee('ICMR/MPH/')->assertSee('₹1,05,387');
     }
 }

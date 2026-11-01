@@ -1,4 +1,16 @@
 <x-layouts.app title="Dashboard" crumb="Admin dashboard">
+  @php($q = array_filter(['agency' => $agencyId, 'client' => $clientId]))
+  <form class="z-card p-3 mb-3 d-flex gap-2 align-items-end flex-wrap">
+    <div><label class="form-label small text-secondary mb-1" for="f-agency">Agency</label>
+      <select id="f-agency" name="agency" class="form-select"><option value="">All agencies</option>@foreach($agencies as $a)<option value="{{ $a->id }}" @selected($agencyId === $a->id)>{{ $a->name }}</option>@endforeach</select></div>
+    <div><label class="form-label small text-secondary mb-1" for="f-client">Client</label>
+      <select id="f-client" name="client" class="form-select"><option value="">All clients</option>@foreach($clients as $c)<option value="{{ $c->id }}" data-agency="{{ $c->agency_id }}" @selected($clientId === $c->id)>{{ $c->name }}</option>@endforeach</select></div>
+    <button class="btn btn-outline-secondary">Show</button>
+    @if($q)<a class="btn btn-link" href="{{ route('dashboard') }}">Clear</a>@endif
+    <span class="small text-secondary ms-md-2">
+      Showing {{ $agencyId ? $agencies->firstWhere('id', $agencyId)?->name : 'all agencies' }}{{ $clientId ? ' · '.$clients->firstWhere('id', $clientId)?->name : '' }}
+    </span>
+  </form>
   <div class="row row-cols-2 row-cols-md-3 row-cols-xl-6 g-3 mb-3">
     <x-kpi label="Clients" :value="$stats['clients']" />
     <x-kpi label="Active GeM contracts" :value="$stats['contracts']" color="#1f63c4" />
@@ -38,27 +50,62 @@
           <li class="list-group-item d-flex justify-content-between"><span>Bills made</span><b>{{ $projectsBilled }}</b></li>
           <li class="list-group-item d-flex justify-content-between"><span>Draft bills to approve</span><b>{{ $drafts }}</b></li>
           <li class="list-group-item d-flex justify-content-between align-items-center"><span>Staff with missing bank details</span>
-            <a class="badge text-bg-{{ $bankProblems ? 'danger' : 'success' }} text-decoration-none" href="{{ route('employees.index', ['bank' => 'problem']) }}">{{ $bankProblems }}</a></li>
+            <a class="badge text-bg-{{ $bankProblems ? 'danger' : 'success' }} text-decoration-none" href="{{ route('employees.index', ['bank' => 'problem'] + $q) }}">{{ $bankProblems }}</a></li>
         </ul>
         <div class="p-3 d-grid gap-2">
-          <a class="btn btn-outline-secondary" href="{{ route('attendance.index', ['month' => $lastMonth->format('Y-m')]) }}"><i class="bi bi-calendar-check me-1"></i>Open attendance</a>
-          <a class="btn btn-primary" href="{{ route('invoices.index') }}"><i class="bi bi-receipt me-1"></i>Make bills</a>
+          <a class="btn btn-outline-secondary" href="{{ route('attendance.index', ['month' => $lastMonth->format('Y-m')] + $q) }}"><i class="bi bi-calendar-check me-1"></i>Open attendance</a>
+          <a class="btn btn-primary" href="{{ route('invoices.index', $q) }}"><i class="bi bi-receipt me-1"></i>Make bills</a>
         </div>
       </div>
     </div>
     <div class="col-12">
       <div class="z-card">
-        <div class="z-card-h"><h2>Recent bills</h2><a class="ms-auto small" href="{{ route('invoices.index') }}">View all</a></div>
+        <div class="z-card-h"><h2>By agency and client</h2><span class="small text-secondary">{{ $lastMonth->format('F') }} attendance locked · billed in {{ now()->year }}</span></div>
         <div class="table-responsive"><table class="table table-hover">
-          <thead><tr><th>Bill no.</th><th>Project</th><th>Month</th><th class="num">Amount</th><th>Status</th></tr></thead>
+          <thead><tr><th>Agency</th><th>Client</th><th class="num">Contracts</th><th class="num">Staff</th><th class="num">Vacant</th><th class="num">{{ $lastMonth->format('M') }} locked</th><th class="num">Billed {{ now()->year }}</th><th class="num">Awaiting payment</th><th></th></tr></thead>
+          <tbody>
+          @forelse($summary as $r)
+            @php($c = $r['client'])
+            <tr>
+              <td><span class="badge text-bg-light border" title="{{ $c->agency?->name }}">{{ $c->agency?->code ?? '—' }}</span></td>
+              <td class="fw-semibold">{{ $c->name }}</td>
+              <td class="num">{{ $r['contracts'] }}</td>
+              <td class="num">{{ $r['employees'] }}</td>
+              <td class="num">{{ max(0, $r['sanctioned'] - $r['placed']) }}</td>
+              <td class="num">{{ $r['locked'] }} / {{ $r['projects'] }}</td>
+              <td class="num">{{ inr($r['billed']) }}</td>
+              <td class="num">{{ inr($r['unpaid']) }}</td>
+              <td class="text-end"><a class="btn btn-sm btn-outline-secondary" href="{{ route('dashboard', ['agency' => $c->agency_id, 'client' => $c->id]) }}">View</a></td>
+            </tr>
+          @empty
+            <tr><td colspan="9" class="text-center text-secondary py-4">No clients yet.</td></tr>
+          @endforelse
+          </tbody></table></div>
+      </div>
+    </div>
+    <div class="col-12">
+      <div class="z-card">
+        <div class="z-card-h"><h2>Recent bills</h2><a class="ms-auto small" href="{{ route('invoices.index', $q) }}">View all</a></div>
+        <div class="table-responsive"><table class="table table-hover">
+          <thead><tr><th>Bill no.</th><th>Agency</th><th>Client</th><th>Project</th><th>Month</th><th class="num">Amount</th><th>Status</th></tr></thead>
           <tbody>
           @forelse ($recent as $i)
-            <tr><td><a class="mono" href="{{ route('invoices.show', $i) }}">{{ $i->invoice_no }}</a></td><td>{{ $i->project->name }}</td><td>{{ $i->month->format('M Y') }}</td><td class="num">{{ inr($i->rounded_total) }}</td><td><x-status :value="$i->status" /></td></tr>
+            <tr><td><a class="mono" href="{{ route('invoices.show', $i) }}">{{ $i->invoice_no }}</a></td><td><span class="badge text-bg-light border">{{ $i->contract->agency->code }}</span></td><td>{{ $i->contract->client->name }}</td><td>{{ $i->project->name }}</td><td>{{ $i->month->format('M Y') }}</td><td class="num">{{ inr($i->rounded_total) }}</td><td><x-status :value="$i->status" /></td></tr>
           @empty
-            <tr><td colspan="5" class="text-center text-secondary py-4">No bills yet. Lock a month's attendance, then make its bill.</td></tr>
+            <tr><td colspan="7" class="text-center text-secondary py-4">No bills yet. Lock a month's attendance, then make its bill.</td></tr>
           @endforelse
           </tbody></table></div>
       </div>
     </div>
   </div>
+  <script>
+    (function () {
+      const agency = document.getElementById('f-agency'), client = document.getElementById('f-client');
+      function update() {
+        [...client.options].forEach(o => { if (o.value) { o.hidden = o.disabled = !!agency.value && o.dataset.agency !== agency.value; } });
+        if (client.selectedOptions[0] && client.selectedOptions[0].disabled) client.value = '';
+      }
+      agency.addEventListener('change', update); update();
+    })();
+  </script>
 </x-layouts.app>
