@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Agency;
+use App\Support\Ifsc;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Arr;
@@ -72,8 +73,13 @@ class AgencyController extends Controller
             'letterhead_emails' => ['nullable', 'string', 'max:255'],
             'phones' => ['nullable', 'string', 'max:100'],
             'logo' => ['nullable', 'image', 'mimes:png,jpg,jpeg', 'max:1024'],
+            'bank_name' => ['nullable', 'string', 'max:255'],
+            'bank_account_no' => ['nullable', 'regex:/^\d{6,20}$/'],
+            'bank_ifsc' => ['nullable', fn ($a, $v, $fail) => Ifsc::isValid($v) || $fail('An IFSC has 11 characters: 4 letters, a zero, then 6 letters or digits.')],
+            'bank_branch' => ['nullable', 'string', 'max:255'],
         ], [
             'gstin.regex' => 'Enter a 15-character GSTIN, e.g. 21AAAGO1234F1Z5.', 'pan.regex' => 'Enter a 10-character PAN, e.g. ABCDE1234F.',
+            'bank_account_no.regex' => 'Enter the account number using digits only.',
             'logo.max' => 'The logo must be 1 MB or smaller.', 'logo.image' => 'Upload the logo as a PNG or JPG image.',
         ]);
     }

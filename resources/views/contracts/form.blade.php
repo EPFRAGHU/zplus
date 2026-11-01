@@ -27,6 +27,7 @@
       <x-field name="contract_no" label="GeM contract no." :value="$contract->contract_no" required col="col-md-4" class="mono" hint="e.g. GEMC-511687731718030" />
       <x-field name="contract_date" label="Contract date" type="date" :value="$contract->contract_date?->toDateString()" col="col-md-4" />
       <x-select name="billing_type" label="Billing type" :options="['monthly' => 'Monthly rate (consolidated)', 'daily' => 'Daily rate × paid days + EPF/ESIC']" :value="$contract->billing_type" required col="col-md-4" />
+      <x-field name="sac_code" label="SAC / HSN code" :value="$contract->sac_code ?? '998514'" col="col-md-2" class="mono" hint="Printed on bills" />
       <x-field name="service_charge_percent" label="Service charge (%)" :value="$contract->service_charge_percent" required col="col-md-2" hint="On the total before GST" />
       <x-field name="gst_percent" label="GST (%)" :value="$contract->gst_percent" required col="col-md-2" />
       <x-field name="epf_percent" label="Employer EPF (%)" :value="$contract->epf_percent" required col="col-md-2" hint="Daily-rate only" />

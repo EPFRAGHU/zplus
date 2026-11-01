@@ -56,7 +56,8 @@ body{font-size:.9rem}
       <a class="{{ $is('employees.*') }}" href="{{ route('employees.index') }}"><i class="bi bi-people"></i>Employees</a>
       <div class="z-label">Operations</div>
       <a class="{{ $is('attendance.*') }}" href="{{ route('attendance.index') }}"><i class="bi bi-calendar-check"></i>Attendance</a>
-      <a class="{{ $is('invoices.*') }}" href="{{ route('invoices.index') }}"><i class="bi bi-receipt"></i>Bills</a>
+      <a class="{{ $is('invoices.*') }}" href="{{ route('invoices.index') }}"><i class="bi bi-receipt"></i>Sub-bills</a>
+      <a class="{{ $is('tax-invoices.*') }}" href="{{ route('tax-invoices.index') }}"><i class="bi bi-file-earmark-ruled"></i>Tax Invoices</a>
       @can('import')
       <div class="z-label">Setup</div>
       <a class="{{ $is('import.*') }}" href="{{ route('import.create') }}"><i class="bi bi-file-earmark-arrow-up"></i>Excel Import</a>

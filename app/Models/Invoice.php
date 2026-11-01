@@ -51,6 +51,11 @@ class Invoice extends Model
         return $this->belongsTo(AttendanceSheet::class, 'attendance_sheet_id');
     }
 
+    public function taxInvoice(): BelongsTo
+    {
+        return $this->belongsTo(TaxInvoice::class);
+    }
+
     public function lines(): HasMany
     {
         return $this->hasMany(InvoiceLine::class);

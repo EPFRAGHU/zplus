@@ -9,7 +9,7 @@ use App\Support\Money;
  *
  * Confirmed rule: service charge is levied on the total amount excluding GST,
  * and GST is then charged on (total + service charge).
- *   monthly posts: amount = rate x paid days / days in month
+ *   monthly posts: amount = rate x paid days / days in month, rounded to whole rupees per person
  *   daily posts:   amount = rate x paid days, plus employer EPF and ESIC
  */
 final class GemBillCalculator
@@ -44,6 +44,7 @@ final class GemBillCalculator
             $paise = $line->rateType === 'monthly'
                 ? Money::mulDiv($rate, $days10, $line->daysInMonth * 10)
                 : Money::mulDiv($rate, $days10, 10);
+            $paise = Money::roundToRupee($paise);   // each person rounded to whole rupees, as on the sub-bill
             $line->amount = Money::format($paise);
             $wages += $paise;
         }

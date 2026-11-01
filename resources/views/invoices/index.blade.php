@@ -1,4 +1,5 @@
-<x-layouts.app title="Bills" crumb="Billing / <span class='text-danger'>Bills</span>">
+<x-layouts.app title="Sub-bills" crumb="Billing / <span class='text-danger'>Sub-bills</span>">
+  <div class="alert alert-light border small">One sub-bill per project per month. Combine a client's sub-bills into one GST <a href="{{ route('tax-invoices.index') }}">tax invoice</a> with <b>Make tax invoice</b> on the client's block.</div>
   @if($ready->isNotEmpty())
   <div class="z-card mb-3">
     <div class="z-card-h"><h2>Ready to bill</h2><span class="small text-secondary">Locked attendance without a bill</span></div>
@@ -62,12 +63,14 @@
       @if($clientBlock === false || $clientBlock !== $i->contract->client_id)
         @php($clientBlock = $i->contract->client_id)
         @php($ct = $clientTotals[$i->contract->client_id] ?? null)
-        <x-client-block :client="$i->contract->client" colspan="9" :meta="$ct ? $ct->bills.' '.\Illuminate\Support\Str::plural('bill', $ct->bills).' · '.inr($ct->billed).' billed · '.inr($ct->unpaid).' awaiting payment' : null" />
+        <x-client-block :client="$i->contract->client" colspan="9" :meta="$ct ? $ct->bills.' '.\Illuminate\Support\Str::plural('sub-bill', $ct->bills).' · '.inr($ct->billed).' billed · '.inr($ct->unpaid).' awaiting payment' : null">
+          @can('billing')<a class="btn btn-sm btn-outline-primary" href="{{ route('tax-invoices.create', ['client' => $i->contract->client_id, 'month' => $i->month->format('Y-m')]) }}"><i class="bi bi-file-earmark-ruled"></i> Make tax invoice</a>@endcan
+        </x-client-block>
       @endif
       <tr><td><a class="mono" href="{{ route('invoices.show', $i) }}">{{ $i->invoice_no }}</a></td><td><span class="badge text-bg-light border" title="{{ $i->contract->agency->name }}">{{ $i->contract->agency->code }}</span></td><td>{{ $i->contract->client->name }}</td>
         <td><a class="mono text-decoration-none" href="{{ route('contracts.show', $i->contract) }}">{{ $i->contract->bid_no }}</a></td>
         <td><span class="fw-semibold">{{ $i->project->name }}</span>@if($i->project->pi_name) <div class="small text-secondary">PI: {{ $i->project->pi_name }}</div> @endif</td><td>{{ $i->month->format('M Y') }}</td>
-        <td class="num">{{ inr($i->taxable, true) }}</td><td class="num fw-semibold">{{ inr($i->rounded_total, true) }}</td><td><x-status :value="$i->status" /></td></tr>
+        <td class="num">{{ inr($i->taxable, true) }}</td><td class="num fw-semibold">{{ inr($i->rounded_total, true) }}</td><td><x-status :value="$i->status" />@if($i->tax_invoice_id) <div class="small"><a href="{{ route('tax-invoices.show', $i->tax_invoice_id) }}">In tax invoice</a></div>@endif</td></tr>
     @empty
       <tr><td colspan="9" class="text-center text-secondary py-4">No bills match. Bills appear here after you click <b>Make bill</b> on a locked month.</td></tr>
     @endforelse

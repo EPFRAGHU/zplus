@@ -1,12 +1,15 @@
-@php($rs = fn ($v) => 'Rs. '.ltrim(inr($v, true), '₹'))
-<html><head><meta charset="utf-8">@include('pdf._style')</head><body>
+@php($rs = fn ($v) => number_format((float) $v, 2))
+@php($daily = $invoice->billing_type === 'daily')
+<html><head><meta charset="utf-8">@include('pdf._style')
+<style>.grid td,.grid th{font-size:9.5px;padding:3px 4px}</style></head><body>
 @include('pdf._letterhead-footer')
 @include('pdf._letterhead')
-<table><tr>
-  <td style="vertical-align:top"><h2>TAX INVOICE</h2></td>
-  <td class="r" style="vertical-align:top"><div>Bill No.: <b>{{ $invoice->invoice_no }}</b></div><div>Date: {{ $invoice->invoice_date->format('d/m/Y') }}</div><div>Month: {{ $invoice->month->format('M-Y') }}</div></td>
+<div class="c b" style="font-size:15px;letter-spacing:2px">BILL</div>
+<table style="margin:4px 0 6px"><tr>
+  <td>Date: {{ $invoice->invoice_date->format('d/m/Y') }} &nbsp; Month - {{ $invoice->month->format('M-y') }}</td>
+  <td class="r">SL No:- <b>{{ $invoice->invoice_no }}</b></td>
 </tr></table>
-<table class="grid" style="margin-bottom:8px">
+<table class="grid" style="margin-bottom:6px">
   <tr>
     <th style="width:12%;text-align:left">Agency</th>
     <td style="width:38%"><b>{{ $agency->name }}</b> ({{ $agency->code }})@if($agency->gstin)<br>GSTIN: {{ $agency->gstin }}@endif</td>
@@ -14,36 +17,32 @@
     <td><b>{{ $client->name }}</b> ({{ $client->short_code }})@if($client->gstin)<br>GSTIN: {{ $client->gstin }}@endif</td>
   </tr>
 </table>
-<table><tr>
-  <td style="width:55%;vertical-align:top"><div class="muted">Bill to</div><div class="b">{{ $client->addressee }}</div><div>{{ $client->name }}</div><div>{!! nl2br(e($client->billing_address)) !!}</div>@if($client->gstin)<div>GSTIN: {{ $client->gstin }}</div>@endif</td>
-  <td style="vertical-align:top"><div>GeM Contract No.: {{ $contract->contract_no }}</div><div>GeM Bid No.: {{ $contract->bid_no }}</div><div>Project: {{ $project->title ?: $project->name }}</div>@if($project->pi_name)<div>PI: {{ $project->pi_name }}</div>@endif<div>SAC: 998519 (Manpower supply services)</div></td>
-</tr></table>
-<br>
+<p style="margin:0 0 6px">To,<br>{{ $client->addressee ?? 'The Administrative Officer' }},<br>{!! nl2br(e($client->billing_address ?: $client->name)) !!}</p>
 <table class="grid">
-  <thead><tr><th>Sl.</th><th>Name</th><th>Post</th><th class="r">Rate</th>@if($invoice->billing_type === 'monthly')<th class="c">Days in month</th>@endif<th class="c">Paid days</th><th class="r">Amount</th></tr></thead>
+  <thead><tr><th>SL No</th><th>Description</th><th>Qty</th><th>Nos of working days</th><th>Rate per day</th><th>{{ $daily ? 'Rate per day' : 'Rate per month / head' }}</th><th>Total amount</th><th>Amount</th></tr></thead>
   <tbody>
-  @foreach($invoice->lines as $l)
-    <tr><td class="c">{{ $loop->iteration }}</td><td>{{ $l->employee_name }}</td><td>{{ $l->designation }}</td><td class="r">{{ $rs($l->rate) }}{{ $l->rate_type === 'daily' ? '/day' : '' }}</td>
-      @if($invoice->billing_type === 'monthly')<td class="c">{{ $l->days_in_month }}</td>@endif<td class="c">{{ rtrim(rtrim((string) $l->paid_days, '0'), '.') }}</td><td class="r">{{ $rs($l->amount) }}</td></tr>
-  @endforeach
-  @php($span = $invoice->billing_type === 'monthly' ? 6 : 5)
-  <tr><td colspan="{{ $span }}" class="r">Professional charges</td><td class="r">{{ $rs($invoice->wages) }}</td></tr>
-  @if($invoice->billing_type === 'daily')
-    <tr><td colspan="{{ $span }}" class="r">Employer EPF</td><td class="r">{{ $rs($invoice->epf) }}</td></tr>
-    <tr><td colspan="{{ $span }}" class="r">Employer ESIC</td><td class="r">{{ $rs($invoice->esic) }}</td></tr>
-  @endif
-  <tr><td colspan="{{ $span }}" class="r">Service charge @ {{ (float) $invoice->service_charge_percent }}%</td><td class="r">{{ $rs($invoice->service_charge) }}</td></tr>
-  <tr><td colspan="{{ $span }}" class="r b">Total before GST</td><td class="r b">{{ $rs($invoice->taxable) }}</td></tr>
-  @if((float) $invoice->igst > 0)
-    <tr><td colspan="{{ $span }}" class="r">IGST @ {{ (float) $invoice->gst_percent }}%</td><td class="r">{{ $rs($invoice->igst) }}</td></tr>
-  @else
-    <tr><td colspan="{{ $span }}" class="r">CGST @ {{ (float) $invoice->gst_percent / 2 }}%</td><td class="r">{{ $rs($invoice->cgst) }}</td></tr>
-    <tr><td colspan="{{ $span }}" class="r">SGST @ {{ (float) $invoice->gst_percent / 2 }}%</td><td class="r">{{ $rs($invoice->sgst) }}</td></tr>
-  @endif
-  @if($invoice->rounded_total !== $invoice->total)<tr><td colspan="{{ $span }}" class="r">Rounded off</td><td class="r">{{ $rs((float) $invoice->rounded_total - (float) $invoice->total) }}</td></tr>@endif
-  <tr><td colspan="{{ $span }}" class="r b">Bill amount</td><td class="r b">{{ $rs($invoice->rounded_total) }}</td></tr>
+    <tr><td></td><td colspan="7" style="text-align:justify">Professional Charges for Manpower Personnel deployed under project entitled "{{ $project->title ?: $project->name }}" at {{ $client->name }} for the month of {{ $invoice->month->format('M-Y') }} vide your office GeM work order No. {{ $contract->contract_no }}@if($contract->contract_date) Dt- {{ $contract->contract_date->format('d.m.Y') }}@endif under your kind control.</td></tr>
+    @foreach($invoice->lines as $l)
+      @php($perDay = $l->rate_type === 'monthly' ? (float) $l->rate / max(1, (int) $l->days_in_month) : (float) $l->rate)
+      <tr><td class="c">{{ $loop->iteration }}</td><td>{{ $l->employee_name }}<br><span class="muted">{{ $l->designation }}</span></td><td class="c">1</td>
+        <td class="c">{{ rtrim(rtrim((string) $l->paid_days, '0'), '.') }}</td><td class="r">{{ $rs($perDay) }}</td><td class="r">{{ $rs($l->rate) }}</td>
+        <td class="r">{{ $rs($l->amount) }}</td><td class="r">{{ $rs($l->amount) }}</td></tr>
+    @endforeach
+    <tr class="b"><td>Add</td><td colspan="6">Total monthly wages ({{ $invoice->lines->count() }} {{ \Illuminate\Support\Str::plural('person', $invoice->lines->count()) }})</td><td class="r">{{ $rs($invoice->wages) }}</td></tr>
+    @if($daily)
+      <tr><td>Add</td><td colspan="6">Employer EPF</td><td class="r">{{ $rs($invoice->epf) }}</td></tr>
+      <tr><td>Add</td><td colspan="6">Employer ESIC</td><td class="r">{{ $rs($invoice->esic) }}</td></tr>
+    @endif
+    <tr><td>Add</td><td colspan="6">Service charge @ {{ (float) $invoice->service_charge_percent }}% (excluding GST @ {{ (float) $invoice->gst_percent }}%)</td><td class="r">{{ $rs($invoice->service_charge) }}</td></tr>
+    <tr class="b"><td></td><td colspan="6">Total</td><td class="r">{{ $rs($invoice->taxable) }}</td></tr>
+    <tr><td>Add</td><td colspan="6">{{ (float) $invoice->gst_percent }}% GST (as per GST Rule by the GOI){{ (float) $invoice->igst > 0 ? ' – IGST' : ' – CGST '.$rs($invoice->cgst).' + SGST '.$rs($invoice->sgst) }}</td><td class="r">{{ $rs((float) $invoice->cgst + (float) $invoice->sgst + (float) $invoice->igst) }}</td></tr>
+    <tr class="b"><td></td><td colspan="6">Grand total</td><td class="r">{{ $rs($invoice->total) }}</td></tr>
+    <tr class="b"><td>Add</td><td colspan="6">Grand total round up</td><td class="r">{{ $rs($invoice->rounded_total) }}</td></tr>
   </tbody>
 </table>
-<p><b>Amount in words:</b> {{ $invoice->amountInWords() }}</p>
-<table class="sign"><tr><td></td><td class="r" style="width:40%">For {{ $agency->name }}<br><br><br>{{ $agency->signatory_name }}<br>{{ $agency->signatory_title ?? 'Authorised Signatory' }}</td></tr></table>
+<p class="b" style="margin-top:6px">({{ $invoice->amountInWords() }})</p>
+<table style="margin-top:6px"><tr>
+  <td style="vertical-align:top" class="small">GeM Contract: {{ $contract->contract_no }} · Bid: {{ $contract->bid_no }} · SAC: {{ $contract->sac_code }}@if($project->pi_name) · PI: {{ $project->pi_name }}@endif</td>
+  <td class="r" style="width:40%">For {{ strtoupper($agency->name) }}<br><br><br>{{ $agency->signatory_name }}<br>{{ $agency->signatory_title ?? 'Managing Partner' }}</td>
+</tr></table>
 </body></html>

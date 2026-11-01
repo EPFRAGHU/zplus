@@ -9,7 +9,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasManyThrough;
 
-#[Fillable(['agency_id', 'client_id', 'bid_no', 'contract_no', 'contract_date', 'billing_type', 'service_charge_percent', 'gst_percent', 'epf_percent', 'esic_percent', 'inter_state', 'status'])]
+#[Fillable(['agency_id', 'client_id', 'bid_no', 'contract_no', 'contract_date', 'billing_type', 'sac_code', 'service_charge_percent', 'gst_percent', 'epf_percent', 'esic_percent', 'inter_state', 'status'])]
 class GemContract extends Model
 {
     protected function casts(): array

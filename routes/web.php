@@ -12,6 +12,7 @@ use App\Http\Controllers\ImportController;
 use App\Http\Controllers\InvoiceController;
 use App\Http\Controllers\PostController;
 use App\Http\Controllers\ProjectController;
+use App\Http\Controllers\TaxInvoiceController;
 use Illuminate\Support\Facades\Route;
 
 Route::middleware('guest')->group(function () {
@@ -60,6 +61,15 @@ Route::middleware('auth')->group(function () {
     Route::delete('invoices/{invoice}', [InvoiceController::class, 'destroy'])->name('invoices.destroy');
     Route::get('invoices/{invoice}/pdf', [InvoiceController::class, 'pdf'])->name('invoices.pdf');
     Route::get('invoices/{invoice}/covering-letter', [InvoiceController::class, 'coveringLetter'])->name('invoices.covering-letter');
+
+    // Tax invoices (combine a client's sub-bills for a month)
+    Route::get('tax-invoices', [TaxInvoiceController::class, 'index'])->name('tax-invoices.index');
+    Route::get('tax-invoices/create', [TaxInvoiceController::class, 'create'])->name('tax-invoices.create');
+    Route::post('tax-invoices', [TaxInvoiceController::class, 'store'])->name('tax-invoices.store');
+    Route::get('tax-invoices/{taxInvoice}', [TaxInvoiceController::class, 'show'])->name('tax-invoices.show');
+    Route::post('tax-invoices/{taxInvoice}/status', [TaxInvoiceController::class, 'status'])->name('tax-invoices.status');
+    Route::delete('tax-invoices/{taxInvoice}', [TaxInvoiceController::class, 'destroy'])->name('tax-invoices.destroy');
+    Route::get('tax-invoices/{taxInvoice}/pdf', [TaxInvoiceController::class, 'pdf'])->name('tax-invoices.pdf');
 
     // Excel import
     Route::get('import', [ImportController::class, 'create'])->name('import.create');

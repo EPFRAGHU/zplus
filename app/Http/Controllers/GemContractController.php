@@ -37,7 +37,7 @@ class GemContractController extends Controller
         Gate::authorize('manage-masters');
 
         return view('contracts.form', $this->formData(new GemContract([
-            'billing_type' => 'monthly', 'service_charge_percent' => '3.85', 'gst_percent' => '18', 'epf_percent' => '13', 'esic_percent' => '3.25',
+            'billing_type' => 'monthly', 'sac_code' => '998514', 'service_charge_percent' => '3.85', 'gst_percent' => '18', 'epf_percent' => '13', 'esic_percent' => '3.25',
             // "Add contract for this client" pre-fills the agency and client.
             'agency_id' => $request->integer('agency') ?: null, 'client_id' => $request->integer('client') ?: null,
         ])));
@@ -89,6 +89,7 @@ class GemContractController extends Controller
             'contract_no' => ['required', 'string', 'max:40', Rule::unique('gem_contracts')->ignore($contract)],
             'contract_date' => ['nullable', 'date'],
             'billing_type' => ['required', Rule::in(['monthly', 'daily'])],
+            'sac_code' => ['nullable', 'digits_between:4,8'],
             'service_charge_percent' => ['required', 'numeric', 'between:0,100', 'decimal:0,4'],
             'gst_percent' => ['required', 'numeric', 'between:0,100', 'decimal:0,4'],
             'epf_percent' => ['required', 'numeric', 'between:0,100', 'decimal:0,4'],
@@ -99,6 +100,7 @@ class GemContractController extends Controller
             'client_id.required' => 'Choose the client this contract is with.',
         ]);
         $data['inter_state'] = $request->boolean('inter_state');
+        $data['sac_code'] = $data['sac_code'] ?? null ?: '998514';
 
         $client = Client::query()->findOrFail($data['client_id']);
         if ((int) $client->agency_id !== (int) $data['agency_id']) {

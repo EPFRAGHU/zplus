@@ -1,8 +1,8 @@
 @php($next = ['draft' => ['approved', 'Approve'], 'approved' => ['submitted', 'Mark submitted to client'], 'submitted' => ['paid', 'Mark paid']][$invoice->status] ?? null)
-<x-layouts.app :title="'Bill '.$invoice->invoice_no" :crumb="'Billing / <a href=\''.route('invoices.index').'\'>Bills</a>'">
+<x-layouts.app :title="'Sub-bill '.$invoice->invoice_no" :crumb="'Billing / <a href=\''.route('invoices.index').'\'>Bills</a>'">
   <x-slot:actions>
     <a class="btn btn-outline-secondary" href="{{ route('invoices.covering-letter', $invoice) }}" target="_blank"><i class="bi bi-envelope-paper me-1"></i>Covering letter</a>
-    <a class="btn btn-outline-secondary" href="{{ route('invoices.pdf', $invoice) }}" target="_blank"><i class="bi bi-file-earmark-pdf me-1"></i>Bill PDF</a>
+    <a class="btn btn-outline-secondary" href="{{ route('invoices.pdf', $invoice) }}" target="_blank"><i class="bi bi-file-earmark-pdf me-1"></i>Sub-bill PDF</a>
     @if($invoice->sheet->certificate_path)<a class="btn btn-outline-secondary" href="{{ route('attendance.scan', $invoice->sheet) }}" target="_blank"><i class="bi bi-file-earmark-check me-1"></i>PI certificate</a>@endif
   </x-slot:actions>
   <div class="d-flex flex-wrap gap-3 small mb-3">
@@ -10,6 +10,7 @@
     <span>Client: <b>{{ $invoice->contract->client->name }}</b></span>
     <span>GeM contract: <span class="mono">{{ $invoice->contract->contract_no }}</span></span>
     <span>PI: <b>{{ $invoice->project->pi_name ?? '—' }}</b></span>
+    <span>Tax invoice: @if($invoice->taxInvoice)<a class="mono" href="{{ route('tax-invoices.show', $invoice->taxInvoice) }}">{{ $invoice->taxInvoice->number }}</a>@else<span class="text-secondary">not yet</span> @can('billing')<a href="{{ route('tax-invoices.create', ['client' => $invoice->contract->client_id, 'month' => $invoice->month->format('Y-m')]) }}">Make tax invoice</a>@endcan @endif</span>
   </div>
   <div class="row g-3">
     <div class="col-lg-8">

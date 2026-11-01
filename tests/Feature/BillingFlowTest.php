@@ -68,8 +68,8 @@ class BillingFlowTest extends TestCase
         $attendance->lock($sheet->fresh(), $user, null);
 
         $first = app(InvoiceGenerator::class)->generate($sheet->fresh(), $user);
-        // APA: 31000 / 30 * 29 = 29966.67; APM: 55000
-        $this->assertSame('84966.67', $first->wages);
+        // APA: 31000 / 30 * 29 = 29966.67, rounded to 29967 as on the sub-bill; APM: 55000
+        $this->assertSame('84967.00', $first->wages);
         $this->assertSame('ICMR/MPH/01/2026', $first->invoice_no);
     }
 

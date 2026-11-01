@@ -32,6 +32,14 @@
       <x-field name="letterhead_emails" label="E-mails on letterhead" :value="$agency->letterhead_emails" col="col-md-5" hint="Separate with commas" />
       <x-field name="phones" label="Mobile numbers on letterhead" :value="$agency->phones" col="col-md-3" />
     </div>
+    <h2 class="h6 fw-bold mt-4 mb-1">Bank details</h2>
+    <p class="small text-secondary mb-2">Printed on tax invoices so the client knows where to pay.</p>
+    <div class="row g-3">
+      <x-field name="bank_name" label="Bank name" :value="$agency->bank_name" col="col-md-3" />
+      <x-field name="bank_account_no" label="Account number" :value="$agency->bank_account_no" col="col-md-3" class="mono" />
+      <x-field name="bank_ifsc" label="IFSC" :value="$agency->bank_ifsc" col="col-md-3" class="mono text-uppercase" />
+      <x-field name="bank_branch" label="Branch" :value="$agency->bank_branch" col="col-md-3" />
+    </div>
     <div class="d-flex gap-2 justify-content-end mt-3"><a class="btn btn-outline-secondary" href="{{ route('agencies.index') }}">Cancel</a><button class="btn btn-primary">Save agency</button></div>
   </form>
 </x-layouts.app>

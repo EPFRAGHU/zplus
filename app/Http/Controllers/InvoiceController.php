@@ -82,7 +82,7 @@ class InvoiceController extends Controller
 
     public function show(Invoice $invoice): View
     {
-        $invoice->load('lines', 'project', 'contract.agency', 'contract.client', 'sheet');
+        $invoice->load('lines', 'project', 'contract.agency', 'contract.client', 'sheet', 'taxInvoice');
 
         return view('invoices.show', compact('invoice'));
     }
@@ -111,6 +111,9 @@ class InvoiceController extends Controller
         Gate::authorize('billing');
         if ($invoice->status !== 'draft') {
             return back()->withErrors(['invoice' => 'Only draft bills can be deleted.']);
+        }
+        if ($invoice->tax_invoice_id) {
+            return back()->withErrors(['invoice' => 'This sub-bill is in a tax invoice. Delete the draft tax invoice first.']);
         }
         $invoice->delete();
 

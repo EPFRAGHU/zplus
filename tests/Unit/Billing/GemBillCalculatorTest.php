@@ -63,4 +63,16 @@ class GemBillCalculatorTest extends TestCase
         $this->assertSame('0.00', $bill->cgst);
         $this->assertSame('10281.15', $bill->igst); // 18% of 57117.50
     }
+
+    public function test_each_person_is_rounded_to_whole_rupees_like_the_sub_bill(): void
+    {
+        // Sub-bill: rate/day = 31000 / 30; amount = ROUND(29 x rate/day, 0) = 29967 (29966.67 rounded).
+        $bill = $this->calc()->monthly([
+            BillLine::monthly('APA', rate: '31000', daysInMonth: 30, paidDays: '29'),
+            BillLine::monthly('APM', rate: '55000', daysInMonth: 30, paidDays: '30'),
+        ]);
+
+        $this->assertSame('29967.00', $bill->lines[0]->amount);
+        $this->assertSame('84967.00', $bill->wages);
+    }
 }
