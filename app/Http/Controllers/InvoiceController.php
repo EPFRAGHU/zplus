@@ -2,7 +2,9 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Agency;
 use App\Models\AttendanceSheet;
+use App\Models\Client;
 use App\Models\GeneratedDocument;
 use App\Models\Invoice;
 use App\Services\Billing\InvoiceGenerator;
@@ -21,17 +23,28 @@ class InvoiceController extends Controller
 
     public function index(Request $request): View
     {
-        $invoices = Invoice::query()->with('project', 'contract.agency')
+        $agencyId = $request->integer('agency') ?: null;
+        $clientId = $request->integer('client') ?: null;
+        $invoices = Invoice::query()->with('project', 'contract.agency', 'contract.client')
+            ->when($agencyId, fn ($q) => $q->whereHas('contract', fn ($c) => $c->where('agency_id', $agencyId)))
+            ->when($clientId, fn ($q) => $q->whereHas('contract', fn ($c) => $c->where('client_id', $clientId)))
             ->when($request->string('status')->value(), fn ($q, $s) => $q->where('status', $s))
             ->when($request->input('month'), fn ($q, $m) => $q->where('month', $m.'-01'))
             ->latest('month')->latest('id')->paginate(30)->withQueryString();
 
-        $ready = AttendanceSheet::query()->where('status', 'locked')->doesntHave('invoice')->with('project')->orderByDesc('month')->get();
+        $ready = AttendanceSheet::query()->where('status', 'locked')->doesntHave('invoice')
+            ->with('project.contract.agency', 'project.contract.client')->orderByDesc('month')->get();
 
         // Months still being filled in, so an empty Bills page says what is holding bills up.
-        $drafts = AttendanceSheet::query()->where('status', 'draft')->with('project')->orderByDesc('month')->limit(20)->get();
+        $drafts = AttendanceSheet::query()->where('status', 'draft')
+            ->with('project.contract.agency', 'project.contract.client')->orderByDesc('month')->limit(20)->get();
 
-        return view('invoices.index', compact('invoices', 'ready', 'drafts'));
+        return view('invoices.index', [
+            'invoices' => $invoices, 'ready' => $ready, 'drafts' => $drafts,
+            'agencies' => Agency::query()->orderBy('name')->get(),
+            'clients' => Client::query()->with('agency')->orderBy('name')->get(),
+            'agencyId' => $agencyId, 'clientId' => $clientId,
+        ]);
     }
 
     public function store(Request $request, InvoiceGenerator $generator): RedirectResponse

@@ -160,4 +160,22 @@ class WebFlowTest extends TestCase
         $this->get('/attendance/1')->assertSee('Agency:')->assertSee('M/S Z Plus Surakhya Seva')->assertSee('ICMR-NIHR (RMRCBB), Bhubaneswar');
         $this->get('/attendance/1/certificate')->assertOk();
     }
+
+    public function test_bills_show_and_filter_by_agency_and_client(): void
+    {
+        $this->seed(DemoSeeder::class);
+        $admin = $this->user('admin');
+        $zps = \App\Models\Agency::query()->where('code', 'ZPS')->firstOrFail();
+        $swh = \App\Models\Agency::query()->where('code', 'SWH')->firstOrFail();
+        $sheet = app(\App\Services\Attendance\AttendanceService::class)->open(\App\Models\Project::query()->firstOrFail(), \Carbon\CarbonImmutable::parse('2026-10-01'));
+        app(\App\Services\Attendance\AttendanceService::class)->lock($sheet, $admin, null);
+
+        $this->actingAs($admin)->get('/invoices')->assertOk()->assertSee('Ready to bill')->assertSee('ZPS')->assertSee('ICMR-NIHR (RMRCBB), Bhubaneswar');
+        $this->post('/invoices', ['attendance_sheet_id' => $sheet->id]);
+
+        $this->get('/invoices')->assertSee('id="f-agency"', false)->assertSee('id="f-client"', false)->assertSee('ICMR/MPH/01/2026');
+        $this->get('/invoices?agency='.$swh->id)->assertDontSee('ICMR/MPH/01/2026');
+        $this->get('/invoices?agency='.$zps->id)->assertSee('ICMR/MPH/01/2026');
+        $this->get('/invoices/1')->assertSee('Agency:')->assertSee('M/S Z Plus Surakhya Seva')->assertSee('Client:');
+    }
 }

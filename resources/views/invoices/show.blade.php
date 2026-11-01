@@ -5,6 +5,12 @@
     <a class="btn btn-outline-secondary" href="{{ route('invoices.pdf', $invoice) }}" target="_blank"><i class="bi bi-file-earmark-pdf me-1"></i>Bill PDF</a>
     @if($invoice->sheet->certificate_path)<a class="btn btn-outline-secondary" href="{{ route('attendance.scan', $invoice->sheet) }}" target="_blank"><i class="bi bi-file-earmark-check me-1"></i>PI certificate</a>@endif
   </x-slot:actions>
+  <div class="d-flex flex-wrap gap-3 small mb-3">
+    <span>Agency: <b>{{ $invoice->contract->agency->name }}</b></span>
+    <span>Client: <b>{{ $invoice->contract->client->name }}</b></span>
+    <span>GeM contract: <span class="mono">{{ $invoice->contract->contract_no }}</span></span>
+    <span>PI: <b>{{ $invoice->project->pi_name ?? '—' }}</b></span>
+  </div>
   <div class="row g-3">
     <div class="col-lg-8">
       <div class="z-card">
