@@ -178,4 +178,21 @@ class ClientAgencyTest extends TestCase
         $this->assertGreaterThan($swhHead, strpos($html, 'AAA First Client'));       // under SWACHHA, not first alphabetically
         $this->assertStringContainsString('Add client to SWH', $html);
     }
+
+    public function test_contracts_page_is_split_into_agency_blocks(): void
+    {
+        $this->seed(DemoSeeder::class);
+        $swh = Agency::query()->where('code', 'SWH')->firstOrFail();
+        $swhClient = Client::query()->where('agency_id', $swh->id)->firstOrFail();
+        GemContract::query()->create(['agency_id' => $swh->id, 'client_id' => $swhClient->id, 'bid_no' => 'GEM/2026/B/0000001', 'contract_no' => 'GEMC-1']);
+
+        $html = $this->actingAs(User::factory()->create(['role' => 'admin']))->get('/contracts')->assertOk()->getContent();
+        $zps = strpos($html, '<b class="fs-6">M/S Z Plus Surakhya Seva</b> <span class="badge text-bg-dark">ZPS</span>');
+        $swhPos = strpos($html, '<b class="fs-6">SWACHHA</b> <span class="badge text-bg-dark">SWH</span>');
+        $this->assertNotFalse($zps);
+        $this->assertNotFalse($swhPos);
+        $this->assertStringContainsString('1 contract · 1 project · 2 / 2 posts filled', $html);
+        $this->assertGreaterThan($swhPos, strpos($html, 'GEM/2026/B/0000001'));   // SWACHHA's contract under its block, even though its number sorts first
+        $this->assertStringContainsString('Client: <b>ICMR-NIHR (RMRCBB), Bhubaneswar</b>', $html);
+    }
 }

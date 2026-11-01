@@ -21,16 +21,22 @@
     <div class="col-md-4"><label class="form-label small text-secondary mb-1" for="f-q">Search</label><input id="f-q" class="form-control" name="q" value="{{ request('q') }}" placeholder="Bid no., contract no., project or PI"></div>
     <div class="col-md-2 d-flex gap-2"><button class="btn btn-outline-secondary flex-fill">Show</button>@if(request()->query())<a class="btn btn-link px-1" href="{{ route('contracts.index') }}">Clear</a>@endif</div>
   </form>
-  @php($group = null)
+  @php($agencyBlock = null) @php($group = null)
   @forelse ($contracts as $c)
+    @if($agencyBlock !== $c->agency_id)
+      @php($agencyBlock = $c->agency_id) @php($group = null)
+      @php($inAgency = $contracts->where('agency_id', $c->agency_id))
+      @php($aPosts = $inAgency->flatMap(fn ($k) => $k->projects->flatMap->posts))
+      <div class="d-flex align-items-center gap-2 flex-wrap mt-4 mb-2 px-3 py-2 rounded bg-body-secondary border">
+        <b class="fs-6">{{ $c->agency->name }}</b> <span class="badge text-bg-dark">{{ $c->agency->code }}</span>
+        <span class="small text-secondary">{{ $inAgency->count() }} {{ \Illuminate\Support\Str::plural('contract', $inAgency->count()) }} · @php($nProj = $inAgency->sum(fn ($k) => $k->projects->count())){{ $nProj }} {{ \Illuminate\Support\Str::plural('project', $nProj) }} · {{ $aPosts->sum('active_employees_count') }} / {{ $aPosts->sum('sanctioned_qty') }} posts filled</span>
+        @can('manage-masters')<a class="small ms-auto" href="{{ route('contracts.create') }}"><i class="bi bi-plus"></i>Add contract</a>@endcan
+      </div>
+    @endif
     @if($group !== $c->client_id)
       @php($group = $c->client_id)
       @php($inGroup = $contracts->where('client_id', $c->client_id))
-      <div class="d-flex align-items-center gap-2 flex-wrap mt-3 mb-2 px-1">
-        <b>{{ $c->agency->name }}</b> <span class="badge text-bg-light border">{{ $c->agency->code }}</span>
-        <span class="text-secondary">·</span> <b>{{ $c->client->name }}</b>
-        <span class="small text-secondary">{{ $inGroup->count() }} {{ \Illuminate\Support\Str::plural('contract', $inGroup->count()) }}</span>
-      </div>
+      <div class="small mb-2 ps-3">Client: <b>{{ $c->client->name }}</b> <span class="text-secondary ms-1">{{ $inGroup->count() }} {{ \Illuminate\Support\Str::plural('contract', $inGroup->count()) }}</span></div>
     @endif
     @php($posts = $c->projects->flatMap->posts) @php($s = $posts->sum('sanctioned_qty')) @php($f = $posts->sum('active_employees_count'))
     <div class="z-card mb-2">
