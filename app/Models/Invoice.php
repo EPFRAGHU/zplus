@@ -3,7 +3,9 @@
 namespace App\Models;
 
 use App\Support\AmountInWords;
+use Carbon\CarbonImmutable;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
+use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
@@ -13,13 +15,25 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
     'cgst', 'sgst', 'igst', 'total', 'rounded_total', 'status', 'created_by'])]
 class Invoice extends Model
 {
+    /**
+     * Always store the month as "Y-m-d" (first of the month). A plain date cast saves
+     * "Y-m-d 00:00:00", which on SQLite no longer matches lookups by "Y-m-d".
+     */
+    protected function month(): Attribute
+    {
+        return Attribute::make(
+            get: fn ($value) => $value === null ? null : CarbonImmutable::parse($value)->startOfDay(),
+            set: fn ($value) => $value === null ? null : CarbonImmutable::parse($value)->startOfMonth()->toDateString(),
+        );
+    }
+
     public const STATUSES = ['draft' => 'Draft', 'approved' => 'Approved', 'submitted' => 'Submitted', 'paid' => 'Paid'];
 
     protected function casts(): array
     {
         $money = array_fill_keys(['wages', 'epf', 'esic', 'subtotal', 'service_charge', 'taxable', 'cgst', 'sgst', 'igst', 'total', 'rounded_total'], 'decimal:2');
 
-        return $money + ['month' => 'immutable_date', 'invoice_date' => 'date', 'approved_at' => 'datetime', 'paid_on' => 'date'];
+        return $money + ['invoice_date' => 'date', 'approved_at' => 'datetime', 'paid_on' => 'date'];
     }
 
     public function contract(): BelongsTo
