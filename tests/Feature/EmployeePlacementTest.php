@@ -73,4 +73,14 @@ class EmployeePlacementTest extends TestCase
         $zpsIcmr = Client::query()->whereHas('agency', fn ($q) => $q->where('code', 'ZPS'))->firstOrFail();
         $this->get('/employees?client='.$zpsIcmr->id)->assertSee('Amit Kumar (sample)')->assertDontSee('Swachha Person');
     }
+
+    public function test_agency_options_show_code_and_post_count(): void
+    {
+        $this->seed(DemoSeeder::class);   // demo: Z Plus has the 2 MPH posts, SWACHHA has none
+        $html = $this->actingAs(User::factory()->create(['role' => 'admin']))->get('/employees/create')->assertOk()->getContent();
+
+        $this->assertStringContainsString('M/S Z Plus Surakhya Seva (ZPS) · 2 posts', $html);
+        $this->assertStringContainsString('SWACHHA (SWH) · 0 posts', $html);
+        $this->assertStringContainsString('id="no-posts"', $html);
+    }
 }

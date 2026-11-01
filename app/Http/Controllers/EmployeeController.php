@@ -106,7 +106,8 @@ class EmployeeController extends Controller
     private function formData(): array
     {
         return [
-            'agencies' => Agency::query()->orderBy('name')->get(),
+            'agencies' => Agency::query()->withCount(['contracts'])->orderBy('name')->get()
+                ->each(fn ($a) => $a->posts_count = Post::query()->whereHas('project.contract', fn ($q) => $q->where('agency_id', $a->id))->count()),
             'clients' => Client::query()->with('agency')->orderBy('name')->get(),
             'posts' => Post::query()->with('project.contract')->withCount('activeEmployees')->get()
                 ->sortBy(fn ($p) => $p->project->contract->bid_no.$p->project->name.$p->designation),

@@ -9,7 +9,7 @@
           <label for="f-agency_id" class="form-label small fw-semibold text-secondary mb-1">Agency <span class="text-danger">*</span></label>
           <select id="f-agency_id" name="agency_id" class="form-select @error('agency_id') is-invalid @enderror" required>
             <option value="">Choose agency</option>
-            @foreach($agencies as $a)<option value="{{ $a->id }}" @selected($agencyId === (string) $a->id)>{{ $a->name }}</option>@endforeach
+            @foreach($agencies as $a)<option value="{{ $a->id }}" data-posts="{{ $a->posts_count }}" @selected($agencyId === (string) $a->id)>{{ $a->name }} ({{ $a->code }}) · {{ $a->posts_count }} {{ \Illuminate\Support\Str::plural('post', $a->posts_count) }}</option>@endforeach
           </select>
           @error('agency_id')<div class="invalid-feedback">{{ $message }}</div>@enderror
         </div>
@@ -52,7 +52,13 @@
             @endforeach
           </select>
           @error('post_id')<div class="invalid-feedback">{{ $message }}</div>@enderror
-          <div class="form-text">Only posts of the selected client are listed. The bill rate comes from the post unless you set a different salary below.</div>
+          <div class="form-text">Only posts of the selected agency and client are listed. The bill rate comes from the post unless you set a different salary below.</div>
+          <div id="no-posts" class="alert alert-warning small py-2 mt-2 mb-0" hidden>
+            <span id="no-posts-text"></span>
+            @can('manage-masters') <a href="{{ route('contracts.create') }}">Add a GeM contract</a>@endcan
+            @can('import') or <a href="{{ route('import.create') }}">import your GeM workbook</a>@endcan.
+            You can still save the employee now and choose the post later.
+          </div>
         </div>
         <x-field name="joining_date" label="Joining date" type="date" :value="$employee->joining_date?->toDateString()" col="col-md-3" />
         <x-field name="exit_date" label="Exit date" type="date" :value="$employee->exit_date?->toDateString()" col="col-md-3" />
@@ -95,9 +101,19 @@
         [...select.options].forEach(o => { if (o.value) { o.hidden = o.disabled = !test(o); } });
         if (select.selectedOptions[0] && select.selectedOptions[0].disabled) select.value = '';
       }
+      const warn = document.getElementById('no-posts'), warnText = document.getElementById('no-posts-text');
       function update() {
         narrow(client, o => !agency.value || o.dataset.agency === agency.value);
         narrow(post, o => (!agency.value || o.dataset.agency === agency.value) && (!client.value || o.dataset.client === client.value));
+        // Say why the post list is empty instead of showing a blank dropdown.
+        const left = [...post.options].filter(o => o.value && !o.disabled).length;
+        if (agency.value && left === 0) {
+          const a = agency.selectedOptions[0].textContent.split(' (')[0];
+          warnText.textContent = client.value
+            ? 'The selected client has no GeM posts under ' + a + '.'
+            : a + ' has no GeM contracts with posts yet.';
+          warn.hidden = false;
+        } else { warn.hidden = true; }
       }
       agency.addEventListener('change', update);
       client.addEventListener('change', update);
