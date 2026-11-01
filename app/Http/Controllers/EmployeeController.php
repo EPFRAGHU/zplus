@@ -34,7 +34,7 @@ class EmployeeController extends Controller
             ->when($request->string('bank')->value() === 'problem', fn ($q) => $q->where(fn ($w) => $w->whereNull('ifsc')->orWhereNull('account_last4')))
             ->orderBy('name')->paginate(30)->withQueryString();
 
-        return view('employees.index', ['employees' => $employees, 'projects' => Project::query()->orderBy('name')->get(),
+        return view('employees.index', ['employees' => $employees, 'projects' => Project::query()->with('contract')->orderBy('name')->get(),
             'agencies' => Agency::query()->orderBy('name')->get(), 'clients' => Client::query()->with('agency')->orderBy('name')->get()]);
     }
 

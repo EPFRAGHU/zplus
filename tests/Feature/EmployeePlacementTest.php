@@ -67,7 +67,9 @@ class EmployeePlacementTest extends TestCase
         $swh = Agency::query()->where('code', 'SWH')->firstOrFail();
         Employee::query()->create(['emp_code' => 'EMP-3001', 'name' => 'Swachha Person', 'agency_id' => $swh->id]);
 
-        $this->actingAs($admin)->get('/employees?agency='.$swh->id)->assertSee('Swachha Person')->assertDontSee('Amit Kumar (sample)');
+        $this->actingAs($admin)->get('/employees')->assertSee('<th>Agency</th><th>Client</th>', false)
+            ->assertSee('id="f-agency"', false)->assertSee('data-agency=', false)->assertSee('Not assigned yet');
+        $this->get('/employees?agency='.$swh->id)->assertSee('Swachha Person')->assertDontSee('Amit Kumar (sample)');
         $zpsIcmr = Client::query()->whereHas('agency', fn ($q) => $q->where('code', 'ZPS'))->firstOrFail();
         $this->get('/employees?client='.$zpsIcmr->id)->assertSee('Amit Kumar (sample)')->assertDontSee('Swachha Person');
     }
