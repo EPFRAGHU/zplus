@@ -20,12 +20,16 @@ class GemContractController extends Controller
         $contracts = GemContract::query()
             ->with(['agency', 'client', 'projects.posts' => fn ($q) => $q->withCount('activeEmployees')])
             ->when($request->integer('agency'), fn ($q, $id) => $q->where('agency_id', $id))
+            ->when($request->integer('client'), fn ($q, $id) => $q->where('client_id', $id))
             ->when($request->string('q')->trim()->value(), fn ($q, $s) => $q->where(fn ($w) => $w
                 ->where('bid_no', 'like', "%{$s}%")->orWhere('contract_no', 'like', "%{$s}%")
                 ->orWhereHas('projects', fn ($p) => $p->where('name', 'like', "%{$s}%")->orWhere('pi_name', 'like', "%{$s}%"))))
-            ->orderBy('bid_no')->get();
+            ->get()
+            ->sortBy(fn ($c) => $c->agency->name.'|'.$c->client->name.'|'.$c->bid_no)->values();
 
-        return view('contracts.index', ['contracts' => $contracts, 'agencies' => Agency::query()->orderBy('name')->get()]);
+        return view('contracts.index', ['contracts' => $contracts, 'agencies' => Agency::query()->orderBy('name')->get(),
+            'clients' => Client::query()->with('agency')->orderBy('name')->get(),
+            'agencyId' => $request->integer('agency') ?: null, 'clientId' => $request->integer('client') ?: null]);
     }
 
     public function create(): View

@@ -119,4 +119,20 @@ class ClientAgencyTest extends TestCase
 
         $this->assertSame(['ICMR/SICKLECELL/01/2026', 'ICMR/SICKLECELL/01/2026'], $numbers);
     }
+
+    public function test_contracts_page_shows_and_filters_by_agency_and_client(): void
+    {
+        $this->seed(DemoSeeder::class);
+        $admin = User::factory()->create(['role' => 'admin']);
+        $swh = Agency::query()->where('code', 'SWH')->firstOrFail();
+        $zps = Agency::query()->where('code', 'ZPS')->firstOrFail();
+
+        $this->actingAs($admin)->get('/contracts')->assertOk()
+            ->assertSee('id="f-agency"', false)->assertSee('id="f-client"', false)
+            ->assertSee('<span class="text-secondary">Agency:</span>', false)->assertSee('M/S Z Plus Surakhya Seva')
+            ->assertSee('GEM/2026/B/7972720');
+        $this->get('/contracts?agency='.$swh->id)->assertOk()->assertDontSee('GEM/2026/B/7972720');
+        $zpsIcmr = Client::query()->where('agency_id', $zps->id)->firstOrFail();
+        $this->get('/contracts?client='.$zpsIcmr->id)->assertOk()->assertSee('GEM/2026/B/7972720');
+    }
 }
