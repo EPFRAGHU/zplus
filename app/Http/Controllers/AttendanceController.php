@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Agency;
 use App\Models\AttendanceSheet;
 use App\Models\Client;
+use App\Models\GemContract;
 use App\Models\Project;
 use App\Services\Attendance\AttendanceCodes;
 use App\Services\Attendance\AttendanceService;
@@ -32,6 +33,8 @@ class AttendanceController extends Controller
             ->withCount(['employees' => fn ($q) => $q->whereIn('employees.status', ['active', 'notice'])])
             ->when($agencyId, fn ($q) => $q->whereHas('contract', fn ($c) => $c->where('agency_id', $agencyId)))
             ->when($clientId, fn ($q) => $q->whereHas('contract', fn ($c) => $c->where('client_id', $clientId)))
+            ->when($request->integer('contract'), fn ($q, $id) => $q->where('gem_contract_id', $id))
+            ->when($request->integer('project'), fn ($q, $id) => $q->whereKey($id))
             ->get()
             ->sortBy(fn ($p) => $p->contract->agency->name.'|'.$p->contract->client->name.'|'.$p->name)->values();
 
@@ -40,6 +43,8 @@ class AttendanceController extends Controller
             'agencies' => Agency::query()->orderBy('name')->get(),
             'clients' => Client::query()->with('agency')->orderBy('name')->get(),
             'agencyId' => $agencyId, 'clientId' => $clientId,
+            'contracts' => GemContract::query()->orderBy('bid_no')->get(['id', 'agency_id', 'client_id', 'bid_no']),
+            'allProjects' => Project::query()->with('contract:id,agency_id,client_id')->orderBy('name')->get(['id', 'gem_contract_id', 'name', 'pi_name']),
         ]);
     }
 

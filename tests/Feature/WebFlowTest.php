@@ -5,6 +5,7 @@ namespace Tests\Feature;
 use App\Models\Agency;
 use App\Models\AttendanceSheet;
 use App\Models\Employee;
+use App\Models\GemContract;
 use App\Models\GeneratedDocument;
 use App\Models\Invoice;
 use App\Models\Project;
@@ -158,8 +159,8 @@ class WebFlowTest extends TestCase
 
         $this->actingAs($admin)->get('/attendance?month=2026-10')->assertOk()
             ->assertSee('id="f-agency"', false)->assertSee('id="f-client"', false)->assertSee('MPH')->assertSee('ZPS');
-        $this->get('/attendance?month=2026-10&agency='.$swh->id)->assertOk()->assertDontSee('MPH');
-        $this->get('/attendance?month=2026-10&agency='.$zps->id)->assertOk()->assertSee('MPH');
+        $this->get('/attendance?month=2026-10&agency='.$swh->id)->assertOk()->assertDontSee('<td class="fw-semibold">MPH</td>', false);
+        $this->get('/attendance?month=2026-10&agency='.$zps->id)->assertOk()->assertSee('<td class="fw-semibold">MPH</td>', false);
 
         $this->post('/attendance', ['project_id' => 1, 'month' => '2026-10']);
         $this->get('/attendance/1')->assertSee('Agency:')->assertSee('M/S Z Plus Surakhya Seva')->assertSee('ICMR-NIHR (RMRCBB), Bhubaneswar');
@@ -252,5 +253,34 @@ class WebFlowTest extends TestCase
         $this->assertStringContainsString('<b>Agency:</b> M/S Z Plus Surakhya Seva (ZPS)', $html);
         $this->assertStringContainsString('<b>Client:</b> ICMR-NIHR (RMRCBB), Bhubaneswar', $html);
         $this->assertStringContainsString('<b>GeM contract:</b> GEMC-511687731718030', $html);
+    }
+
+    public function test_attendance_filters_by_contract_and_project(): void
+    {
+        $this->seed(DemoSeeder::class);
+        $admin = $this->user('admin');
+        $contract = GemContract::query()->firstOrFail();
+        $other = $contract->projects()->create(['name' => 'Second Project', 'code' => 'SECOND']);
+
+        $this->actingAs($admin)->get('/attendance?month=2026-10')->assertOk()
+            ->assertSee('<th>GeM contract</th><th>Project</th><th>PI</th>', false)
+            ->assertSee('id="f-contract"', false)->assertSee('id="f-project"', false)
+            ->assertSee('Second Project')->assertSee('GEM/2026/B/7972720</a>', false);
+        $this->get('/attendance?month=2026-10&contract='.$contract->id)->assertSee('Second Project');
+        $mph = Project::query()->where('code', 'MPH')->firstOrFail();
+        $this->get('/attendance?month=2026-10&project='.$mph->id)->assertDontSee('<td class="fw-semibold">Second Project</td>', false);
+    }
+
+    public function test_attendance_locked_count_only_covers_listed_projects(): void
+    {
+        $this->seed(DemoSeeder::class);
+        $admin = $this->user('admin');
+        $service = app(AttendanceService::class);
+        $sheet = $service->open(Project::query()->where('code', 'MPH')->firstOrFail(), CarbonImmutable::parse('2026-10-01'));
+        $service->lock($sheet, $admin, null);
+        $swh = Agency::query()->where('code', 'SWH')->firstOrFail();
+
+        $this->actingAs($admin)->get('/attendance?month=2026-10')->assertSee('1 of 1 projects locked');
+        $this->get('/attendance?month=2026-10&agency='.$swh->id)->assertSee('0 of 0 projects locked');   // MPH is Z Plus's
     }
 }
