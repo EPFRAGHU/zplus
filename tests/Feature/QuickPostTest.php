@@ -83,4 +83,13 @@ class QuickPostTest extends TestCase
         $this->actingAs($sup)->get('/posts')->assertOk()->assertDontSee('id="addPostModal"', false);
         $this->postJson('/posts/quick', [])->assertForbidden();
     }
+
+    public function test_posts_page_groups_by_agency_and_client(): void
+    {
+        $this->seed(DemoSeeder::class);
+        $this->actingAs(User::factory()->create(['role' => 'admin']))->get('/posts')->assertOk()
+            ->assertSee('<th>Agency</th><th>Client</th>', false)
+            ->assertSee('<b>M/S Z Plus Surakhya Seva</b>', false)
+            ->assertSee('2 posts · 2 sanctioned · 2 filled');
+    }
 }
