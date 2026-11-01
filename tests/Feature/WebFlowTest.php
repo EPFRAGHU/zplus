@@ -302,4 +302,23 @@ class WebFlowTest extends TestCase
         $this->get('/invoices?contract='.$mph->gem_contract_id)->assertSee('ICMR/MPH/01/2026');
         $this->get('/invoices?project='.$other->id)->assertDontSee('ICMR/MPH/01/2026</a>', false);
     }
+
+    public function test_dashboard_shows_and_filters_by_contract_and_project(): void
+    {
+        $this->seed(DemoSeeder::class);
+        $admin = $this->user('admin');
+        $service = app(AttendanceService::class);
+        $mph = Project::query()->where('code', 'MPH')->firstOrFail();
+        $sheet = $service->open($mph, CarbonImmutable::parse(now()->subMonthNoOverflow()->startOfMonth()->toDateString()));
+        $service->lock($sheet, $admin, null);
+        app(InvoiceGenerator::class)->generate($sheet->fresh(), $admin);
+        $other = $mph->contract->projects()->create(['name' => 'Second Project', 'code' => 'SECOND']);
+
+        $this->actingAs($admin)->get('/')->assertOk()
+            ->assertSee('id="f-contract"', false)->assertSee('id="f-project"', false)
+            ->assertSee('By GeM contract and project')->assertSee('Second Project')->assertSee('Billed</span>', false);
+        // Narrowed to the other project: nothing billed, MPH not in the project table.
+        $this->get('/?project='.$other->id)->assertOk()->assertSee('₹0')->assertDontSee('PI: Dr. S. Kanungo');
+        $this->get('/?contract='.$mph->gem_contract_id)->assertOk()->assertSee('₹1,05,387');
+    }
 }

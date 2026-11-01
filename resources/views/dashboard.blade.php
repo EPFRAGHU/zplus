@@ -1,14 +1,18 @@
 <x-layouts.app title="Dashboard" crumb="Admin dashboard">
-  @php($q = array_filter(['agency' => $agencyId, 'client' => $clientId]))
+  @php($q = array_filter(['agency' => $agencyId, 'client' => $clientId, 'contract' => $contractId, 'project' => $projectId]))
   <form class="z-card p-3 mb-3 d-flex gap-2 align-items-end flex-wrap">
     <div><label class="form-label small text-secondary mb-1" for="f-agency">Agency</label>
       <select id="f-agency" name="agency" class="form-select"><option value="">All agencies</option>@foreach($agencies as $a)<option value="{{ $a->id }}" @selected($agencyId === $a->id)>{{ $a->name }}</option>@endforeach</select></div>
     <div><label class="form-label small text-secondary mb-1" for="f-client">Client</label>
       <select id="f-client" name="client" class="form-select"><option value="">All clients</option>@foreach($clients as $c)<option value="{{ $c->id }}" data-agency="{{ $c->agency_id }}" @selected($clientId === $c->id)>{{ $c->name }}</option>@endforeach</select></div>
+    <div><label class="form-label small text-secondary mb-1" for="f-contract">GeM contract</label>
+      <select id="f-contract" name="contract" class="form-select"><option value="">All contracts</option>@foreach($contractOptions as $k)<option value="{{ $k->id }}" data-agency="{{ $k->agency_id }}" data-client="{{ $k->client_id }}" @selected($contractId === $k->id)>{{ $k->bid_no }}</option>@endforeach</select></div>
+    <div><label class="form-label small text-secondary mb-1" for="f-project">Project</label>
+      <select id="f-project" name="project" class="form-select"><option value="">All projects</option>@foreach($projectOptions as $pp)<option value="{{ $pp->id }}" data-agency="{{ $pp->contract->agency_id }}" data-client="{{ $pp->contract->client_id }}" data-contract="{{ $pp->gem_contract_id }}" @selected($projectId === $pp->id)>{{ $pp->label() }}</option>@endforeach</select></div>
     <button class="btn btn-outline-secondary">Show</button>
     @if($q)<a class="btn btn-link" href="{{ route('dashboard') }}">Clear</a>@endif
-    <span class="small text-secondary ms-md-2">
-      Showing {{ $agencyId ? $agencies->firstWhere('id', $agencyId)?->name : 'all agencies' }}{{ $clientId ? ' · '.$clients->firstWhere('id', $clientId)?->name : '' }}
+    <span class="small text-secondary w-100">
+      Showing {{ $agencyId ? $agencies->firstWhere('id', $agencyId)?->name : 'all agencies' }}{{ $clientId ? ' · '.$clients->firstWhere('id', $clientId)?->name : '' }}{{ $contractId ? ' · '.$contractOptions->firstWhere('id', $contractId)?->bid_no : '' }}{{ $projectId ? ' · '.$projectOptions->firstWhere('id', $projectId)?->name : '' }}
     </span>
   </form>
   <div class="row row-cols-2 row-cols-md-3 row-cols-xl-6 g-3 mb-3">
@@ -85,14 +89,39 @@
     </div>
     <div class="col-12">
       <div class="z-card">
+        <div class="z-card-h"><h2>By GeM contract and project</h2><span class="small text-secondary">{{ $projectRows->count() }} {{ \Illuminate\Support\Str::plural('project', $projectRows->count()) }} · {{ $lastMonth->format('F') }} status · billed in {{ now()->year }}</span></div>
+        <div class="table-responsive" style="max-height:420px"><table class="table table-hover table-sm">
+          <thead class="sticky-top"><tr><th>Agency</th><th>Client</th><th>GeM contract</th><th>Project</th><th class="num">Staff / sanctioned</th><th>{{ $lastMonth->format('M') }} attendance</th><th class="num">Billed {{ now()->year }}</th><th></th></tr></thead>
+          <tbody>
+          @forelse($projectRows as $r)
+            @php($p = $r['project'])
+            @php($badge = ['billed' => 'success', 'locked' => 'primary', 'draft' => 'warning', 'not started' => 'light border'][$r['last']])
+            <tr>
+              <td><span class="badge text-bg-light border" title="{{ $p->contract->agency->name }}">{{ $p->contract->agency->code }}</span></td>
+              <td class="small">{{ $p->contract->client->name }}</td>
+              <td><a class="mono text-decoration-none" href="{{ route('contracts.show', $p->contract) }}">{{ $p->contract->bid_no }}</a></td>
+              <td><span class="fw-semibold">{{ $p->name }}</span>@if($p->pi_name) <div class="small text-secondary">PI: {{ $p->pi_name }}</div> @endif</td>
+              <td class="num">{{ $r['staff'] }} / {{ $r['sanctioned'] }}</td>
+              <td><span class="badge text-bg-{{ $badge }}">{{ ucfirst($r['last']) }}</span></td>
+              <td class="num">{{ inr($r['billed']) }}</td>
+              <td class="text-end"><a class="btn btn-sm btn-outline-secondary" href="{{ route('dashboard', ['agency' => $p->contract->agency_id, 'client' => $p->contract->client_id, 'contract' => $p->gem_contract_id, 'project' => $p->id]) }}">View</a></td>
+            </tr>
+          @empty
+            <tr><td colspan="8" class="text-center text-secondary py-4">No projects match these filters.</td></tr>
+          @endforelse
+          </tbody></table></div>
+      </div>
+    </div>
+    <div class="col-12">
+      <div class="z-card">
         <div class="z-card-h"><h2>Recent bills</h2><a class="ms-auto small" href="{{ route('invoices.index', $q) }}">View all</a></div>
         <div class="table-responsive"><table class="table table-hover">
-          <thead><tr><th>Bill no.</th><th>Agency</th><th>Client</th><th>Project</th><th>Month</th><th class="num">Amount</th><th>Status</th></tr></thead>
+          <thead><tr><th>Bill no.</th><th>Agency</th><th>Client</th><th>GeM contract</th><th>Project</th><th>Month</th><th class="num">Amount</th><th>Status</th></tr></thead>
           <tbody>
           @forelse ($recent as $i)
-            <tr><td><a class="mono" href="{{ route('invoices.show', $i) }}">{{ $i->invoice_no }}</a></td><td><span class="badge text-bg-light border">{{ $i->contract->agency->code }}</span></td><td>{{ $i->contract->client->name }}</td><td>{{ $i->project->name }}</td><td>{{ $i->month->format('M Y') }}</td><td class="num">{{ inr($i->rounded_total) }}</td><td><x-status :value="$i->status" /></td></tr>
+            <tr><td><a class="mono" href="{{ route('invoices.show', $i) }}">{{ $i->invoice_no }}</a></td><td><span class="badge text-bg-light border">{{ $i->contract->agency->code }}</span></td><td>{{ $i->contract->client->name }}</td><td class="mono">{{ $i->contract->bid_no }}</td><td>{{ $i->project->name }}</td><td>{{ $i->month->format('M Y') }}</td><td class="num">{{ inr($i->rounded_total) }}</td><td><x-status :value="$i->status" /></td></tr>
           @empty
-            <tr><td colspan="7" class="text-center text-secondary py-4">No bills yet. Lock a month's attendance, then make its bill.</td></tr>
+            <tr><td colspan="8" class="text-center text-secondary py-4">No bills yet. Lock a month's attendance, then make its bill.</td></tr>
           @endforelse
           </tbody></table></div>
       </div>
@@ -100,12 +129,20 @@
   </div>
   <script>
     (function () {
-      const agency = document.getElementById('f-agency'), client = document.getElementById('f-client');
-      function update() {
-        [...client.options].forEach(o => { if (o.value) { o.hidden = o.disabled = !!agency.value && o.dataset.agency !== agency.value; } });
-        if (client.selectedOptions[0] && client.selectedOptions[0].disabled) client.value = '';
+      // Agency narrows clients; agency and client narrow contracts; contract narrows projects.
+      const agency = document.getElementById('f-agency'), client = document.getElementById('f-client'),
+            contract = document.getElementById('f-contract'), project = document.getElementById('f-project');
+      function narrow(select, test) {
+        [...select.options].forEach(o => { if (o.value) { o.hidden = o.disabled = !test(o); } });
+        if (select.selectedOptions[0] && select.selectedOptions[0].disabled) select.value = '';
       }
-      agency.addEventListener('change', update); update();
+      function update() {
+        narrow(client, o => !agency.value || o.dataset.agency === agency.value);
+        const fits = o => (!agency.value || o.dataset.agency === agency.value) && (!client.value || o.dataset.client === client.value);
+        narrow(contract, fits);
+        narrow(project, o => fits(o) && (!contract.value || o.dataset.contract === contract.value));
+      }
+      [agency, client, contract].forEach(el => el.addEventListener('change', update)); update();
     })();
   </script>
 </x-layouts.app>
