@@ -25,7 +25,7 @@ class EmployeeController extends Controller
 {
     public function index(Request $request): View
     {
-        $employees = Employee::query()->with('post.project.contract', 'agency', 'client')
+        $filtered = Employee::query()
             ->when($request->integer('agency'), fn ($q, $id) => $q->where('agency_id', $id))
             ->when($request->integer('client'), fn ($q, $id) => $q->where('client_id', $id))
             ->when($request->string('q')->trim()->value(), fn ($q, $s) => $q->where(fn ($w) => $w
@@ -33,10 +33,21 @@ class EmployeeController extends Controller
             ->when($request->integer('contract'), fn ($q, $id) => $q->whereHas('post.project', fn ($p) => $p->where('gem_contract_id', $id)))
             ->when($request->integer('project'), fn ($q, $id) => $q->whereHas('post', fn ($p) => $p->where('project_id', $id)))
             ->when($request->string('status')->value(), fn ($q, $s) => $q->where('status', $s))
-            ->when($request->string('bank')->value() === 'problem', fn ($q) => $q->where(fn ($w) => $w->whereNull('ifsc')->orWhereNull('account_last4')))
-            ->orderBy('name')->paginate(30)->withQueryString();
+            ->when($request->string('bank')->value() === 'problem', fn ($q) => $q->where(fn ($w) => $w->whereNull('ifsc')->orWhereNull('account_last4')));
 
-        return view('employees.index', ['employees' => $employees, 'projects' => Project::query()->with('contract')->orderBy('name')->get(),
+        // One block per agency (ZPS, SWH, ...): sort by agency name, then client, then employee name.
+        $agencyName = Agency::query()->select('name')->whereColumn('agencies.id', 'employees.agency_id');
+        $clientName = Client::query()->select('name')->whereColumn('clients.id', 'employees.client_id');
+        $employees = (clone $filtered)->with('post.project.contract', 'agency', 'client')
+            ->orderByRaw('agency_id is null')->orderBy($agencyName)->orderBy($clientName)->orderBy('name')
+            ->paginate(50)->withQueryString();
+        $blockCounts = (clone $filtered)->selectRaw('agency_id, count(*) as total')->groupBy('agency_id')->pluck('total', 'agency_id');
+        // Agency of the last employee on the previous page, so a block split across pages says "continued".
+        $carriedAgency = $employees->onFirstPage() ? false : (clone $filtered)
+            ->orderByRaw('agency_id is null')->orderBy($agencyName)->orderBy($clientName)->orderBy('name')
+            ->skip(($employees->currentPage() - 1) * $employees->perPage() - 1)->take(1)->value('agency_id');
+
+        return view('employees.index', ['employees' => $employees, 'blockCounts' => $blockCounts, 'carriedAgency' => $carriedAgency, 'projects' => Project::query()->with('contract')->orderBy('name')->get(),
             'contracts' => GemContract::query()->orderBy('bid_no')->get(['id', 'agency_id', 'client_id', 'bid_no']),
             'agencies' => Agency::query()->orderBy('name')->get(), 'clients' => Client::query()->with('agency')->orderBy('name')->get()]);
     }

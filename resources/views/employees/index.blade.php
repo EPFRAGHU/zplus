@@ -18,7 +18,20 @@
   <div class="z-card"><div class="table-responsive"><table class="table table-hover">
     <thead><tr><th>Employee</th><th>Agency</th><th>Client</th><th>GeM contract</th><th>Project</th><th>Post</th><th class="num">Rate</th><th>Bank</th><th>Status</th></tr></thead>
     <tbody>
+    @php($block = false)
     @forelse ($employees as $e)
+      @if($block === false || $block !== $e->agency_id)
+        @php($starts = $block === false && $carriedAgency !== false && $carriedAgency === $e->agency_id)
+        @php($block = $e->agency_id)
+        <tr class="table-light"><td colspan="9" class="py-2">
+          @if($e->agency)
+            <b>{{ $e->agency->name }}</b> <span class="badge text-bg-dark">{{ $e->agency->code }}</span>
+          @else
+            <b>No agency set</b>
+          @endif
+          <span class="small text-secondary ms-2">{{ $blockCounts[$e->agency_id ?? ''] ?? 0 }} {{ \Illuminate\Support\Str::plural('employee', $blockCounts[$e->agency_id ?? ''] ?? 0) }}{{ $starts ? ' · continued from the previous page' : '' }}</span>
+        </td></tr>
+      @endif
       <tr>
         <td><a class="fw-semibold text-decoration-none" href="{{ route('employees.show', $e) }}">{{ $e->name }}</a><div class="mono text-secondary">{{ $e->emp_code }}</div></td>
         <td>@if($e->agency)<span class="badge text-bg-light border" title="{{ $e->agency->name }}">{{ $e->agency->code }}</span>@else<span class="badge text-bg-warning">None</span>@endif</td>

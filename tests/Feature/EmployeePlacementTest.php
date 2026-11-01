@@ -101,4 +101,26 @@ class EmployeePlacementTest extends TestCase
         $this->get('/employees?contract='.$contract->id)->assertSee('Amit Kumar (sample)')->assertDontSee('Unplaced Person')
             ->assertDontSee('Not placed on a post');
     }
+
+    public function test_employee_list_is_split_into_agency_blocks(): void
+    {
+        $this->seed(DemoSeeder::class);   // two Z Plus employees
+        $swh = Agency::query()->where('code', 'SWH')->firstOrFail();
+        foreach (['Aaron Swachha', 'Zara Swachha', 'Mid Swachha'] as $i => $n) {
+            Employee::query()->create(['emp_code' => 'EMP-40'.$i, 'name' => $n, 'agency_id' => $swh->id]);
+        }
+
+        $html = $this->actingAs(User::factory()->create(['role' => 'admin']))->get('/employees')->assertOk()->getContent();
+        $zpsHead = strpos($html, '<b>M/S Z Plus Surakhya Seva</b>');
+        $swhHead = strpos($html, '<b>SWACHHA</b>');
+        $this->assertNotFalse($zpsHead);
+        $this->assertNotFalse($swhHead);
+        $this->assertStringContainsString('2 employees', $html);
+        $this->assertStringContainsString('3 employees', $html);
+        // Each agency's people sit under its own heading, not mixed alphabetically.
+        $this->assertGreaterThan($zpsHead, strpos($html, 'Amit Kumar (sample)'));
+        $this->assertLessThan($swhHead, strpos($html, 'Ritu Panda (sample)'));
+        $this->assertGreaterThan($swhHead, strpos($html, 'Aaron Swachha'));
+        $this->assertSame(1, substr_count($html, '<b>SWACHHA</b>'));
+    }
 }
