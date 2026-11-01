@@ -3,8 +3,14 @@
 <html><head><meta charset="utf-8">@include('pdf._style')
 <style>@page{margin:20px 22px} .grid td,.grid th{padding:3px 2px;font-size:8.5px;text-align:center} .grid td.l{text-align:left;padding-left:4px}</style></head><body>
 <div class="c b" style="font-size:12px">{{ strtoupper($sheet->project->contract->client->name) }}</div>
-<div class="c">Programme / Project: <b>{{ $sheet->project->title ?: $sheet->project->name }}</b> &nbsp;·&nbsp; Agency: <b>{{ $sheet->project->contract->agency->name }}</b></div>
-<div class="c b" style="margin:4px 0 8px">Monthly Attendance and Working Certificate for the Month of {{ $sheet->month->format('F, Y') }}</div>
+<div class="c">Programme / Project: <b>{{ $sheet->project->title ?: $sheet->project->name }}</b></div>
+<div class="c b" style="margin:4px 0 6px">Monthly Attendance and Working Certificate for the Month of {{ $sheet->month->format('F, Y') }}</div>
+@php($k = $sheet->project->contract)
+<table style="font-size:9.5px;margin-bottom:6px"><tr>
+  <td><b>Agency:</b> {{ $k->agency->name }} ({{ $k->agency->code }})</td>
+  <td class="c"><b>Client:</b> {{ $k->client->name }}</td>
+  <td class="r"><b>GeM contract:</b> {{ $k->contract_no }}@if($sheet->project->pi_name) &nbsp;·&nbsp; <b>PI:</b> {{ $sheet->project->pi_name }}@endif</td>
+</tr></table>
 <table class="grid">
   <thead><tr><th>Sl.</th><th>Name of the Staff</th><th>Designation</th>@for($d = 1; $d <= $days; $d++)<th>{{ $d }}</th>@endfor<th>No. of working days</th></tr></thead>
   <tbody>

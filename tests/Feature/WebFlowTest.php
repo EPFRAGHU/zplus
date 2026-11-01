@@ -241,4 +241,16 @@ class WebFlowTest extends TestCase
 
         $this->actingAs($this->user('admin'))->get("/employees/{$employee->id}/appointment-letter")->assertOk()->assertHeader('content-type', 'application/pdf');
     }
+
+    public function test_attendance_certificate_names_the_agency_and_client(): void
+    {
+        $this->seed(DemoSeeder::class);
+        $sheet = app(AttendanceService::class)->open(Project::query()->firstOrFail(), CarbonImmutable::parse('2026-10-01'));
+        $sheet->load('entries.employee.post', 'project.contract.client', 'project.contract.agency');
+
+        $html = view('pdf.attendance-certificate', ['sheet' => $sheet, 'showBank' => false])->render();
+        $this->assertStringContainsString('<b>Agency:</b> M/S Z Plus Surakhya Seva (ZPS)', $html);
+        $this->assertStringContainsString('<b>Client:</b> ICMR-NIHR (RMRCBB), Bhubaneswar', $html);
+        $this->assertStringContainsString('<b>GeM contract:</b> GEMC-511687731718030', $html);
+    }
 }
