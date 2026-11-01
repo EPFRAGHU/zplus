@@ -6,6 +6,7 @@ use App\Models\Agency;
 use App\Models\Client;
 use App\Models\DocumentSequence;
 use App\Models\Employee;
+use App\Models\GemContract;
 use App\Models\GeneratedDocument;
 use App\Models\Post;
 use App\Models\Project;
@@ -29,12 +30,14 @@ class EmployeeController extends Controller
             ->when($request->integer('client'), fn ($q, $id) => $q->where('client_id', $id))
             ->when($request->string('q')->trim()->value(), fn ($q, $s) => $q->where(fn ($w) => $w
                 ->where('name', 'like', "%{$s}%")->orWhere('emp_code', 'like', "%{$s}%")->orWhere('mobile', 'like', "%{$s}%")))
+            ->when($request->integer('contract'), fn ($q, $id) => $q->whereHas('post.project', fn ($p) => $p->where('gem_contract_id', $id)))
             ->when($request->integer('project'), fn ($q, $id) => $q->whereHas('post', fn ($p) => $p->where('project_id', $id)))
             ->when($request->string('status')->value(), fn ($q, $s) => $q->where('status', $s))
             ->when($request->string('bank')->value() === 'problem', fn ($q) => $q->where(fn ($w) => $w->whereNull('ifsc')->orWhereNull('account_last4')))
             ->orderBy('name')->paginate(30)->withQueryString();
 
         return view('employees.index', ['employees' => $employees, 'projects' => Project::query()->with('contract')->orderBy('name')->get(),
+            'contracts' => GemContract::query()->orderBy('bid_no')->get(['id', 'agency_id', 'client_id', 'bid_no']),
             'agencies' => Agency::query()->orderBy('name')->get(), 'clients' => Client::query()->with('agency')->orderBy('name')->get()]);
     }
 

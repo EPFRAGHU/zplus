@@ -5,6 +5,7 @@ namespace Tests\Feature;
 use App\Models\Agency;
 use App\Models\Client;
 use App\Models\Employee;
+use App\Models\GemContract;
 use App\Models\Post;
 use App\Models\User;
 use Database\Seeders\DemoSeeder;
@@ -82,5 +83,22 @@ class EmployeePlacementTest extends TestCase
         $this->assertStringContainsString('M/S Z Plus Surakhya Seva (ZPS) · 2 posts', $html);
         $this->assertStringContainsString('SWACHHA (SWH) · 0 posts', $html);
         $this->assertStringContainsString('id="no-posts"', $html);
+    }
+
+    public function test_employee_list_shows_and_filters_by_contract_and_project(): void
+    {
+        $this->seed(DemoSeeder::class);
+        $admin = User::factory()->create(['role' => 'admin']);
+        $contract = GemContract::query()->firstOrFail();
+        $swh = Agency::query()->where('code', 'SWH')->firstOrFail();
+        Employee::query()->create(['emp_code' => 'EMP-3002', 'name' => 'Unplaced Person', 'agency_id' => $swh->id]);
+
+        $this->actingAs($admin)->get('/employees')->assertOk()
+            ->assertSee('<th>GeM contract</th><th>Project</th><th>Post</th>', false)
+            ->assertSee('GEM/2026/B/7972720</a>', false)->assertSee('PI: Dr. S. Kanungo')
+            ->assertSee('Not placed on a post')->assertSee('id="f-contract"', false);
+        $this->get('/employees')->assertDontSee('@else')->assertDontSee('@endif');   // no stray template code
+        $this->get('/employees?contract='.$contract->id)->assertSee('Amit Kumar (sample)')->assertDontSee('Unplaced Person')
+            ->assertDontSee('Not placed on a post');
     }
 }
