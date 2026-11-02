@@ -1,7 +1,7 @@
 # ZPlus Manpower app
 
 **Repo:** epfraghu/zplus, branch `claude/manpower-app-foundation`
-**Status:** Active. 84 tests passing (Nov 2026).
+**Status:** Active. 91 tests passing (Nov 2026).
 
 ## Stack
 Laravel 13 / PHP 8.3, SQLite locally, MySQL in production. Bootstrap 5.3.3 + bootstrap-icons bundled in `public/vendor` (no CDN).
@@ -16,6 +16,7 @@ Run locally: `php artisan serve` → http://127.0.0.1:8000 (zplus.test did not w
 - Sub-bills (`GemBillCalculator`, `InvoiceGenerator`), covering letter, appointment letter
 - Tax invoices (`TaxInvoiceBuilder`) combining a client's sub-bills
 - Agency blocks + light-blue client blocks on every list and the dashboard
+- Salary payout (bank transfer) sheet per locked month (`SalaryPayoutSheet`): employee EPF 12% (on wages up to ₹15,000; if PF applicable or wage ≤ ₹15,000) and ESIC 0.75% (wage ≤ ₹21,000, rounded up) – confirmed by user "as per rule"
 - Letterheads: Z Plus classic; SWACHHA banner on sub-bill, covering letter, tax invoice, appointment letter (fits one page), attendance certificate
 
 ## Key files
@@ -34,8 +35,8 @@ Run locally: `php artisan serve` → http://127.0.0.1:8000 (zplus.test did not w
 - Whether the attendance certificate should carry the agency letterhead (added; can be removed)
 
 ## Next milestone (not started)
-Cashfree Payouts (account verification, salary batches, webhooks), SMS (DLT) and WhatsApp messages, salary sheet with PF/ESI deductions and payslips.
-Asked: does each agency have its own Cashfree account, and how is net pay computed?
+Cashfree Payouts (account verification, salary batches, webhooks), SMS (DLT) and WhatsApp messages, payslips per employee.
+Still to ask: does each agency have its own Cashfree account?
 
 ## Lessons
 - Store month columns as `Y-m-d` (SQLite unique index broke with `Y-m-d 00:00:00`)

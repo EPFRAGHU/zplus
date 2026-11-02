@@ -2,6 +2,11 @@
 <x-layouts.app :title="$sheet->project->name.' · '.$sheet->month->format('F Y')" :crumb="'Operations / <a href=\''.route('attendance.index', ['month' => $sheet->month->format('Y-m')]).'\'>Attendance</a>'">
   <x-slot:actions>
     <a class="btn btn-outline-secondary" href="{{ route('attendance.certificate', $sheet) }}" target="_blank"><i class="bi bi-printer me-1"></i>Print certificate for PI</a>
+    @if($locked)
+      @can('view-bank-details')
+        <a class="btn btn-outline-secondary" href="{{ route('attendance.payouts', $sheet) }}" target="_blank"><i class="bi bi-cash-stack me-1"></i>Salary payout sheet</a>
+      @endcan
+    @endif
     @if($sheet->certificate_path)<a class="btn btn-outline-secondary" href="{{ route('attendance.scan', $sheet) }}" target="_blank"><i class="bi bi-file-earmark-check me-1"></i>Signed scan</a>@endif
   </x-slot:actions>
 

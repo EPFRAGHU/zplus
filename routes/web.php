@@ -50,6 +50,7 @@ Route::middleware('auth')->group(function () {
     Route::put('attendance/{sheet}', [AttendanceController::class, 'update'])->name('attendance.update');
     Route::post('attendance/{sheet}/lock', [AttendanceController::class, 'lock'])->name('attendance.lock');
     Route::post('attendance/{sheet}/unlock', [AttendanceController::class, 'unlock'])->name('attendance.unlock');
+    Route::get('attendance/{sheet}/salary-payouts', [AttendanceController::class, 'payouts'])->name('attendance.payouts');
     Route::get('attendance/{sheet}/certificate', [AttendanceController::class, 'certificate'])->name('attendance.certificate');
     Route::get('attendance/{sheet}/scan', [AttendanceController::class, 'scan'])->name('attendance.scan');
 

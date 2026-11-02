@@ -95,6 +95,17 @@ class AttendanceController extends Controller
         return $this->attempt(fn () => $this->attendance->unlock($sheet), 'Month unlocked.');
     }
 
+    /** Salary payout (bank transfer) sheet for a locked month: earned salary, employee EPF and ESIC, net pay and bank details. */
+    public function payouts(AttendanceSheet $sheet, \App\Services\Payroll\SalaryPayoutSheet $payouts): Response
+    {
+        Gate::authorize('view-bank-details');
+        abort_unless($sheet->isLocked(), 422, 'Lock the month before making the salary payout sheet.');
+        $sheet->load('entries.employee.post', 'project.contract.client', 'project.contract.agency');
+
+        return Pdf::loadView('pdf.salary-payouts', ['sheet' => $sheet, 'lines' => $payouts->lines($sheet), 'agency' => $sheet->project->contract->agency])
+            ->setPaper('a4', 'landscape')->stream("salary-payouts-{$sheet->project->code}-{$sheet->month->format('Y-m')}.pdf");
+    }
+
     /** Printable "Monthly Attendance and Working Certificate" for the PI to sign. */
     public function certificate(AttendanceSheet $sheet): Response
     {

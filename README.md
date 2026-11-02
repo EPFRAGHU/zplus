@@ -13,6 +13,7 @@ Built with Laravel 13 (PHP 8.3), Bootstrap 5 and MySQL (SQLite for local use).
 | **Excel import** | Upload the *GEM PROJECT DETAILS* workbook. It reads the agency sheets (contracts, posts, candidates) and the PI sheets (salary, bank details), matches staff to posts, and lists problems such as missing or invalid IFSC codes, salary mismatches and names spelt differently between sheets, before saving anything. |
 | **Attendance** | One sheet per project per month with the PI codes (P, CL, EL, RH, CH, T, H, SAT, SUN, HD, A, L). Prints the *Monthly Attendance and Working Certificate* with bank details. Upload the signed scan, then lock the month. |
 | **Bills** | Made only from a locked month. Numbered `ICMR/MPH/01/2026`. PDF bill and covering letter with the amount in words. Status: Draft → Approved → Submitted → Paid. |
+| **Salary payouts** | Bank transfer sheet from a locked month on the agency letterhead: earned salary, employee EPF 12% (on wages up to ₹15,000) and ESIC 0.75% (when the wage is ₹21,000 or less), net pay and bank details. Admin and Accounts only. |
 | **Letters** | Appointment letter in the SWACHHA format, numbered once per employee (`SWH/NIHR/MPH/01/26`). |
 
 ### How a bill is calculated
@@ -70,6 +71,6 @@ php artisan test
 - **Milestone 2: payments and messages**
   - Cashfree Payouts: bank account verification, salary batches from the locked month, transfer status by webhook
   - SMS (DLT templates) and WhatsApp Business: salary-credited, payout-failed and bill-sent messages, falling back to SMS
-- Salary sheet with PF and ESI deductions and payslips
+- Payslips per employee
 - Client payment tracking and reminders
 - User management screen (users are created by the seeder for now)

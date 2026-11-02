@@ -23,6 +23,7 @@ Owner/operator of the manpower business behind **M/S Z Plus Surakhya Seva** and 
 | **Sub-bill** | Monthly bill per project (`ICMR/MPH/01/2026`), model `Invoice` |
 | **Tax invoice** | Combines a client's sub-bills for a month (`ICMR/TI/01/2026`) |
 | **Service charge** | 3.85% on the total **excluding GST**; then GST 18% (CGST 9 + SGST 9, or IGST) |
+| **Salary payout sheet** | Bank transfer sheet per locked month; net = earned − EPF 12% (≤₹15,000 base) − ESIC 0.75% (wage ≤₹21,000) |
 | **Letterhead layout** | `classic` (ZPS, centred + footer) or `banner` (SWH, logo/registrations/pink address box) |
 → Full list: memory/glossary.md
 
