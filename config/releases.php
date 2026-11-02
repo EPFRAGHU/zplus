@@ -12,6 +12,15 @@ return [
     'timezone' => 'Asia/Kolkata',      // release times are Indian Standard Time
 
     'releases' => [
+        ['version' => '2.0.0', 'date' => '2026-11-02 22:15', 'title' => 'PI portal and user management', 'type' => 'major', 'notes' => [
+            'PI (project in-charge) logins: a PI sees only their own projects and staff (no bank, Aadhaar, PAN, phone or salary)',
+            'PI marks and saves attendance, then submits it: the certificate PDF is made automatically and the month is frozen for the PI',
+            'PI downloads the PDF, signs it and uploads the signed copy in the app (or e-mails it), and can view and download the project\'s sub-bills',
+            'Operator checks the submitted month, corrects any day the PI changed by hand (each change recorded and printed on the certificate), then approves',
+            'Approving (locking) a month makes its sub-bill automatically as a draft; tax invoices stay one click',
+            'Users screen (Admin): add staff and PI logins, temporary passwords that must be changed at first sign-in, switch accounts off, recent sign-ins',
+            'Change password for every user; switched-off accounts are signed out',
+        ]],
         ['version' => '1.2.0', 'date' => '2026-11-02 11:45', 'title' => 'Data upload from Excel templates', 'type' => 'feature', 'notes' => [
             'Excel templates for Agencies, Clients, GeM contracts, Projects, Posts and Employees, with instructions, help on every heading and dropdowns from the live data',
             'Download a blank template or one filled with the data already in the app',

@@ -48,8 +48,15 @@ body{font-size:.9rem}
 <body>
 <div class="z-app">
   <aside class="z-rail" id="rail">
-    <a class="z-brand" href="{{ route('dashboard') }}"><span class="z-mark">Z+</span><span><b>ZPlus Manpower</b><small>Admin console</small></span></a>
-    @php($is = fn ($p) => request()->routeIs($p) ? 'active' : '')
+    <a class="z-brand" href="{{ auth()->user()->isPi() ? route('pi.home') : route('dashboard') }}"><span class="z-mark">Z+</span><span><b>ZPlus Manpower</b><small>{{ auth()->user()->isPi() ? 'PI portal' : 'Admin console' }}</small></span></a>
+    @php($is = fn (...$p) => request()->routeIs(...$p) ? 'active' : '')
+    @if(auth()->user()->isPi())
+    <nav class="z-nav">
+      <div class="z-label">My projects</div>
+      <a class="{{ $is('pi.home', 'pi.sheet') }}" href="{{ route('pi.home') }}"><i class="bi bi-calendar-check"></i>Attendance</a>
+      <a class="{{ $is('pi.bills') }}" href="{{ route('pi.bills') }}"><i class="bi bi-receipt"></i>Sub-bills</a>
+    </nav>
+    @else
     <nav class="z-nav">
       <div class="z-label">Overview</div>
       <a class="{{ $is('dashboard') }}" href="{{ route('dashboard') }}"><i class="bi bi-grid"></i>Dashboard</a>
@@ -68,7 +75,11 @@ body{font-size:.9rem}
       <a class="{{ $is('master-import.*') }}" href="{{ route('master-import.index') }}"><i class="bi bi-file-earmark-spreadsheet"></i>Data Upload</a>
       <a class="{{ $is('import.*') }}" href="{{ route('import.create') }}"><i class="bi bi-file-earmark-arrow-up"></i>GeM Workbook Import</a>
       @endcan
+      @can('manage-users')
+      <a class="{{ $is('users.*') }}" href="{{ route('users.index') }}"><i class="bi bi-person-gear"></i>Users</a>
+      @endcan
     </nav>
+    @endif
     @php($rel = \App\Support\Release::current())
     <a class="z-ver" href="{{ route('releases') }}" title="Release notes">
       <span class="v">Version <span class="badge">v{{ $rel['version'] }}</span></span>
@@ -78,6 +89,7 @@ body{font-size:.9rem}
     <div class="z-user">
       <div class="text-white fw-semibold">{{ auth()->user()->name }}</div>
       <div>{{ \App\Models\User::ROLES[auth()->user()->role] ?? auth()->user()->role }}</div>
+      <a class="d-block small text-decoration-none mt-1" style="color:var(--z-rail-fg)" href="{{ route('account.password') }}"><i class="bi bi-key me-1"></i>Change password</a>
       <form method="post" action="{{ route('logout') }}" class="mt-2">@csrf<button class="btn btn-sm btn-outline-light w-100">Sign out</button></form>
     </div>
   </aside>

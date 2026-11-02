@@ -63,7 +63,7 @@ class AttendanceController extends Controller
 
     public function show(AttendanceSheet $sheet): View
     {
-        $sheet->load('entries.employee.post', 'project.contract.agency', 'project.contract.client', 'invoice');
+        $sheet->load('entries.employee.post', 'project.contract.agency', 'project.contract.client', 'invoice', 'submitter', 'changes.user');
 
         return view('attendance.show', ['sheet' => $sheet, 'codes' => AttendanceCodes::LABELS]);
     }
@@ -76,7 +76,12 @@ class AttendanceController extends Controller
             'codes.*.*' => ['required', 'string', 'in:'.implode(',', array_keys(AttendanceCodes::LABELS))],
         ]);
 
-        return $this->attempt(fn () => $this->attendance->save($sheet->load('entries'), $data['codes']), 'Attendance saved.');
+        $changed = 0;
+        $response = $this->attempt(function () use ($sheet, $data, $request, &$changed) {
+            $changed = $this->attendance->save($sheet, $data['codes'], $request->user());
+        }, 'Attendance saved.');
+
+        return $changed ? $response->with('status', "Attendance saved. {$changed} ".\Illuminate\Support\Str::plural('change', $changed).' recorded as made by the agency after the PI submitted.') : $response;
     }
 
     public function lock(Request $request, AttendanceSheet $sheet): RedirectResponse
@@ -84,8 +89,22 @@ class AttendanceController extends Controller
         $request->validate(['certificate' => [$sheet->certificate_path ? 'nullable' : 'required', 'file', 'mimes:pdf,jpg,jpeg,png', 'max:10240']],
             ['certificate.required' => 'Upload the certificate signed by the PI before locking the month.']);
         $path = $request->file('certificate')?->store("certificates/{$sheet->month->format('Y-m')}", 'local');
+        try {
+            $this->attendance->lock($sheet, $request->user(), $path);
+        } catch (RuntimeException $e) {
+            return back()->withErrors(['attendance' => $e->getMessage()]);
+        }
 
-        return $this->attempt(fn () => $this->attendance->lock($sheet, $request->user(), $path), 'Month locked. You can now make the bill.');
+        // Approved: the sub-bill for this project and month is made straight away (as a draft for Accounts).
+        try {
+            $invoice = app(\App\Services\Billing\InvoiceGenerator::class)->generate($sheet->fresh(), $request->user());
+        } catch (\Throwable $e) {
+            report($e);
+
+            return back()->with('status', 'Month locked.')->withErrors(['attendance' => 'The sub-bill could not be made automatically: '.$e->getMessage().' Make it from the Sub-bills page.']);
+        }
+
+        return redirect()->route('invoices.show', $invoice)->with('status', "Month locked. Sub-bill {$invoice->invoice_no} made as a draft.");
     }
 
     public function unlock(AttendanceSheet $sheet): RedirectResponse
@@ -114,6 +133,14 @@ class AttendanceController extends Controller
 
         return Pdf::loadView('pdf.attendance-certificate', compact('sheet', 'showBank'))
             ->setPaper('a4', 'landscape')->stream("attendance-{$sheet->project->code}-{$sheet->month->format('Y-m')}.pdf");
+    }
+
+    /** The certificate exactly as the PI submitted it. */
+    public function submittedPdf(AttendanceSheet $sheet): Response
+    {
+        abort_unless($sheet->submitted_pdf_path && Storage::disk('local')->exists($sheet->submitted_pdf_path), 404);
+
+        return Storage::disk('local')->response($sheet->submitted_pdf_path, "attendance-{$sheet->project->code}-{$sheet->month->format('Y-m')}-as-submitted.pdf");
     }
 
     public function scan(AttendanceSheet $sheet): Response

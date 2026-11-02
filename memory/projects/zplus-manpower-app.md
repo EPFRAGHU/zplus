@@ -1,7 +1,7 @@
 # ZPlus Manpower app
 
 **Repo:** epfraghu/zplus, branch `claude/manpower-app-foundation`
-**Status:** Live. Version **1.2.0** (02 Nov 2026, 11:45 AM IST). 107 tests passing. Project started **01 Nov 2026, 04:01 PM IST**.
+**Status:** Live. Version **2.0.0** (02 Nov 2026, 10:15 PM IST). 114 tests passing. Project started **01 Nov 2026, 04:01 PM IST**.
 **Live URL:** https://zplus.epf-dashboard.online (admin: the owner's Gmail; password was shown in chat once, owner told to change it via tinker)
 
 ## Stack
@@ -45,6 +45,7 @@ Size (non-blank lines): ~6,000 app code (PHP 3,010, Blade 2,004, migrations 704)
 - EPF / ESIC switched on/off per employee by the user (switches on the Employees list and in the form's KYC tab; `PATCH employees/{id}/statutory`). Drives the salary deduction and the employer EPF 13% (wages capped ₹15,000) / ESIC 3.25% per person on sub-bills, tax invoices and bill screens; stored per bill line (`invoice_lines.epf/esic`). Daily-contract staff switched on by migration to keep old behaviour. `App\Support\Statutory` holds the rules.
 - Letterheads: Z Plus classic (with footer); SWACHHA banner on sub-bill, covering letter, tax invoice, appointment letter (fits one page), attendance certificate, salary payout sheet
 - Version display and release notes
+- **PI portal + Users (v2.0.0)** – agreed design with owner: PI logins (role `pi`, linked to projects via `project_user`) see only their projects; mark/save attendance; Submit → status `submitted`, certificate PDF stored (`submitted_pdf_path`), frozen for PI; PI uploads signed copy in app or e-mails it; **no send-back step**; operator may correct days after submission – each change recorded in `attendance_changes` and printed on the certificate; operator approves (lock) → **sub-bill auto-generated** (draft); tax invoice stays one click; PI can view/download own sub-bills. Routes split by middleware `role:` (staff vs pi) + `active`. Users screen (Admin): temporary passwords with forced change, switch off, login log (`login_events`). Role label "supervisor" shown as **Operator**.
 - **Data Upload** (`/data-upload`, Admin only, `App\Services\MasterImport`): one Excel template per master (agencies → clients → contracts → projects → posts → employees), built live with PhpSpreadsheet (Instructions sheet, heading comments, hidden Lists sheet for dropdowns, text format for numbers with leading zeros). Upload → check (New/Update/No change/Error) → Save. Matching keys: agency code; agency+client code; contract no.; contract+project code; contract+project+designation; employee code (or name+mobile). Blank cell = keep; required cells only for new records except identifying ones. Secrets (account no., Aadhaar) never exported.
 
 ## Key files
@@ -53,6 +54,9 @@ Size (non-blank lines): ~6,000 app code (PHP 3,010, Blade 2,004, migrations 704)
 - `app/Support/{Money,AmountInWords,Ifsc,KnownLetterheads,Statutory,Release}.php`
 - `resources/views/pdf/_letterhead*.blade.php` and the PDF views
 - `database/seeders/DemoSeeder.php` (October MPH example: ₹86,000 wages → ₹1,05,387.00; never run on production)
+
+## Decisions
+- Mobile self check-in (GPS/selfie) by employees: discussed, **not wanted**; attendance stays with PI/operator
 
 ## Open questions for the user
 - Employer EPF on bills uses the ₹15,000 wage ceiling (same as the deduction) – confirm with their GeM practice
@@ -65,9 +69,8 @@ Size (non-blank lines): ~6,000 app code (PHP 3,010, Blade 2,004, migrations 704)
 - ESIC has no automatic ₹21,000 limit (user controls it per employee)
 
 ## Next (offered / not started)
-- **Deferred by owner ("after sometime"): client portal** – client admin + PI logins scoped to their client/projects; PI enters/uploads and approves attendance (locks month); client sees staff list (no bank/Aadhaar/PAN/phones), vacancies, bills and status; restricted from payroll, masters, other clients. Needs user roles, strict scoping with tests, approval audit trail, Users screen, login security. Check first whether ICMR accepts online PI approval instead of a signed certificate. Planned as v2.0.0.
+- (Partly done in v2.0.0 as the PI portal.) **Deferred: wider client portal** – client admin + PI logins scoped to their client/projects; PI enters/uploads and approves attendance (locks month); client sees staff list (no bank/Aadhaar/PAN/phones), vacancies, bills and status; restricted from payroll, masters, other clients. Needs user roles, strict scoping with tests, approval audit trail, Users screen, login security. Check first whether ICMR accepts online PI approval instead of a signed certificate. Planned as v2.0.0.
 - Attendance Excel template (per project/month download + upload with check screen; optional all-projects workbook) – proposed, waiting on owner's answers (per project vs all projects; who fills it)
-- Change-password page and Users screen (staff logins for Accounts/Supervisor) – offered twice, awaiting yes
 - Cashfree Payouts (account verification, salary batches, webhooks), SMS (DLT) and WhatsApp messages, payslips per employee. Still to ask: does each agency have its own Cashfree account?
 
 ## Lessons

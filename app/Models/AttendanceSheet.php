@@ -11,6 +11,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 
 #[Fillable(['project_id', 'month', 'holidays', 'status', 'certificate_path'])]
+// status: draft → submitted (by the PI, PDF made) → locked (approved by the agency)
 class AttendanceSheet extends Model
 {
     /**
@@ -27,7 +28,7 @@ class AttendanceSheet extends Model
 
     protected function casts(): array
     {
-        return ['locked_at' => 'datetime'];
+        return ['locked_at' => 'datetime', 'submitted_at' => 'datetime'];
     }
 
     public function project(): BelongsTo
@@ -43,6 +44,21 @@ class AttendanceSheet extends Model
     public function invoice(): HasOne
     {
         return $this->hasOne(Invoice::class);
+    }
+
+    public function changes(): HasMany
+    {
+        return $this->hasMany(AttendanceChange::class)->orderBy('id');
+    }
+
+    public function submitter(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'submitted_by');
+    }
+
+    public function isSubmitted(): bool
+    {
+        return $this->status === 'submitted';
     }
 
     public function isLocked(): bool

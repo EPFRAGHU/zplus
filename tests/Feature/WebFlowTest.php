@@ -70,12 +70,10 @@ class WebFlowTest extends TestCase
 
         // Locking needs the signed certificate.
         $this->post('/attendance/1/lock')->assertSessionHasErrors('certificate');
+        // Locking (approving) makes the sub-bill straight away.
         $this->post('/attendance/1/lock', ['certificate' => UploadedFile::fake()->create('signed.pdf', 200, 'application/pdf')])
-            ->assertSessionHasNoErrors();
+            ->assertSessionHasNoErrors()->assertRedirect('/invoices/1');
         $this->assertTrue($sheet->fresh()->isLocked());
-
-        // Make the bill.
-        $this->post('/invoices', ['attendance_sheet_id' => $sheet->id])->assertRedirect('/invoices/1');
         $invoice = Invoice::query()->firstOrFail();
         $this->assertSame('ICMR/MPH/01/2026', $invoice->invoice_no);
         $this->assertSame('105387.00', $invoice->rounded_total);

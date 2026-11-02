@@ -40,5 +40,13 @@
 @endforeach
 </tr></table>
 @endif
+@if($sheet->submitted_at)
+<p style="font-size:8.5px;margin:6px 0 0"><b>Submitted online</b> by {{ $sheet->submitter?->name ?? 'the PI' }} on {{ $sheet->submitted_at->timezone('Asia/Kolkata')->format('d-m-Y, h:i A') }}.
+@if($sheet->changes->count())
+ <b>Corrected by the agency after submission ({{ $sheet->changes->count() }}):</b>
+ {{ $sheet->changes->map(fn ($c) => $c->employee_name.' '.$c->day.'/'.$sheet->month->format('m').': '.$c->old_code.' → '.$c->new_code)->implode('; ') }}.
+@endif
+</p>
+@endif
 <table class="sign"><tr><td>Date: ____________</td><td class="r">Signature of the PI{{ $sheet->project->pi_name ? ' ('.$sheet->project->pi_name.')' : '' }}</td></tr></table>
 </body></html>

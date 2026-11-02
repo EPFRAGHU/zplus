@@ -6,8 +6,10 @@ use App\Models\AttendanceSheet;
 use App\Models\Employee;
 use App\Models\Project;
 use App\Models\User;
+use Barryvdh\DomPDF\Facade\Pdf;
 use Carbon\CarbonImmutable;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Storage;
 use RuntimeException;
 
 final class AttendanceService
@@ -46,24 +48,60 @@ final class AttendanceService
         });
     }
 
-    /** @param array<int, array<int,string>> $codesByEntry entry id => [day => code] */
-    public function save(AttendanceSheet $sheet, array $codesByEntry): void
+    /**
+     * @param  array<int, array<int,string>>  $codesByEntry  entry id => [day => code]
+     * Once the PI has submitted the month, every code the agency changes is recorded (who, when, old → new).
+     */
+    public function save(AttendanceSheet $sheet, array $codesByEntry, ?User $by = null): int
     {
         $this->assertEditable($sheet);
         $days = $sheet->month->daysInMonth;
+        $record = $sheet->isSubmitted();
 
-        DB::transaction(function () use ($sheet, $codesByEntry, $days) {
-            foreach ($sheet->entries as $entry) {
+        return DB::transaction(function () use ($sheet, $codesByEntry, $days, $record, $by) {
+            $changed = 0;
+            foreach ($sheet->entries()->with('employee')->get() as $entry) {
                 if (! isset($codesByEntry[$entry->id])) {
                     continue;
                 }
                 $codes = [];
                 for ($d = 1; $d <= $days; $d++) {
                     $codes[$d] = strtoupper(trim((string) ($codesByEntry[$entry->id][$d] ?? 'A')));
+                    $old = strtoupper((string) ($entry->codes[$d] ?? $entry->codes[(string) $d] ?? 'A'));
+                    if ($record && $old !== $codes[$d]) {
+                        $sheet->changes()->create(['employee_id' => $entry->employee_id, 'employee_name' => $entry->employee?->name ?? '',
+                            'day' => $d, 'old_code' => $old, 'new_code' => $codes[$d], 'user_id' => $by?->id]);
+                        $changed++;
+                    }
                 }
                 $entry->update(['codes' => $codes, 'paid_days' => AttendanceCodes::paidDays($codes)]);
             }
+
+            return $changed;
         });
+    }
+
+    /** The PI submits the month: it is frozen for the PI and the certificate PDF is made exactly as submitted. */
+    public function submit(AttendanceSheet $sheet, User $pi): void
+    {
+        if (! in_array($sheet->status, ['draft'], true)) {
+            throw new RuntimeException('This month has already been submitted.');
+        }
+        if ($sheet->entries()->count() === 0) {
+            throw new RuntimeException('There is no one on this sheet yet. Ask the agency to link the staff to your project.');
+        }
+        $sheet->forceFill(['status' => 'submitted', 'submitted_at' => now(), 'submitted_by' => $pi->id])->save();
+        $path = sprintf('attendance-submitted/%s/%s-%s-%s.pdf', $sheet->month->format('Y-m'), $sheet->project->code, $sheet->id, now()->format('YmdHis'));
+        Storage::disk('local')->put($path, $this->certificatePdf($sheet->fresh()));
+        $sheet->forceFill(['submitted_pdf_path' => $path])->save();
+    }
+
+    /** The Monthly Attendance and Working Certificate (no bank details: it goes to the PI). */
+    public function certificatePdf(AttendanceSheet $sheet, bool $showBank = false): string
+    {
+        $sheet->loadMissing('entries.employee.post', 'project.contract.client', 'project.contract.agency', 'submitter', 'changes');
+
+        return Pdf::loadView('pdf.attendance-certificate', ['sheet' => $sheet, 'showBank' => $showBank])->setPaper('a4', 'landscape')->output();
     }
 
     public function lock(AttendanceSheet $sheet, User $user, ?string $certificatePath): void

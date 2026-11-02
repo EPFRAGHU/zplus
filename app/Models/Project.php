@@ -11,6 +11,12 @@ use Illuminate\Database\Eloquent\Relations\HasManyThrough;
 #[Fillable(['gem_contract_id', 'name', 'code', 'title', 'pi_name', 'pi_designation', 'location', 'saturday_off'])]
 class Project extends Model
 {
+    /** PI logins for this project. */
+    public function pis(): \Illuminate\Database\Eloquent\Relations\BelongsToMany
+    {
+        return $this->belongsToMany(User::class);
+    }
+
     protected function casts(): array
     {
         return ['saturday_off' => 'boolean'];

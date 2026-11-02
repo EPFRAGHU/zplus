@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\AccountController;
 use App\Http\Controllers\AgencyController;
 use App\Http\Controllers\AttendanceController;
 use App\Http\Controllers\AuthController;
@@ -10,9 +11,11 @@ use App\Http\Controllers\EmployeeDocumentController;
 use App\Http\Controllers\GemContractController;
 use App\Http\Controllers\ImportController;
 use App\Http\Controllers\InvoiceController;
+use App\Http\Controllers\PiPortalController;
 use App\Http\Controllers\PostController;
 use App\Http\Controllers\ProjectController;
 use App\Http\Controllers\TaxInvoiceController;
+use App\Http\Controllers\UserController;
 use Illuminate\Support\Facades\Route;
 
 Route::middleware('guest')->group(function () {
@@ -20,10 +23,39 @@ Route::middleware('guest')->group(function () {
     Route::post('/login', [AuthController::class, 'login'])->middleware('throttle:6,1');
 });
 
-Route::middleware('auth')->group(function () {
+Route::post('/logout', [AuthController::class, 'logout'])->middleware('auth')->name('logout');
+
+// Every signed-in user
+Route::middleware(['auth', 'active'])->group(function () {
     Route::view('/releases', 'releases.index')->name('releases');
-    Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
+    Route::get('/account/password', [AccountController::class, 'edit'])->name('account.password');
+    Route::put('/account/password', [AccountController::class, 'update'])->name('account.password.update');
+});
+
+// PI portal: a PI sees only the projects they are in charge of
+Route::middleware(['auth', 'active', 'role:pi'])->prefix('pi')->name('pi.')->group(function () {
+    Route::get('/', [PiPortalController::class, 'home'])->name('home');
+    Route::post('/projects/{project}/months', [PiPortalController::class, 'start'])->name('start');
+    Route::get('/attendance/{sheet}', [PiPortalController::class, 'sheet'])->name('sheet');
+    Route::put('/attendance/{sheet}', [PiPortalController::class, 'save'])->name('save');
+    Route::post('/attendance/{sheet}/submit', [PiPortalController::class, 'submit'])->name('submit');
+    Route::get('/attendance/{sheet}/pdf', [PiPortalController::class, 'pdf'])->name('pdf');
+    Route::post('/attendance/{sheet}/signed', [PiPortalController::class, 'uploadSigned'])->name('signed');
+    Route::get('/attendance/{sheet}/signed', [PiPortalController::class, 'signed'])->name('signed.show');
+    Route::get('/bills', [PiPortalController::class, 'bills'])->name('bills');
+    Route::get('/bills/{invoice}/pdf', [PiPortalController::class, 'billPdf'])->name('bills.pdf');
+});
+
+// Agency staff
+Route::middleware(['auth', 'active', 'role:admin,accounts,supervisor'])->group(function () {
     Route::get('/', DashboardController::class)->name('dashboard');
+
+    // Users (Admin)
+    Route::get('users', [UserController::class, 'index'])->name('users.index');
+    Route::get('users/create', [UserController::class, 'create'])->name('users.create');
+    Route::post('users', [UserController::class, 'store'])->name('users.store');
+    Route::get('users/{user}/edit', [UserController::class, 'edit'])->name('users.edit');
+    Route::put('users/{user}', [UserController::class, 'update'])->name('users.update');
 
     // Masters
     Route::resource('agencies', AgencyController::class)->except(['show', 'destroy']);
@@ -55,6 +87,7 @@ Route::middleware('auth')->group(function () {
     Route::get('attendance/{sheet}/salary-payouts', [AttendanceController::class, 'payouts'])->name('attendance.payouts');
     Route::get('attendance/{sheet}/certificate', [AttendanceController::class, 'certificate'])->name('attendance.certificate');
     Route::get('attendance/{sheet}/scan', [AttendanceController::class, 'scan'])->name('attendance.scan');
+    Route::get('attendance/{sheet}/submitted-pdf', [AttendanceController::class, 'submittedPdf'])->name('attendance.submitted-pdf');
 
     // Billing
     Route::get('invoices', [InvoiceController::class, 'index'])->name('invoices.index');

@@ -99,7 +99,7 @@ class DashboardController extends Controller
                 'project' => $p,
                 'staff' => (int) $p->staff,
                 'sanctioned' => (int) $p->sanctioned,
-                'last' => ! $sheet ? 'not started' : ($sheet->invoice ? 'billed' : ($sheet->isLocked() ? 'locked' : 'draft')),
+                'last' => ! $sheet ? 'not started' : ($sheet->invoice ? 'billed' : ($sheet->isLocked() ? 'locked' : ($sheet->isSubmitted() ? 'submitted' : 'draft'))),
                 'billed' => (string) ($billed[$p->id] ?? 0),
             ];
         })->sortBy(fn ($r) => $r['project']->contract->agency->name.'|'.$r['project']->contract->client->name.'|'.$r['project']->contract->bid_no.'|'.$r['project']->name)->values();

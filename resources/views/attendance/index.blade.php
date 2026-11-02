@@ -10,7 +10,7 @@
     <div><label class="form-label small text-secondary mb-1" for="f-project">Project</label>
       <select id="f-project" name="project" class="form-select"><option value="">All projects</option>@foreach($allProjects as $pp)<option value="{{ $pp->id }}" data-agency="{{ $pp->contract->agency_id }}" data-client="{{ $pp->contract->client_id }}" data-contract="{{ $pp->gem_contract_id }}" @selected(request('project') == $pp->id)>{{ $pp->label() }}</option>@endforeach</select></div>
     <button class="btn btn-outline-secondary">Show</button>
-    <div class="small text-secondary w-100">Print the certificate, get it signed by the PI, upload the scan, then lock the month. Bills use locked months only.</div>
+    <div class="small text-secondary w-100">Mark attendance here (or the PI marks and submits it online), upload the signed certificate, then lock (approve) the month: the sub-bill is made automatically.</div>
   </form>
   <div class="z-card">
     <div class="z-card-h"><h2>{{ $month->format('F Y') }}</h2><span class="small text-secondary">{{ $sheets->only($projects->pluck('id')->all())->where('status', 'locked')->count() }} of {{ $projects->count() }} projects locked</span></div>
@@ -40,7 +40,7 @@
           <td>{{ $p->contract->client->name }}</td>
           <td><a class="mono text-decoration-none" href="{{ route('contracts.show', $p->contract) }}">{{ $p->contract->bid_no }}</a></td>
           <td class="fw-semibold">{{ $p->name }}</td><td>{{ $p->pi_name ?? '—' }}</td><td class="num">{{ $sheet?->entries_count ?? $p->employees_count }}</td>
-          <td>@if(! $sheet)<span class="badge text-bg-light border">Not started</span>@elseif($sheet->invoice)<span class="badge text-bg-success">Billed</span>@else<x-status :value="$sheet->status" />@endif</td>
+          <td>@if(! $sheet)<span class="badge text-bg-light border">Not started</span>@elseif($sheet->invoice)<span class="badge text-bg-success">Billed</span>@elseif($sheet->isSubmitted())<span class="badge text-bg-info">Submitted by PI · check</span>@else<x-status :value="$sheet->status" />@endif</td>
           <td>
             @if($sheet)
               <a class="btn btn-sm btn-outline-secondary" href="{{ route('attendance.show', $sheet) }}">Open sheet</a>

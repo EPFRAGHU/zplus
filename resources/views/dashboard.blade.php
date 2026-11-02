@@ -51,6 +51,8 @@
         <ul class="list-group list-group-flush">
           <li class="list-group-item d-flex justify-content-between"><span>Projects</span><b>{{ $projectsTotal }}</b></li>
           <li class="list-group-item d-flex justify-content-between"><span>Attendance locked</span><b>{{ $projectsLocked }}</b></li>
+          @php($submittedByPi = \App\Models\AttendanceSheet::query()->where('status', 'submitted')->count())
+          <li class="list-group-item d-flex justify-content-between"><span>Submitted by PIs, to check</span><b>@if($submittedByPi)<span class="badge text-bg-info">{{ $submittedByPi }}</span>@else 0 @endif</b></li>
           <li class="list-group-item d-flex justify-content-between"><span>Bills made</span><b>{{ $projectsBilled }}</b></li>
           <li class="list-group-item d-flex justify-content-between"><span>Draft bills to approve</span><b>{{ $drafts }}</b></li>
           <li class="list-group-item d-flex justify-content-between align-items-center"><span>Staff with missing bank details</span>
@@ -113,7 +115,7 @@
               </td></tr>
             @endif
             @php($p = $r['project'])
-            @php($badge = ['billed' => 'success', 'locked' => 'primary', 'draft' => 'warning', 'not started' => 'light border'][$r['last']])
+            @php($badge = ['billed' => 'success', 'locked' => 'primary', 'submitted' => 'info', 'draft' => 'warning', 'not started' => 'light border'][$r['last']] ?? 'secondary')
             <tr>
               <td><span class="badge text-bg-light border" title="{{ $p->contract->agency->name }}">{{ $p->contract->agency->code }}</span></td>
               <td class="small">{{ $p->contract->client->name }}</td>
