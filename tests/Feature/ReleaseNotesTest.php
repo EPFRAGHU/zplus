@@ -24,6 +24,10 @@ class ReleaseNotesTest extends TestCase
         $this->assertSame(count($versions), count(array_unique($versions)), 'versions must be unique');
         $this->assertSame('2026-11-01', Release::started()->toDateString());
         $this->assertSame('2026-11-01', end($all)['date']->toDateString());
+        $this->assertSame('16:01', Release::started()->format('H:i'));
+        $this->assertSame('Asia/Kolkata', Release::current()['date']->timezoneName);
+        $dates = array_map(fn ($r) => $r['date']->timestamp, $all);
+        $this->assertSame($dates, collect($dates)->sortDesc()->values()->all(), 'release times must go back in time down the list');
         foreach ($all as $r) {
             $this->assertTrue($r['date']->gte(Release::started()));
             $this->assertNotEmpty($r['notes']);
@@ -35,9 +39,9 @@ class ReleaseNotesTest extends TestCase
         $this->actingAs(User::factory()->create(['role' => 'supervisor']));
         $v = Release::version();
 
-        $this->get('/')->assertOk()->assertSee("v{$v}")->assertSee('Since 01 Nov 2026')->assertSee(route('releases'));
+        $this->get('/')->assertOk()->assertSee("v{$v}")->assertSee('Since 01 Nov 2026')->assertSee('Updated '.Release::current()['date']->format('d M Y · h:i A'))->assertSee(route('releases'));
         $this->get('/releases')->assertOk()->assertSee('Version history')->assertSee("v{$v}")->assertSee('v0.1.0')
-            ->assertSee('Project started')->assertSee('Sunday, 01 November 2026');
+            ->assertSee('Project started')->assertSee('Sunday, 01 November 2026')->assertSee('04:18 PM')->assertSee('Times in IST');
     }
 
     public function test_login_page_shows_the_version(): void

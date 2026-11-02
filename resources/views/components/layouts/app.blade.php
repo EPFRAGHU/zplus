@@ -71,7 +71,7 @@ body{font-size:.9rem}
     @php($rel = \App\Support\Release::current())
     <a class="z-ver" href="{{ route('releases') }}" title="Release notes">
       <span class="v">Version <span class="badge">v{{ $rel['version'] }}</span></span>
-      <span class="d d-block">Released {{ $rel['date']->format('d M Y') }}</span>
+      <span class="d d-block" title="Indian Standard Time">Updated {{ $rel['date']->format('d M Y · h:i A') }}</span>
       <span class="d d-block">Since {{ \App\Support\Release::started()->format('d M Y') }} · <span class="text-decoration-underline">What's new</span></span>
     </a>
     <div class="z-user">

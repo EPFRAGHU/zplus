@@ -1,7 +1,7 @@
 # ZPlus Manpower app
 
 **Repo:** epfraghu/zplus, branch `claude/manpower-app-foundation`
-**Status:** Active. Version **1.1.0** (see config/releases.php). 99 tests passing (Nov 2026). Project started 01 Nov 2026.
+**Status:** Active. Version **1.1.1** (see config/releases.php). 99 tests passing (Nov 2026). Project started 01 Nov 2026.
 
 ## Stack
 Laravel 13 / PHP 8.3, SQLite locally, MySQL in production. Bootstrap 5.3.3 + bootstrap-icons bundled in `public/vendor` (no CDN).
