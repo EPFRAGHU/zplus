@@ -6,7 +6,7 @@
 ## Stack
 Laravel 13 / PHP 8.3, SQLite locally, MySQL in production. Bootstrap 5.3.3 + bootstrap-icons bundled in `public/vendor` (no CDN).
 barryvdh/laravel-dompdf for PDFs, phpoffice/phpspreadsheet for import. Models use `#[Fillable]` attributes.
-Deploy: docs/DEPLOY_VPS.md (Ubuntu, nginx, PHP 8.3-FPM, MySQL, certbot, subdomain), `deploy/update.sh` for updates. User's laptop copy: C:\Users\Dell\zplus.
+Deploy: docs/DEPLOY_VPS.md (Ubuntu, nginx, PHP 8.3-FPM, MySQL, certbot, subdomain), `deploy/update.sh` for updates. User's laptop copy: C:\Users\Dell\zplus. Live target: user's Hostinger VPS (Mumbai) hosting epf-dashboard.online; suggested subdomain zplus.epf-dashboard.online (DNS in Hostinger hPanel). Existing site on the VPS must not be disturbed.
 Run locally: `php artisan serve` → http://127.0.0.1:8000 (zplus.test did not work for the user).
 
 ## Done
