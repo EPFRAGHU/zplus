@@ -65,6 +65,8 @@ Size (non-blank lines): ~6,000 app code (PHP 3,010, Blade 2,004, migrations 704)
 - ESIC has no automatic ₹21,000 limit (user controls it per employee)
 
 ## Next (offered / not started)
+- **Deferred by owner ("after sometime"): client portal** – client admin + PI logins scoped to their client/projects; PI enters/uploads and approves attendance (locks month); client sees staff list (no bank/Aadhaar/PAN/phones), vacancies, bills and status; restricted from payroll, masters, other clients. Needs user roles, strict scoping with tests, approval audit trail, Users screen, login security. Check first whether ICMR accepts online PI approval instead of a signed certificate. Planned as v2.0.0.
+- Attendance Excel template (per project/month download + upload with check screen; optional all-projects workbook) – proposed, waiting on owner's answers (per project vs all projects; who fills it)
 - Change-password page and Users screen (staff logins for Accounts/Supervisor) – offered twice, awaiting yes
 - Cashfree Payouts (account verification, salary batches, webhooks), SMS (DLT) and WhatsApp messages, payslips per employee. Still to ask: does each agency have its own Cashfree account?
 
