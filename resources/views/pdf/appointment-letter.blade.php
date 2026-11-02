@@ -1,4 +1,4 @@
-<html><head><meta charset="utf-8">@include('pdf._style')</head><body class="letter">
+<html><head><meta charset="utf-8">@include('pdf._style')<style>.letter{font-size:11px;line-height:1.45} .letter p{margin:0 0 7px}</style></head><body class="letter">
 @include('pdf._letterhead-footer')
 <div style="font-family:'DejaVu Sans',sans-serif">@include('pdf._letterhead')</div>
 <table><tr><td>Ref:- {{ $number }}</td><td class="r">Date:- {{ ($employee->joining_date ?? now())->format('d/m/Y') }}</td></tr></table>
@@ -17,5 +17,5 @@
 <p style="text-align:justify"><b>Nature of Appointment:</b> This is a purely outsourced/project-based engagement and does not confer any right to permanent employment, regularization or absorption in {{ $agency->name }}, {{ $contract->client->name }} or any other organization.</p>
 <p>You are requested to sign and return a copy of this letter as acceptance of the above terms and conditions.</p>
 <p>We wish you success in your assignment and look forward to your sincere contribution to the project.</p>
-<div class="sign">For {{ $agency->name }}<br><br><br>Authorized Signatory<br>{{ $agency->name }}</div>
+<div class="sign" style="margin-top:14px">For {{ $agency->name }}<br><br><br>Authorized Signatory<br>{{ $agency->name }}</div>
 </body></html>

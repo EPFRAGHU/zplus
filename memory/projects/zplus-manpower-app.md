@@ -1,7 +1,7 @@
 # ZPlus Manpower app
 
 **Repo:** epfraghu/zplus, branch `claude/manpower-app-foundation`
-**Status:** Active. 83 tests passing (Nov 2026).
+**Status:** Active. 84 tests passing (Nov 2026).
 
 ## Stack
 Laravel 13 / PHP 8.3, SQLite locally, MySQL in production. Bootstrap 5.3.3 + bootstrap-icons bundled in `public/vendor` (no CDN).
@@ -16,7 +16,7 @@ Run locally: `php artisan serve` → http://127.0.0.1:8000 (zplus.test did not w
 - Sub-bills (`GemBillCalculator`, `InvoiceGenerator`), covering letter, appointment letter
 - Tax invoices (`TaxInvoiceBuilder`) combining a client's sub-bills
 - Agency blocks + light-blue client blocks on every list and the dashboard
-- Letterheads: Z Plus classic; SWACHHA banner on sub-bill, covering letter, tax invoice, appointment letter, attendance certificate
+- Letterheads: Z Plus classic; SWACHHA banner on sub-bill, covering letter, tax invoice, appointment letter (fits one page), attendance certificate
 
 ## Key files
 - `app/Services/Billing/{GemBillCalculator,InvoiceGenerator,TaxInvoiceBuilder}.php`

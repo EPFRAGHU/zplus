@@ -183,4 +183,26 @@ class LetterheadTest extends TestCase
 
         $this->actingAs($admin)->get("/attendance/{$sheet->id}/certificate")->assertOk();
     }
+
+    public function test_swachha_appointment_letter_prints_the_banner_letterhead_on_one_page(): void
+    {
+        Storage::fake('local');
+        $this->seed(DemoSeeder::class);
+        $admin = User::factory()->create(['role' => 'admin']);
+        $swh = Agency::query()->where('code', 'SWH')->firstOrFail();
+        $employee = Employee::query()->with('post.project.contract')->firstOrFail();
+        $employee->post->project->contract->update(['agency_id' => $swh->id]);
+
+        $response = $this->actingAs($admin)->get("/employees/{$employee->id}/appointment-letter")->assertOk();
+        $pdf = $response->getContent();
+        $this->assertSame(1, preg_match_all('#/Type\s*/Page[^s]#', $pdf));   // fits on one page
+
+        $p = $employee->fresh()->post->project;
+        $html = view('pdf.appointment-letter', ['employee' => $employee, 'project' => $p, 'contract' => $p->contract, 'agency' => $swh->fresh(),
+            'number' => 'SWH/NIHR/MPH/01/26', 'rate' => '55000', 'rateWords' => 'Rupees Fifty Five Thousand Only'])->render();
+        $this->assertStringContainsString('&ldquo;SWACHHA&rdquo;', $html);
+        $this->assertStringContainsString('Regd. Office Address:', $html);
+        $this->assertStringContainsString('Ref:- SWH/NIHR/MPH/01/26', $html);
+        $this->assertStringNotContainsString('O/o The', $html);
+    }
 }
