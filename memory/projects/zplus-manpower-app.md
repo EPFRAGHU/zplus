@@ -6,7 +6,7 @@
 ## Stack
 Laravel 13 / PHP 8.3, SQLite locally, MySQL in production. Bootstrap 5.3.3 + bootstrap-icons bundled in `public/vendor` (no CDN).
 barryvdh/laravel-dompdf for PDFs, phpoffice/phpspreadsheet for import. Models use `#[Fillable]` attributes.
-Deploy: docs/DEPLOY_VPS.md (Ubuntu, nginx, PHP 8.3-FPM, MySQL, certbot, subdomain), `deploy/update.sh` for updates. User's laptop copy: C:\Users\Dell\zplus. Live target: user's Hostinger VPS srv1962767 (Mumbai, Ubuntu 24.04) running **Coolify** (Traefik owns 80/443; many other apps in Docker, incl. annexure.epf-dashboard.online). Deploy via Coolify Docker Compose build pack: `Dockerfile` + `docker-compose.yaml` (app + mysql:8.0), guide docs/DEPLOY_COOLIFY.md, domain zplus.epf-dashboard.online. Don't use host nginx/certbot there.
+Deploy: docs/DEPLOY_VPS.md (Ubuntu, nginx, PHP 8.3-FPM, MySQL, certbot, subdomain), `deploy/update.sh` for updates. User's laptop copy: C:\Users\Dell\zplus. Live target: user's Hostinger VPS srv1962767 (Mumbai, Ubuntu 24.04) running **Coolify** (Traefik owns 80/443; many other apps in Docker, incl. annexure.epf-dashboard.online). **Live since 2 Nov 2026** at https://zplus.epf-dashboard.online (admin created). Deploy via Coolify Docker Compose build pack: `Dockerfile` + `docker-compose.yaml` (app + mysql:8.0), guide docs/DEPLOY_COOLIFY.md, domain zplus.epf-dashboard.online. Don't use host nginx/certbot there.
 Run locally: `php artisan serve` → http://127.0.0.1:8000 (zplus.test did not work for the user).
 
 ## Done
@@ -38,6 +38,7 @@ Run locally: `php artisan serve` → http://127.0.0.1:8000 (zplus.test did not w
 - Whether the attendance certificate should carry the agency letterhead (added; can be removed)
 
 ## Next milestone (not started)
+- Offered: change-password page and user management screen (no UI yet; users via seeder/tinker)
 Cashfree Payouts (account verification, salary batches, webhooks), SMS (DLT) and WhatsApp messages, payslips per employee.
 Still to ask: does each agency have its own Cashfree account?
 
