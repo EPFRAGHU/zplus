@@ -56,6 +56,8 @@ Size (non-blank lines): ~6,000 app code (PHP 3,010, Blade 2,004, migrations 704)
 - `database/seeders/DemoSeeder.php` (October MPH example: ₹86,000 wages → ₹1,05,387.00; never run on production)
 
 ## Decisions
+- **Colour theme**: still the current Crimson (accent #e23d4e, sidebar #1f1a1d). On 02 Nov 2026 eight themes were previewed (browser-only, nothing changed): 1 Current Crimson #e23d4e/#1f1a1d · 2 Navy Blue #2563eb/#0f1b33 · 3 Teal Green #0f9488/#0d2623 · 4 Royal Purple #7c3aed/#1e1433 · 5 Saffron Orange #ea6c0a/#2a1a0e · 6 Forest Green #15803d/#0f2418 · 7 Maroon Gold #9f1239/#2b0f17 (gold sidebar text #e8cfa0) · 8 Light Sidebar Blue #1d4ed8/white sidebar. No choice made yet. A change = the CSS variables in `resources/views/components/layouts/app.blade.php` (`--z-accent`, `--z-rail`, `--z-rail-active`, `--z-rail-fg`, `--z-bg`, Bootstrap primary) + a version entry; PDFs and status colours unaffected.
+- **Attendance flow (current, agreed)**: PI signs and e-mails the sheet (or uses the PI portal); operator marks/checks and locks; sub-bill made on lock; tax invoice one click.
 - Mobile self check-in (GPS/selfie) by employees: discussed, **not wanted**; attendance stays with PI/operator
 
 ## Open questions for the user
@@ -67,6 +69,9 @@ Size (non-blank lines): ~6,000 app code (PHP 3,010, Blade 2,004, migrations 704)
 - October covering letter had the wrong project title
 - Whether the attendance certificate should carry the agency letterhead (added; can be removed)
 - ESIC has no automatic ₹21,000 limit (user controls it per employee)
+
+## Possible future: moving to the client's/another server (discussed only)
+What moves: code (GitHub or a copy), MySQL dump, uploaded files (`zplus-storage` volume → storage/app), and the **same APP_KEY** (else encrypted bank/Aadhaar unreadable). New server: any Linux with Docker (`docker compose up -d` + HTTPS proxy), or Coolify, or plain PHP 8.3 + MySQL + nginx (docs/DEPLOY_VPS.md); min 2 CPU / 2 GB / 20 GB. Steps: test copy first → maintenance mode → final export → import → repoint DNS or new APP_URL → verify (sign in, PDFs, signed certificates, bank details decrypt) → keep old copy off but not deleted. Agree first: who maintains/updates, code access, govt security audit (CERT-In empanelled) / HTTPS / offline needs, backups, ownership/licence, whether only one agency's data moves (would need a data split). Offered to prepare a migration guide, plain-Docker version, or per-agency export when the time comes.
 
 ## Next (offered / not started)
 - (Partly done in v2.0.0 as the PI portal.) **Deferred: wider client portal** – client admin + PI logins scoped to their client/projects; PI enters/uploads and approves attendance (locks month); client sees staff list (no bank/Aadhaar/PAN/phones), vacancies, bills and status; restricted from payroll, masters, other clients. Needs user roles, strict scoping with tests, approval audit trail, Users screen, login security. Check first whether ICMR accepts online PI approval instead of a signed certificate. Planned as v2.0.0.
