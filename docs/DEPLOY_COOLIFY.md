@@ -27,7 +27,7 @@ epfraghu/zplus → Settings → Deploy keys, read-only. Then pick "Private Repos
 1. Coolify → **Projects** → pick or create a project (e.g. "ZPlus") → **+ New** → **Resource**.
 2. Choose **Private Repository (with GitHub App)** and select **epfraghu/zplus**.
 3. Branch: **`claude/manpower-app-foundation`**.
-4. Build Pack: **Docker Compose**. Docker Compose location: **`/docker-compose.yml`**. Continue.
+4. Build Pack: **Docker Compose**. Docker Compose location: **`/docker-compose.yaml`**. Continue.
 5. Coolify shows two services, **app** and **db**. On **app**, set **Domains** to
    `https://zplus.epf-dashboard.online`. Leave **db** without a domain (it stays private).
 

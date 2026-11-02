@@ -1,4 +1,4 @@
-# ZPlus Manpower: PHP 8.3 + Apache serving public/. Database runs in its own container (see docker-compose.yml).
+# ZPlus Manpower: PHP 8.3 + Apache serving public/. Database runs in its own container (see docker-compose.yaml).
 FROM php:8.3-apache
 
 RUN apt-get update && apt-get install -y --no-install-recommends \
