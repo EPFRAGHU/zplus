@@ -13,7 +13,7 @@ Built with Laravel 13 (PHP 8.3), Bootstrap 5 and MySQL (SQLite for local use).
 | **Excel import** | Upload the *GEM PROJECT DETAILS* workbook. It reads the agency sheets (contracts, posts, candidates) and the PI sheets (salary, bank details), matches staff to posts, and lists problems such as missing or invalid IFSC codes, salary mismatches and names spelt differently between sheets, before saving anything. |
 | **Attendance** | One sheet per project per month with the PI codes (P, CL, EL, RH, CH, T, H, SAT, SUN, HD, A, L). Prints the *Monthly Attendance and Working Certificate* with bank details. Upload the signed scan, then lock the month. |
 | **Bills** | Made only from a locked month. Numbered `ICMR/MPH/01/2026`. PDF bill and covering letter with the amount in words. Status: Draft → Approved → Submitted → Paid. |
-| **Salary payouts** | Bank transfer sheet from a locked month on the agency letterhead: earned salary, employee EPF 12% (on wages up to ₹15,000) and ESIC 0.75% (when the wage is ₹21,000 or less), net pay and bank details. Admin and Accounts only. |
+| **Salary payouts** | Bank transfer sheet from a locked month on the agency letterhead: earned salary, employee EPF 12% (on wages up to ₹15,000) and ESIC 0.75% for staff with them switched on, net pay and bank details. Admin and Accounts only. |
 | **Letters** | Appointment letter in the SWACHHA format, numbered once per employee (`SWH/NIHR/MPH/01/26`). |
 
 ### How a bill is calculated
@@ -21,7 +21,8 @@ Built with Laravel 13 (PHP 8.3), Bootstrap 5 and MySQL (SQLite for local use).
 Confirmed rule: **service charge is levied on the total excluding GST; GST is then charged on the total plus service charge.**
 
 - Monthly posts: amount = rate × paid days ÷ days in month
-- Daily-rate posts (MTS, DEO): amount = rate × paid days, then employer EPF and ESIC are added before the service charge
+- Daily-rate posts (MTS, DEO): amount = rate × paid days
+- EPF and ESIC are switched on or off per employee (Employees list or employee form). For staff with them on, the bill adds the employer's EPF (13% of wages up to ₹15,000) and ESIC (3.25%) before the service charge, and the salary sheet deducts the employee's 12% and 0.75%
 - GST is CGST + SGST, or IGST when the contract is marked inter-state
 
 All money is calculated in whole paise, never in floating point. The October 2026 MPH bill (₹86,000 of wages) comes to **₹1,05,387.00**, the same as the bill that was submitted. `tests/Unit/Billing/GemBillCalculatorTest.php` checks this.

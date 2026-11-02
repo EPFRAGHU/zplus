@@ -19,7 +19,12 @@
     </div></div>
     <div class="col-lg-4"><div class="z-card p-3">
       <table class="table table-sm mb-2">
-        <tr><td>Total before tax</td><td class="num">{{ inr($tax->taxable, true) }}</td></tr>
+        @php($sb = $tax->subBills)
+        <tr><td>Wages</td><td class="num">{{ inr($sb->sum('wages'), true) }}</td></tr>
+        @if($sb->sum('epf') > 0)<tr><td>Add: Employer EPF</td><td class="num">{{ inr($sb->sum('epf'), true) }}</td></tr>@endif
+        @if($sb->sum('esic') > 0)<tr><td>Add: Employer ESIC</td><td class="num">{{ inr($sb->sum('esic'), true) }}</td></tr>@endif
+        <tr><td>Add: Service charge</td><td class="num">{{ inr($sb->sum('service_charge'), true) }}</td></tr>
+        <tr class="fw-semibold"><td>Total before tax</td><td class="num">{{ inr($tax->taxable, true) }}</td></tr>
         @if((float) $tax->igst > 0)<tr><td>Add: IGST</td><td class="num">{{ inr($tax->igst, true) }}</td></tr>
         @else<tr><td>Add: CGST</td><td class="num">{{ inr($tax->cgst, true) }}</td></tr><tr><td>Add: SGST</td><td class="num">{{ inr($tax->sgst, true) }}</td></tr>@endif
         <tr><td>Total after tax</td><td class="num">{{ inr($tax->total, true) }}</td></tr>

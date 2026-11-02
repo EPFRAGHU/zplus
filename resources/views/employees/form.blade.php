@@ -88,8 +88,14 @@
         <x-field name="pan" label="PAN" :value="$employee->pan" col="col-md-4" class="mono text-uppercase" />
         <x-field name="uan" label="UAN (PF)" :value="$employee->uan" col="col-md-4" class="mono" />
         <x-field name="esic_ip" label="ESIC IP number" :value="$employee->esic_ip" col="col-md-4" class="mono" />
-        <div class="col-md-4 d-flex align-items-end"><div class="form-check"><input class="form-check-input" type="checkbox" name="pf_applicable" value="1" id="pf" @checked(old('pf_applicable', $employee->pf_applicable))><label class="form-check-label" for="pf">PF applicable</label></div></div>
-        <div class="col-md-4 d-flex align-items-end"><div class="form-check"><input class="form-check-input" type="checkbox" name="esic_applicable" value="1" id="esi" @checked(old('esic_applicable', $employee->esic_applicable))><label class="form-check-label" for="esi">ESIC applicable</label></div></div>
+        <div class="col-12"><div class="border rounded p-3 bg-light">
+          <div class="fw-semibold mb-2">EPF and ESIC</div>
+          <div class="form-check form-switch"><input class="form-check-input" type="checkbox" role="switch" name="pf_applicable" value="1" id="pf" @checked(old('pf_applicable', $employee->pf_applicable))>
+            <label class="form-check-label" for="pf"><b>EPF</b>: deduct 12% from salary and add the employer's EPF to the bill (worked out on wages up to ₹15,000)</label></div>
+          <div class="form-check form-switch mt-1"><input class="form-check-input" type="checkbox" role="switch" name="esic_applicable" value="1" id="esi" @checked(old('esic_applicable', $employee->esic_applicable))>
+            <label class="form-check-label" for="esi"><b>ESIC</b>: deduct 0.75% from salary and add the employer's ESIC to the bill (normally for wages up to ₹21,000)</label></div>
+          <div class="form-text">Bills and salary sheets made after a change use the new setting; bills already made keep their figures.</div>
+        </div></div>
       </div></div>
     </div>
     <div class="d-flex gap-2 justify-content-end p-3 border-top">

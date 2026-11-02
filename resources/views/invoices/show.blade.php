@@ -29,10 +29,8 @@
       <div class="z-card p-3">
         <table class="table table-sm mb-2">
           <tr><td>Wages</td><td class="num">{{ inr($invoice->wages, true) }}</td></tr>
-          @if($invoice->billing_type === 'daily')
-            <tr><td>Employer EPF</td><td class="num">{{ inr($invoice->epf, true) }}</td></tr>
-            <tr><td>Employer ESIC</td><td class="num">{{ inr($invoice->esic, true) }}</td></tr>
-          @endif
+          @if((float) $invoice->epf > 0)<tr><td>Employer EPF</td><td class="num">{{ inr($invoice->epf, true) }}</td></tr>@endif
+          @if((float) $invoice->esic > 0)<tr><td>Employer ESIC</td><td class="num">{{ inr($invoice->esic, true) }}</td></tr>@endif
           <tr><td>Service charge @ {{ (float) $invoice->service_charge_percent }}%</td><td class="num">{{ inr($invoice->service_charge, true) }}</td></tr>
           <tr class="fw-semibold"><td>Total before GST</td><td class="num">{{ inr($invoice->taxable, true) }}</td></tr>
           @if((float) $invoice->igst > 0)<tr><td>IGST @ {{ (float) $invoice->gst_percent }}%</td><td class="num">{{ inr($invoice->igst, true) }}</td></tr>

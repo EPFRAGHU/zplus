@@ -7,34 +7,31 @@ use PHPUnit\Framework\TestCase;
 
 class SalaryDeductionsTest extends TestCase
 {
-    private function d(int $earnedRupees, int $wageRupees, bool $pf = false): array
+    private function d(int $earnedRupees, bool $epf, bool $esic): array
     {
-        return array_map(fn ($p) => $p / 100, (new SalaryPayoutSheet)->deductions($earnedRupees * 100, $wageRupees * 100, $pf));
+        return array_map(fn ($p) => $p / 100, (new SalaryPayoutSheet)->deductions($earnedRupees * 100, $epf, $esic));
     }
 
-    public function test_low_wage_gets_both_deductions(): void
+    public function test_both_switched_on(): void
     {
-        // 12,000: EPF 1,440; ESIC 0.75% = 90
-        $this->assertSame(['epf' => 1440, 'esic' => 90, 'net' => 10470], $this->d(12000, 12000));
+        $this->assertSame(['epf' => 1440, 'esic' => 90, 'net' => 10470], $this->d(12000, true, true));
     }
 
-    public function test_epf_is_capped_at_the_15000_ceiling_and_esic_stops_above_21000(): void
+    public function test_nothing_is_deducted_when_switched_off(): void
     {
-        // 31,000 with PF applicable: EPF on 15,000 = 1,800; no ESIC
-        $this->assertSame(['epf' => 1800, 'esic' => 0, 'net' => 29200], $this->d(31000, 31000, pf: true));
-        // above 15,000 and not marked PF applicable: no EPF
-        $this->assertSame(['epf' => 0, 'esic' => 0, 'net' => 31000], $this->d(31000, 31000));
+        $this->assertSame(['epf' => 0, 'esic' => 0, 'net' => 12000], $this->d(12000, false, false));
+        $this->assertSame(['epf' => 1440, 'esic' => 0, 'net' => 10560], $this->d(12000, true, false));
+        $this->assertSame(['epf' => 0, 'esic' => 90, 'net' => 11910], $this->d(12000, false, true));
     }
 
-    public function test_esic_applies_up_to_21000_and_rounds_up(): void
+    public function test_epf_is_worked_out_on_wages_up_to_15000(): void
     {
-        // 18,333 earned, PF applicable: EPF 1,800; ESIC 137.4975 -> 138
-        $this->assertSame(['epf' => 1800, 'esic' => 138, 'net' => 16395], $this->d(18333, 21000, pf: true));
+        $this->assertSame(['epf' => 1800, 'esic' => 0, 'net' => 29200], $this->d(31000, true, false));
     }
 
-    public function test_part_month_uses_earned_wages(): void
+    public function test_esic_rounds_up_to_the_next_rupee(): void
     {
-        // rate 14,000, earned 7,000 for half a month: EPF 840; ESIC 52.5 -> 53
-        $this->assertSame(['epf' => 840, 'esic' => 53, 'net' => 6107], $this->d(7000, 14000));
+        // 7,000 x 0.75% = 52.50 -> 53; EPF 840
+        $this->assertSame(['epf' => 840, 'esic' => 53, 'net' => 6107], $this->d(7000, true, true));
     }
 }

@@ -38,6 +38,7 @@ Route::middleware('auth')->group(function () {
     Route::delete('posts/{post}', [PostController::class, 'destroy'])->name('posts.destroy');
 
     Route::resource('employees', EmployeeController::class)->except(['destroy']);
+    Route::patch('employees/{employee}/statutory', [EmployeeController::class, 'statutory'])->name('employees.statutory');
     Route::get('employees/{employee}/appointment-letter', [EmployeeController::class, 'appointmentLetter'])->name('employees.appointment-letter');
     Route::post('employees/{employee}/documents', [EmployeeDocumentController::class, 'store'])->name('employees.documents.store');
     Route::get('documents/{document}', [EmployeeDocumentController::class, 'show'])->name('documents.show');

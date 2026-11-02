@@ -22,7 +22,7 @@
     @php($e = $l['employee'])
     <tr><td class="c">{{ $i + 1 }}</td><td>{{ $e->name }}</td><td>{{ $e->post?->designation }}</td>
       <td class="c">{{ rtrim(rtrim($l['paid_days'], '0'), '.') }}</td><td class="n">{{ number_format((float) $l['rate'], 2) }}</td>
-      <td class="n">{{ $rs($l['earned']) }}</td><td class="n">{{ $rs($l['epf']) }}</td><td class="n">{{ $rs($l['esic']) }}</td><td class="n b">{{ $rs($l['net']) }}</td>
+      <td class="n">{{ $rs($l['earned']) }}</td><td class="n">{{ $e->pf_applicable ? $rs($l['epf']) : 'Off' }}</td><td class="n">{{ $e->esic_applicable ? $rs($l['esic']) : 'Off' }}</td><td class="n b">{{ $rs($l['net']) }}</td>
       <td>{{ $e->account_holder ?? $e->name }}</td><td>{{ $e->bank_name ?: '—' }}</td><td class="mono">{{ $e->ifsc ?: '—' }}</td><td class="mono">{{ $e->account_number ?: '—' }}</td>
       <td style="font-size:8.5px">{{ $e->uan ?: '—' }}<br>{{ $e->esic_ip ?: '—' }}</td></tr>
   @endforeach
@@ -32,7 +32,7 @@
 </table>
 <p style="font-size:10px;margin-top:6px"><b>Total net pay to transfer: ₹{{ $rs($sum('net')) }}</b> ({{ \App\Support\AmountInWords::rupees(number_format($sum('net') / 100, 2, '.', '')) }})</p>
 <p style="font-size:8.5px;color:#444">Earned = rate × paid days ÷ {{ $sheet->month->daysInMonth }} days (rate × paid days for daily posts), rounded to whole rupees, as on the bill.
-  EPF 12% on earned wages up to ₹15,000; deducted when PF applies to the employee or the monthly wage is ₹15,000 or less.
-  ESIC 0.75% on earned wages when the monthly wage is ₹21,000 or less, rounded up to the next rupee. Employer contributions are not shown here.</p>
+  EPF 12% on earned wages up to ₹15,000 and ESIC 0.75% on earned wages (rounded up), deducted only for staff with EPF / ESIC switched on.
+  The employer's EPF and ESIC are charged to the client on the bill.</p>
 <table class="sign"><tr><td style="vertical-align:bottom">Prepared by: ____________</td><td class="r">For {{ $agency->name }}<br><br><br>Authorised signatory</td></tr></table>
 </body></html>

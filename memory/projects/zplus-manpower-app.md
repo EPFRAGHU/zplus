@@ -1,7 +1,7 @@
 # ZPlus Manpower app
 
 **Repo:** epfraghu/zplus, branch `claude/manpower-app-foundation`
-**Status:** Active. 91 tests passing (Nov 2026).
+**Status:** Active. 96 tests passing (Nov 2026).
 
 ## Stack
 Laravel 13 / PHP 8.3, SQLite locally, MySQL in production. Bootstrap 5.3.3 + bootstrap-icons bundled in `public/vendor` (no CDN).
@@ -16,7 +16,8 @@ Run locally: `php artisan serve` → http://127.0.0.1:8000 (zplus.test did not w
 - Sub-bills (`GemBillCalculator`, `InvoiceGenerator`), covering letter, appointment letter
 - Tax invoices (`TaxInvoiceBuilder`) combining a client's sub-bills
 - Agency blocks + light-blue client blocks on every list and the dashboard
-- Salary payout (bank transfer) sheet per locked month (`SalaryPayoutSheet`): employee EPF 12% (on wages up to ₹15,000; if PF applicable or wage ≤ ₹15,000) and ESIC 0.75% (wage ≤ ₹21,000, rounded up) – confirmed by user "as per rule"
+- Salary payout (bank transfer) sheet per locked month (`SalaryPayoutSheet`): employee EPF 12% (wages capped at ₹15,000) and ESIC 0.75% (rounded up)
+- EPF / ESIC switched on/off per employee by the user (switches on the Employees list and form). Drives both the salary deduction and the employer EPF 13% / ESIC 3.25% on sub-bills, tax invoice and bill screens; stored per bill line. Daily-contract staff were switched on by migration to keep old behaviour
 - Letterheads: Z Plus classic; SWACHHA banner on sub-bill, covering letter, tax invoice, appointment letter (fits one page), attendance certificate
 
 ## Key files
@@ -27,6 +28,7 @@ Run locally: `php artisan serve` → http://127.0.0.1:8000 (zplus.test did not w
 - `database/seeders/DemoSeeder.php` (October MPH example: ₹86,000 wages → ₹1,05,387.00)
 
 ## Open questions for the user
+- Employer EPF on bills uses the ₹15,000 wage ceiling (same as the deduction) – confirm with their GeM practice
 - Service charge: sub-bill sheet formula uses 3.26% but words and tax invoice use 3.85% (app uses 3.85%)
 - Which agency bills MPH (sheet header says SWACHHA but carries Z Plus GSTIN/signature)
 - Correct Z Plus mobile numbers

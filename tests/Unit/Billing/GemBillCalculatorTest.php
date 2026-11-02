@@ -42,10 +42,10 @@ class GemBillCalculatorTest extends TestCase
         $this->assertSame('29000.00', $bill->lines[0]->amount);
     }
 
-    public function test_daily_rate_contract_adds_epf_and_esic_before_service_charge(): void
+    public function test_epf_and_esic_are_added_before_service_charge_for_staff_with_them_switched_on(): void
     {
         $calc = new GemBillCalculator(serviceChargePercent: '3.85', gstPercent: '18', epfPercent: '13', esicPercent: '3.25');
-        $bill = $calc->daily([BillLine::daily('MTS', rate: '556', paidDays: '26')]);
+        $bill = $calc->daily([BillLine::daily('MTS', rate: '556', paidDays: '26', epf: true, esic: true)]);
 
         $this->assertSame('14456.00', $bill->wages);          // 556 x 26
         $this->assertSame('1879.28', $bill->epf);             // 13%
@@ -74,5 +74,28 @@ class GemBillCalculatorTest extends TestCase
 
         $this->assertSame('29967.00', $bill->lines[0]->amount);
         $this->assertSame('84967.00', $bill->wages);
+    }
+
+    public function test_staff_with_epf_and_esic_switched_off_add_nothing(): void
+    {
+        $calc = new GemBillCalculator(serviceChargePercent: '3.85', gstPercent: '18', epfPercent: '13', esicPercent: '3.25');
+        $bill = $calc->daily([BillLine::daily('MTS', rate: '556', paidDays: '26')]);
+        $this->assertSame('0.00', $bill->epf);
+        $this->assertSame('0.00', $bill->esic);
+        $this->assertSame('14456.00', $bill->subtotal);
+    }
+
+    public function test_monthly_contract_adds_epf_on_wages_up_to_15000_and_esic_only_for_those_switched_on(): void
+    {
+        $calc = new GemBillCalculator(serviceChargePercent: '3.85', gstPercent: '18', epfPercent: '13', esicPercent: '3.25');
+        $bill = $calc->monthly([
+            BillLine::monthly('APM', rate: '55000', daysInMonth: 31, paidDays: '31', epf: true),             // EPF on 15,000 = 1,950
+            BillLine::monthly('DEO', rate: '18000', daysInMonth: 31, paidDays: '31', epf: true, esic: true), // EPF 1,950; ESIC 585
+            BillLine::monthly('APA', rate: '31000', daysInMonth: 31, paidDays: '31'),                        // neither
+        ]);
+        $this->assertSame('3900.00', $bill->epf);
+        $this->assertSame('585.00', $bill->esic);
+        $this->assertSame(['1950.00', '1950.00', '0.00'], array_map(fn ($l) => $l->epfAmount, $bill->lines));
+        $this->assertSame('108485.00', $bill->subtotal);   // 104,000 + 3,900 + 585
     }
 }

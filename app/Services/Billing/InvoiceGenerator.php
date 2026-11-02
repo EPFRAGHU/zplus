@@ -30,8 +30,8 @@ final class InvoiceGenerator
             $e = $entry->employee;
             $paid = number_format((float) $entry->paid_days, 1, '.', '');
             $lines[] = $contract->isDaily()
-                ? BillLine::daily($e->name, $e->rate(), $paid, $entry)
-                : BillLine::monthly($e->name, $e->rate(), $daysInMonth, $paid, $entry);
+                ? BillLine::daily($e->name, $e->rate(), $paid, $entry, (bool) $e->pf_applicable, (bool) $e->esic_applicable)
+                : BillLine::monthly($e->name, $e->rate(), $daysInMonth, $paid, $entry, (bool) $e->pf_applicable, (bool) $e->esic_applicable);
         }
         $calc = $contract->calculator();
         $totals = $contract->isDaily() ? $calc->daily($lines) : $calc->monthly($lines);
@@ -70,6 +70,8 @@ final class InvoiceGenerator
                     'days_in_month' => $line->rateType === 'monthly' ? $daysInMonth : null,
                     'paid_days' => $line->paidDays,
                     'amount' => $line->amount,
+                    'epf' => $line->epfAmount,
+                    'esic' => $line->esicAmount,
                 ]);
             }
 

@@ -16,7 +16,7 @@
     <div class="col-md-2 d-flex gap-2"><button class="btn btn-outline-secondary flex-fill">Show</button>@if(request()->query())<a class="btn btn-link px-1" href="{{ route('employees.index') }}">Clear</a>@endif</div>
   </form>
   <div class="z-card"><div class="table-responsive"><table class="table table-hover">
-    <thead><tr><th>Employee</th><th>Agency</th><th>Client</th><th>GeM contract</th><th>Project</th><th>Post</th><th class="num">Rate</th><th>Bank</th><th>Status</th></tr></thead>
+    <thead><tr><th>Employee</th><th>Agency</th><th>Client</th><th>GeM contract</th><th>Project</th><th>Post</th><th class="num">Rate</th><th>EPF / ESIC</th><th>Bank</th><th>Status</th></tr></thead>
     <tbody>
     @php($block = false)
     @forelse ($employees as $e)
@@ -24,7 +24,7 @@
         @php($clientBlock = false)
         @php($starts = $block === false && $carriedAgency !== false && $carriedAgency === $e->agency_id)
         @php($block = $e->agency_id)
-        <tr class="table-secondary"><td colspan="9" class="py-2">
+        <tr class="table-secondary"><td colspan="10" class="py-2">
           @if($e->agency)
             <b class="fs-6">{{ $e->agency->name }}</b> <span class="badge text-bg-dark">{{ $e->agency->code }}</span>
           @else
@@ -36,7 +36,7 @@
       @if($clientBlock === false || $clientBlock !== $e->client_id)
         @php($clientBlock = $e->client_id)
         @php($cc = $clientCounts[$e->agency_id.'-'.$e->client_id] ?? null)
-        <x-client-block :client="$e->client" colspan="9" :meta="$cc ? $cc->total.' '.\Illuminate\Support\Str::plural('employee', $cc->total).' · '.$cc->placed.' placed on posts' : null" />
+        <x-client-block :client="$e->client" colspan="10" :meta="$cc ? $cc->total.' '.\Illuminate\Support\Str::plural('employee', $cc->total).' · '.$cc->placed.' placed on posts' : null" />
       @endif
       <tr>
         <td><a class="fw-semibold text-decoration-none" href="{{ route('employees.show', $e) }}">{{ $e->name }}</a><div class="mono text-secondary">{{ $e->emp_code }}</div></td>
@@ -54,12 +54,28 @@
         </td>
         <td>{{ $e->post?->designation ?? '—' }}</td>
         <td class="num">{{ inr($e->rate()) }}</td>
+        <td class="text-nowrap">
+          @can('manage-masters')
+            <form method="post" action="{{ route('employees.statutory', $e) }}" class="d-inline-flex gap-2">@csrf @method('PATCH')
+              @foreach(['pf_applicable' => 'EPF', 'esic_applicable' => 'ESIC'] as $field => $label)
+                <div class="form-check form-switch mb-0" title="{{ $label }} {{ $e->{$field} ? 'on' : 'off' }}: click to switch {{ $e->{$field} ? 'off' : 'on' }}">
+                  <input class="form-check-input" type="checkbox" role="switch" id="s-{{ $field }}-{{ $e->id }}" name="{{ $field }}" value="1" @checked($e->{$field}) onchange="this.form.submit()">
+                  <label class="form-check-label small" for="s-{{ $field }}-{{ $e->id }}">{{ $label }}</label>
+                </div>
+              @endforeach
+              <noscript><button class="btn btn-sm btn-outline-secondary">Save</button></noscript>
+            </form>
+          @else
+            <span class="badge text-bg-{{ $e->pf_applicable ? 'success' : 'light border' }}">EPF {{ $e->pf_applicable ? 'on' : 'off' }}</span>
+            <span class="badge text-bg-{{ $e->esic_applicable ? 'success' : 'light border' }}">ESIC {{ $e->esic_applicable ? 'on' : 'off' }}</span>
+          @endcan
+        </td>
         <td>@if($e->account_last4 && $e->ifsc)<span class="mono">{{ $e->maskedAccount() }}</span> <span class="badge text-bg-{{ $e->bank_verified_at ? 'success' : 'light border' }}">{{ $e->bank_verified_at ? 'Verified' : 'Not verified' }}</span>
             @else<span class="badge text-bg-danger">{{ $e->account_last4 ? 'IFSC missing' : 'No account' }}</span>@endif</td>
         <td><x-status :value="$e->status" /></td>
       </tr>
     @empty
-      <tr><td colspan="9" class="text-center text-secondary py-4">No employees match these filters.</td></tr>
+      <tr><td colspan="10" class="text-center text-secondary py-4">No employees match these filters.</td></tr>
     @endforelse
     </tbody></table></div></div>
   <div class="mt-3">{{ $employees->links() }}</div>

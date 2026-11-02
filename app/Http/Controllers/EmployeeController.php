@@ -119,6 +119,15 @@ class EmployeeController extends Controller
         ])->setPaper('a4')->stream("appointment-{$employee->emp_code}.pdf");
     }
 
+    /** Switch EPF and ESIC on or off from the employees list. */
+    public function statutory(Request $request, Employee $employee): RedirectResponse
+    {
+        Gate::authorize('manage-masters');
+        $employee->update(['pf_applicable' => $request->boolean('pf_applicable'), 'esic_applicable' => $request->boolean('esic_applicable')]);
+
+        return back()->with('status', "{$employee->name}: EPF ".($employee->pf_applicable ? 'on' : 'off').', ESIC '.($employee->esic_applicable ? 'on' : 'off').'.');
+    }
+
     private function formData(): array
     {
         return [

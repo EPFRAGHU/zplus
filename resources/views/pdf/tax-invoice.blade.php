@@ -40,6 +40,11 @@
   <tr>
     <td style="width:55%"><b>Total invoice amount in words</b><br>({{ $tax->amountInWords() }})</td>
     <td style="padding:0"><table style="width:100%">
+      @php($sb = $tax->subBills)
+      <tr><td style="border:0">Wages</td><td class="r" style="border:0">{{ $rs($sb->sum('wages')) }}</td></tr>
+      @if($sb->sum('epf') > 0)<tr><td style="border:0">Add: Employer EPF</td><td class="r" style="border:0">{{ $rs($sb->sum('epf')) }}</td></tr>@endif
+      @if($sb->sum('esic') > 0)<tr><td style="border:0">Add: Employer ESIC</td><td class="r" style="border:0">{{ $rs($sb->sum('esic')) }}</td></tr>@endif
+      <tr><td style="border:0">Add: Service charge</td><td class="r" style="border:0">{{ $rs($sb->sum('service_charge')) }}</td></tr>
       <tr><td style="border:0">Total Amount before Tax</td><td class="r" style="border:0">{{ $rs($tax->taxable) }}</td></tr>
       @if($inter)<tr><td style="border:0">Add: IGST</td><td class="r" style="border:0">{{ $rs($tax->igst) }}</td></tr>
       @else<tr><td style="border:0">Add: CGST</td><td class="r" style="border:0">{{ $rs($tax->cgst) }}</td></tr><tr><td style="border:0">Add: SGST</td><td class="r" style="border:0">{{ $rs($tax->sgst) }}</td></tr>@endif

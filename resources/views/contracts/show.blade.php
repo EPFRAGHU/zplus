@@ -8,7 +8,7 @@
       <div class="col-md-3"><div class="text-secondary">Status</div><x-status :value="$contract->status" /></div>
       <div class="col-md-3"><div class="text-secondary">Billing</div><div>{{ $contract->isDaily() ? 'Daily rate × paid days' : 'Monthly rate × paid days ÷ days in month' }}</div></div>
       <div class="col-md-9"><div class="text-secondary">Bill calculation</div>
-        <div>@if($contract->isDaily())Wages + EPF {{ (float) $contract->epf_percent }}% + ESIC {{ (float) $contract->esic_percent }}%, then @endif
+        <div>Wages + employer EPF {{ (float) $contract->epf_percent }}% (on wages up to ₹15,000) and ESIC {{ (float) $contract->esic_percent }}% for staff with them switched on, then
           service charge {{ (float) $contract->service_charge_percent }}% on the total before GST, then GST {{ (float) $contract->gst_percent }}% {{ $contract->inter_state ? '(IGST)' : '(CGST + SGST)' }}</div></div>
     </div>
   </div>
