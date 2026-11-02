@@ -44,3 +44,15 @@ P present, CL casual leave, EL earned leave, RH restricted holiday, CH compensat
 | Apponiment_Letter.docx | SWACHHA appointment letter; source of SWACHHA letterhead |
 | REQUEST_LETTER_FOR_EXTENSION.pdf | Source of Z Plus letterhead |
 | attendance PDF | PI attendance certificate format |
+
+## Deployment and app terms
+| Term | Meaning |
+|------|---------|
+| Coolify | Self-hosted deploy panel on the Hostinger VPS (port 8000); deploys the app from GitHub |
+| Traefik / coolify-proxy | Coolify's proxy holding ports 80/443, issues Let's Encrypt certificates |
+| Redeploy | Coolify button that rebuilds and restarts the app from the latest code |
+| zplus.epf-dashboard.online | Live address of the app |
+| annexure | Owner's other app on the same VPS (EPFO Annexure-A extractor, FastAPI) |
+| Release notes | `/releases` page; version history in `config/releases.php` |
+| Salary payout sheet | Bank transfer sheet per locked month (net pay after EPF/ESIC) |
+| EPF / ESIC switch | Per-employee on/off controlling deductions and employer contributions on bills |
