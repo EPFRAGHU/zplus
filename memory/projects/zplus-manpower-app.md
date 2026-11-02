@@ -6,6 +6,7 @@
 ## Stack
 Laravel 13 / PHP 8.3, SQLite locally, MySQL in production. Bootstrap 5.3.3 + bootstrap-icons bundled in `public/vendor` (no CDN).
 barryvdh/laravel-dompdf for PDFs, phpoffice/phpspreadsheet for import. Models use `#[Fillable]` attributes.
+Deploy: docs/DEPLOY_VPS.md (Ubuntu, nginx, PHP 8.3-FPM, MySQL, certbot, subdomain), `deploy/update.sh` for updates. User's laptop copy: C:\Users\Dell\zplus.
 Run locally: `php artisan serve` → http://127.0.0.1:8000 (zplus.test did not work for the user).
 
 ## Done

@@ -54,6 +54,9 @@ Open http://127.0.0.1:8000 and sign in.
 
 ## Deploy to a server
 
+Step-by-step guide for an Ubuntu VPS with a subdomain and HTTPS: [docs/DEPLOY_VPS.md](docs/DEPLOY_VPS.md). Summary:
+
+
 1. Create a MySQL 8 database. In `.env` set `DB_CONNECTION=mysql` with the host, database, user and password, and set `APP_ENV=production`, `APP_DEBUG=false` and `APP_URL`.
 2. `composer install --no-dev --optimize-autoloader`
 3. `php artisan key:generate` (first time only). **Keep `APP_KEY` safe and never change it**: the encrypted bank and Aadhaar numbers cannot be read without it.
