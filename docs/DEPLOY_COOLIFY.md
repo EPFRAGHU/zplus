@@ -28,8 +28,9 @@ epfraghu/zplus → Settings → Deploy keys, read-only. Then pick "Private Repos
 2. Choose **Private Repository (with GitHub App)** and select **epfraghu/zplus**.
 3. Branch: **`claude/manpower-app-foundation`**.
 4. Build Pack: **Docker Compose**. Docker Compose location: **`/docker-compose.yaml`**. Continue.
-5. Coolify shows two services, **app** and **db**. On **app**, set **Domains** to
-   `https://zplus.epf-dashboard.online`. Leave **db** without a domain (it stays private).
+5. Coolify shows two services, **app** and **db**. Open **Domains → Add Domain**: Service **app**, Protocol **https**,
+   Domain **zplus.epf-dashboard.online**, Port **80**, Path empty. Leave **db** without a domain (it stays private).
+   Do **not** keep a `www.zplus…` domain unless it has its own DNS record: without one, Let's Encrypt fails for it.
 
 ## 4. Environment variables
 
@@ -80,5 +81,7 @@ Data lives in two Docker volumes: the MySQL data and `storage/app` (signed scans
 | Deploy fails at "apt-get" or "composer" | Redeploy once (temporary network issue); otherwise copy the build log here |
 | App container keeps restarting, log says APP_KEY is empty | Set `APP_KEY` in Environment Variables and redeploy |
 | "Database not reachable" | Check the db container is running; don't change the `SERVICE_PASSWORD_*` values after the first deploy |
+| Browser warns "self-signed certificate" | No domain set yet, or a domain without DNS (e.g. `www.zplus…`) is listed. Check `docker logs coolify-proxy --since 15m 2>&1 \| grep -i acme` |
+| "Bad Gateway" | The domain's port must be **80** |
 | Site shows "no available server" or 404 from Traefik | The **app** service domain isn't set to `https://zplus.epf-dashboard.online`, or DNS isn't pointing at the VPS yet |
 | 500 error | Coolify → app → **Logs** |
