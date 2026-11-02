@@ -23,7 +23,12 @@ body{font-size:.9rem}
 .z-nav a{display:flex;gap:10px;align-items:center;padding:7px 10px;border-radius:8px;color:var(--z-rail-fg);text-decoration:none;font-weight:500}
 .z-nav a:hover{background:var(--z-rail-active);color:#fff}
 .z-nav a.active{background:var(--z-rail-active);color:#fff;box-shadow:inset 3px 0 0 var(--z-accent)}
-.z-user{margin-top:auto;font-size:.78rem;padding:10px;border-radius:8px;background:var(--z-rail-active)}
+.z-ver{margin-top:auto;display:block;text-decoration:none;color:var(--z-rail-fg);font-size:.72rem;padding:9px 10px;border:1px solid #3a3136;border-radius:8px;line-height:1.45}
+.z-ver:hover{border-color:#5a4e54;color:#fff}
+.z-ver .v{display:flex;align-items:center;justify-content:space-between;gap:6px;color:#fff;font-weight:600;font-size:.78rem}
+.z-ver .v span.badge{font-family:"JetBrains Mono",ui-monospace,monospace;font-weight:500;background:var(--z-accent);font-size:.68rem}
+.z-ver .d{color:#8d8288}
+.z-user{font-size:.78rem;padding:10px;border-radius:8px;background:var(--z-rail-active)}
 .z-main{min-width:0;padding:22px clamp(16px,2.5vw,28px) 48px}
 .z-card{background:#fff;border:1px solid #e7e2e5;border-radius:10px}
 .z-card>.z-card-h{display:flex;gap:10px;align-items:center;flex-wrap:wrap;padding:12px 16px;border-bottom:1px solid #e7e2e5}
@@ -63,6 +68,12 @@ body{font-size:.9rem}
       <a class="{{ $is('import.*') }}" href="{{ route('import.create') }}"><i class="bi bi-file-earmark-arrow-up"></i>Excel Import</a>
       @endcan
     </nav>
+    @php($rel = \App\Support\Release::current())
+    <a class="z-ver" href="{{ route('releases') }}" title="Release notes">
+      <span class="v">Version <span class="badge">v{{ $rel['version'] }}</span></span>
+      <span class="d d-block">Released {{ $rel['date']->format('d M Y') }}</span>
+      <span class="d d-block">Since {{ \App\Support\Release::started()->format('d M Y') }} · <span class="text-decoration-underline">What's new</span></span>
+    </a>
     <div class="z-user">
       <div class="text-white fw-semibold">{{ auth()->user()->name }}</div>
       <div>{{ \App\Models\User::ROLES[auth()->user()->role] ?? auth()->user()->role }}</div>

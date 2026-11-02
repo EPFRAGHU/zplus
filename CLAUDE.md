@@ -43,5 +43,6 @@ Owner/operator of the manpower business behind **M/S Z Plus Surakhya Seva** and 
 - Money is integer paise; each person's amount rounds to whole rupees
 - Run `php artisan test` before committing; render PDFs and look at them when changing PDF views
 - After pushing, tell the user: `git pull`, `php artisan migrate`, `php artisan serve`
+- **Every deployed change gets a new version**: add an entry at the top of `config/releases.php` (MAJOR milestone / MINOR feature / PATCH fix, with date and notes). It shows in the sidebar and on /releases
 - No pull request unless asked
 - Production: Hostinger VPS with Coolify (Docker Compose), https://zplus.epf-dashboard.online – see docs/DEPLOY_COOLIFY.md

@@ -16,4 +16,5 @@
   <div class="form-check mb-3"><input class="form-check-input" type="checkbox" name="remember" id="remember"><label class="form-check-label small" for="remember">Keep me signed in</label></div>
   <button class="btn btn-primary w-100">Sign in</button>
 </form>
+<div style="position:fixed;bottom:14px;left:0;right:0;text-align:center;font-size:.72rem;color:#8d8288">ZPlus Manpower v{{ \App\Support\Release::version() }} · {{ \App\Support\Release::current()['date']->format('d M Y') }}</div>
 </body></html>

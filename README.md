@@ -35,6 +35,10 @@ All money is calculated in whole paise, never in floating point. The October 202
 | Accounts | Masters, bills, approve bills, see bank details |
 | Supervisor | Attendance, and view everything else |
 
+## Versions
+
+The version number and release date show in the sidebar; **Release notes** (`/releases`) lists every version since 1 November 2026. History lives in `config/releases.php` (MAJOR.MINOR.PATCH).
+
 ## Run it on your computer
 
 Needs PHP 8.3+ with the `sqlite3`, `mbstring`, `gd`, `zip` and `intl` extensions, and Composer.
