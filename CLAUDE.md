@@ -44,3 +44,4 @@ Owner/operator of the manpower business behind **M/S Z Plus Surakhya Seva** and 
 - Run `php artisan test` before committing; render PDFs and look at them when changing PDF views
 - After pushing, tell the user: `git pull`, `php artisan migrate`, `php artisan serve`
 - No pull request unless asked
+- Production: Hostinger VPS with Coolify (Docker Compose), https://zplus.epf-dashboard.online – see docs/DEPLOY_COOLIFY.md

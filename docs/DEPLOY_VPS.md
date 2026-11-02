@@ -1,5 +1,7 @@
 # Running ZPlus Manpower on a VPS with a subdomain
 
+> **Your Hostinger VPS runs Coolify. Use [DEPLOY_COOLIFY.md](DEPLOY_COOLIFY.md) instead.** This guide is for a plain server without Coolify or Docker.
+
 Written for **Ubuntu 22.04 or 24.04** with root or sudo access. Replace these everywhere:
 
 | Placeholder | Example |
