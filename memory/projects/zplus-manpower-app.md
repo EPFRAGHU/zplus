@@ -1,7 +1,7 @@
 # ZPlus Manpower app
 
 **Repo:** epfraghu/zplus, branch `claude/manpower-app-foundation`
-**Status:** Live. Version **1.1.1** (02 Nov 2026, 10:15 AM IST). 99 tests passing. Project started **01 Nov 2026, 04:01 PM IST**.
+**Status:** Live. Version **1.2.0** (02 Nov 2026, 11:45 AM IST). 107 tests passing. Project started **01 Nov 2026, 04:01 PM IST**.
 **Live URL:** https://zplus.epf-dashboard.online (admin: the owner's Gmail; password was shown in chat once, owner told to change it via tinker)
 
 ## Stack
@@ -45,6 +45,7 @@ Size (non-blank lines): ~6,000 app code (PHP 3,010, Blade 2,004, migrations 704)
 - EPF / ESIC switched on/off per employee by the user (switches on the Employees list and in the form's KYC tab; `PATCH employees/{id}/statutory`). Drives the salary deduction and the employer EPF 13% (wages capped ₹15,000) / ESIC 3.25% per person on sub-bills, tax invoices and bill screens; stored per bill line (`invoice_lines.epf/esic`). Daily-contract staff switched on by migration to keep old behaviour. `App\Support\Statutory` holds the rules.
 - Letterheads: Z Plus classic (with footer); SWACHHA banner on sub-bill, covering letter, tax invoice, appointment letter (fits one page), attendance certificate, salary payout sheet
 - Version display and release notes
+- **Data Upload** (`/data-upload`, Admin only, `App\Services\MasterImport`): one Excel template per master (agencies → clients → contracts → projects → posts → employees), built live with PhpSpreadsheet (Instructions sheet, heading comments, hidden Lists sheet for dropdowns, text format for numbers with leading zeros). Upload → check (New/Update/No change/Error) → Save. Matching keys: agency code; agency+client code; contract no.; contract+project code; contract+project+designation; employee code (or name+mobile). Blank cell = keep; required cells only for new records except identifying ones. Secrets (account no., Aadhaar) never exported.
 
 ## Key files
 - `app/Services/Billing/{GemBillCalculator,InvoiceGenerator,TaxInvoiceBuilder}.php`, `app/Services/Payroll/SalaryPayoutSheet.php`

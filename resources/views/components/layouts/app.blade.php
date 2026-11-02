@@ -65,7 +65,8 @@ body{font-size:.9rem}
       <a class="{{ $is('tax-invoices.*') }}" href="{{ route('tax-invoices.index') }}"><i class="bi bi-file-earmark-ruled"></i>Tax Invoices</a>
       @can('import')
       <div class="z-label">Setup</div>
-      <a class="{{ $is('import.*') }}" href="{{ route('import.create') }}"><i class="bi bi-file-earmark-arrow-up"></i>Excel Import</a>
+      <a class="{{ $is('master-import.*') }}" href="{{ route('master-import.index') }}"><i class="bi bi-file-earmark-spreadsheet"></i>Data Upload</a>
+      <a class="{{ $is('import.*') }}" href="{{ route('import.create') }}"><i class="bi bi-file-earmark-arrow-up"></i>GeM Workbook Import</a>
       @endcan
     </nav>
     @php($rel = \App\Support\Release::current())

@@ -74,6 +74,12 @@ Route::middleware('auth')->group(function () {
     Route::delete('tax-invoices/{taxInvoice}', [TaxInvoiceController::class, 'destroy'])->name('tax-invoices.destroy');
     Route::get('tax-invoices/{taxInvoice}/pdf', [TaxInvoiceController::class, 'pdf'])->name('tax-invoices.pdf');
 
+    // Master data from Excel templates
+    Route::get('data-upload', [\App\Http\Controllers\MasterImportController::class, 'index'])->name('master-import.index');
+    Route::get('data-upload/{type}/template', [\App\Http\Controllers\MasterImportController::class, 'template'])->name('master-import.template');
+    Route::post('data-upload/{type}/check', [\App\Http\Controllers\MasterImportController::class, 'preview'])->name('master-import.preview');
+    Route::post('data-upload/{type}/save', [\App\Http\Controllers\MasterImportController::class, 'commit'])->name('master-import.commit');
+
     // Excel import
     Route::get('import', [ImportController::class, 'create'])->name('import.create');
     Route::post('import/preview', [ImportController::class, 'preview'])->name('import.preview');

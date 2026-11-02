@@ -10,6 +10,7 @@ Built with Laravel 13 (PHP 8.3), Bootstrap 5 and MySQL (SQLite for local use).
 |---|---|
 | **Masters** | Agencies (SWACHHA, Z Plus), clients (ICMR-NIHR), GeM contracts → projects (with PI) → sanctioned posts and rates. Vacancies show per post. |
 | **Employees** | Basic, work, bank and KYC details. Bank account and Aadhaar numbers are stored encrypted and never sent back to the browser. Document uploads with expiry dates. |
+| **Data upload** | Setup → Data Upload: Excel templates for agencies, clients, GeM contracts, projects, posts and employees. Download (blank or with current data), fill, upload; every row is checked and shown as New / Update / No change / Error before saving. |
 | **Excel import** | Upload the *GEM PROJECT DETAILS* workbook. It reads the agency sheets (contracts, posts, candidates) and the PI sheets (salary, bank details), matches staff to posts, and lists problems such as missing or invalid IFSC codes, salary mismatches and names spelt differently between sheets, before saving anything. |
 | **Attendance** | One sheet per project per month with the PI codes (P, CL, EL, RH, CH, T, H, SAT, SUN, HD, A, L). Prints the *Monthly Attendance and Working Certificate* with bank details. Upload the signed scan, then lock the month. |
 | **Bills** | Made only from a locked month. Numbered `ICMR/MPH/01/2026`. PDF bill and covering letter with the amount in words. Status: Draft → Approved → Submitted → Paid. |

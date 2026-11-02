@@ -12,6 +12,12 @@ return [
     'timezone' => 'Asia/Kolkata',      // release times are Indian Standard Time
 
     'releases' => [
+        ['version' => '1.2.0', 'date' => '2026-11-02 11:45', 'title' => 'Data upload from Excel templates', 'type' => 'feature', 'notes' => [
+            'Excel templates for Agencies, Clients, GeM contracts, Projects, Posts and Employees, with instructions, help on every heading and dropdowns from the live data',
+            'Download a blank template or one filled with the data already in the app',
+            'Upload checks every row and shows New / Update / No change / Error before anything is saved; rows with errors are skipped',
+            'Records are matched by code or number and updated; blank cells keep stored values; bank account and Aadhaar numbers are never downloaded',
+        ]],
         ['version' => '1.1.1', 'date' => '2026-11-02 10:15', 'title' => 'Release times', 'type' => 'fix', 'notes' => [
             'Each release shows its date and time (IST) in the sidebar and on the Release notes page',
         ]],
