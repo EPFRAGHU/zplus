@@ -11,6 +11,7 @@ Built with Laravel 13 (PHP 8.3), Bootstrap 5 and MySQL (SQLite for local use).
 | **Masters** | Agencies (SWACHHA, Z Plus), clients (ICMR-NIHR), GeM contracts → projects (with PI) → sanctioned posts and rates. Vacancies show per post. |
 | **Employees** | Basic, work, bank and KYC details. Bank account and Aadhaar numbers are stored encrypted and never sent back to the browser. Document uploads with expiry dates. |
 | **PI portal** | Project in-charges sign in, mark and submit attendance (certificate PDF made automatically), upload the signed copy and view their sub-bills. The operator checks, corrects (recorded) and approves; approval makes the sub-bill. |
+| **Activity log** | Super Admin only: every add, edit, delete, status change, sensitive view, download and sign-in, with old → new values; filters and Excel download; entries cannot be changed. |
 | **Users** | Admin adds staff and PI logins with temporary passwords, links PIs to projects, switches accounts off, sees recent sign-ins. |
 | **Data upload** | Setup → Data Upload: Excel templates for agencies, clients, GeM contracts, projects, posts and employees. Download (blank or with current data), fill, upload; every row is checked and shown as New / Update / No change / Error before saving. |
 | **Excel import** | Upload the *GEM PROJECT DETAILS* workbook. It reads the agency sheets (contracts, posts, candidates) and the PI sheets (salary, bank details), matches staff to posts, and lists problems such as missing or invalid IFSC codes, salary mismatches and names spelt differently between sheets, before saving anything. |
@@ -34,7 +35,8 @@ All money is calculated in whole paise, never in floating point. The October 202
 
 | Role | Can |
 |---|---|
-| Admin | Everything, including users, Excel import and unlocking a locked month |
+| Super Admin | The owner's Admin account: everything, plus the Activity log. Move it with `php artisan users:super-admin email@example.com` |
+| Admin | Everything except the Activity log, including users, Excel import and unlocking a locked month |
 | Accounts | Masters, bills, approve bills, see bank details |
 | Operator | Attendance (mark, check PI submissions, approve), and view everything else |
 | PI | Only the PI portal: their own projects' attendance and sub-bills |

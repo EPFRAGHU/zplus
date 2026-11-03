@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Support\Activity\LogsActivity;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -10,6 +11,8 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 #[Fillable(['agency_id', 'name', 'short_code', 'letter_code', 'addressee', 'billing_address', 'contact_person', 'phone', 'email', 'district', 'state_code', 'gstin', 'payment_term_days', 'status'])]
 class Client extends Model
 {
+    use LogsActivity;
+
     public function agency(): BelongsTo
     {
         return $this->belongsTo(Agency::class);

@@ -42,9 +42,10 @@ class UserController extends Controller
         return redirect()->route('users.index')->with('status', "{$user->name} added. Give them the e-mail and temporary password; they must change it at first sign-in.");
     }
 
-    public function edit(User $user): View
+    public function edit(Request $request, User $user): View
     {
         Gate::authorize('manage-users');
+        $this->guardOwner($request, $user);
 
         return view('users.form', ['user' => $user->load('projects')] + $this->formData());
     }
@@ -52,6 +53,7 @@ class UserController extends Controller
     public function update(Request $request, User $user): RedirectResponse
     {
         Gate::authorize('manage-users');
+        $this->guardOwner($request, $user);
         $data = $this->validated($request, $user);
         if ($user->is($request->user()) && ($data['role'] !== 'admin' || ! $data['active'])) {
             return back()->withErrors(['role' => 'You cannot remove your own Admin role or switch off your own account.'])->withInput();
@@ -65,6 +67,12 @@ class UserController extends Controller
         $user->projects()->sync($user->isPi() ? ($data['projects'] ?? []) : []);
 
         return redirect()->route('users.index')->with('status', "{$user->name} saved.".(isset($data['must_change_password']) ? ' The new password is temporary.' : ''));
+    }
+
+    /** Only the Super Admin can change the Super Admin's own account. */
+    private function guardOwner(Request $request, User $user): void
+    {
+        abort_if($user->is_super_admin && ! $request->user()->is($user), 403, 'Only the Super Admin can change this account.');
     }
 
     private function formData(): array

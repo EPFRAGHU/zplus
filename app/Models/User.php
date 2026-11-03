@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Support\Activity\LogsActivity;
 // use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Database\Factories\UserFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
@@ -14,6 +15,8 @@ use Illuminate\Notifications\Notifiable;
 #[Hidden(['password', 'remember_token'])]
 class User extends Authenticatable
 {
+    use LogsActivity;
+
     /** @use HasFactory<UserFactory> */
     use HasFactory, Notifiable;
 
@@ -32,6 +35,7 @@ class User extends Authenticatable
             'password' => 'hashed',
             'active' => 'boolean',
             'must_change_password' => 'boolean',
+            'is_super_admin' => 'boolean',
             'last_login_at' => 'datetime',
         ];
     }
@@ -44,6 +48,12 @@ class User extends Authenticatable
     public function hasRole(string ...$roles): bool
     {
         return in_array($this->role, $roles, true);
+    }
+
+    /** The owner: the only account that can read the activity log. Set with `php artisan users:super-admin`. */
+    public function isSuperAdmin(): bool
+    {
+        return (bool) $this->is_super_admin && $this->role === 'admin';
     }
 
     public function isPi(): bool

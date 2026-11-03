@@ -23,7 +23,8 @@ class AccountController extends Controller
         ], ['current_password.current_password' => 'The current password is not correct.',
             'password.different' => 'Choose a password different from the current one.']);
         $user = $request->user();
-        $user->forceFill(['password' => $request->input('password'), 'must_change_password' => false])->save();
+        $user->forceFill(['password' => $request->input('password'), 'must_change_password' => false])->saveQuietly();   // the log entry below says it plainly
+        \App\Support\Activity\Activity::log('password', $user, [], 'Changed own password');
         $request->session()->regenerate();
 
         return redirect()->to($user->isPi() ? route('pi.home') : route('dashboard'))->with('status', 'Password changed.');

@@ -78,6 +78,9 @@ body{font-size:.9rem}
       @can('manage-users')
       <a class="{{ $is('users.*') }}" href="{{ route('users.index') }}"><i class="bi bi-person-gear"></i>Users</a>
       @endcan
+      @can('view-activity')
+      <a class="{{ $is('activity.*') }}" href="{{ route('activity.index') }}"><i class="bi bi-journal-text"></i>Activity log</a>
+      @endcan
     </nav>
     @endif
     @php($rel = \App\Support\Release::current())

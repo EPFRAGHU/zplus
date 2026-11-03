@@ -18,7 +18,10 @@ class DatabaseSeeder extends Seeder
             return;
         }
         $password = env('ADMIN_PASSWORD') ?: Str::password(14, symbols: false);
-        User::query()->create(['name' => 'Admin', 'email' => $email, 'password' => $password, 'role' => 'admin']);
+        $admin = User::query()->create(['name' => 'Admin', 'email' => $email, 'password' => $password, 'role' => 'admin']);
+        if (! User::query()->where('is_super_admin', true)->exists()) {
+            $admin->forceFill(['is_super_admin' => true])->save();   // the first admin is the owner
+        }
         $this->command?->warn("Admin created: {$email}".(env('ADMIN_PASSWORD') ? '' : " / password: {$password} (change it after signing in)"));
     }
 }

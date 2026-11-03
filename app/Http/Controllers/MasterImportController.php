@@ -83,6 +83,7 @@ class MasterImportController extends Controller
 
         $title = $this->importer->sheet($type)->title();
         $msg = "{$title}: {$result['created']} added, {$result['updated']} updated.";
+        \App\Support\Activity\Activity::log('imported', null, [], "{$msg} Skipped with errors: {$result['skipped']}.", section: 'Data upload', label: $title);
         if ($result['skipped']) {
             $msg .= " {$result['skipped']} rows with errors were skipped; fix them in the file and upload it again.";
         }

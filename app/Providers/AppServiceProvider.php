@@ -24,5 +24,6 @@ class AppServiceProvider extends ServiceProvider
         Gate::define('import', fn (User $u) => $u->hasRole('admin'));
         Gate::define('view-bank-details', fn (User $u) => $u->hasRole('admin', 'accounts'));
         Gate::define('manage-users', fn (User $u) => $u->hasRole('admin'));
+        Gate::define('view-activity', fn (User $u) => $u->isSuperAdmin());
     }
 }

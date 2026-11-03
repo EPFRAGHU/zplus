@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Support\Activity\LogsActivity;
 use Carbon\CarbonImmutable;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Casts\Attribute;
@@ -14,6 +15,8 @@ use Illuminate\Database\Eloquent\Relations\HasOne;
 // status: draft → submitted (by the PI, PDF made) → locked (approved by the agency)
 class AttendanceSheet extends Model
 {
+    use LogsActivity;
+
     /**
      * Always store the month as "Y-m-d" (first of the month). A plain date cast saves
      * "Y-m-d 00:00:00", which on SQLite no longer matches lookups by "Y-m-d".

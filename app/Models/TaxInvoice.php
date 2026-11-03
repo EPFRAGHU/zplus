@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Support\Activity\LogsActivity;
 use App\Support\AmountInWords;
 use Carbon\CarbonImmutable;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
@@ -15,6 +16,8 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
     'total', 'rounded_total', 'status', 'created_by'])]
 class TaxInvoice extends Model
 {
+    use LogsActivity;
+
     public const STATUSES = ['draft' => 'Draft', 'submitted' => 'Submitted', 'paid' => 'Paid'];
 
     protected function casts(): array

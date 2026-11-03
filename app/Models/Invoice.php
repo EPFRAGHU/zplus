@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Support\Activity\LogsActivity;
 use App\Support\AmountInWords;
 use Carbon\CarbonImmutable;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
@@ -15,6 +16,8 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
     'cgst', 'sgst', 'igst', 'total', 'rounded_total', 'status', 'created_by'])]
 class Invoice extends Model
 {
+    use LogsActivity;
+
     /**
      * Always store the month as "Y-m-d" (first of the month). A plain date cast saves
      * "Y-m-d 00:00:00", which on SQLite no longer matches lookups by "Y-m-d".

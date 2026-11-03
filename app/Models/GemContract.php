@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Support\Activity\LogsActivity;
 use App\Services\Billing\GemBillCalculator;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Model;
@@ -12,6 +13,8 @@ use Illuminate\Database\Eloquent\Relations\HasManyThrough;
 #[Fillable(['agency_id', 'client_id', 'bid_no', 'contract_no', 'contract_date', 'billing_type', 'sac_code', 'service_charge_percent', 'gst_percent', 'epf_percent', 'esic_percent', 'inter_state', 'status'])]
 class GemContract extends Model
 {
+    use LogsActivity;
+
     protected function casts(): array
     {
         return ['contract_date' => 'date', 'inter_state' => 'boolean'];

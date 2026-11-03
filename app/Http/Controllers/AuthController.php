@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\LoginEvent;
+use App\Support\Activity\Activity;
 use App\Models\User;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -27,6 +28,7 @@ class AuthController extends Controller
         if (! Auth::attempt($credentials + ['active' => true], $request->boolean('remember'))) {
             $user = User::query()->where('email', $credentials['email'])->first();
             $log($user?->id, false);
+            Activity::log('sign_in_failed', $user, [], 'E-mail tried: '.$credentials['email'], $user, 'Sign-in');
             $message = $user && ! $user->active && Hash::check($credentials['password'], $user->password)
                 ? 'This account is switched off. Contact the agency.' : 'That email and password do not match an account.';
             throw ValidationException::withMessages(['email' => $message]);
@@ -35,12 +37,14 @@ class AuthController extends Controller
         $user = $request->user();
         $user->forceFill(['last_login_at' => now()])->save();
         $log($user->id, true);
+        Activity::log('signed_in', null, [], null, $user, 'Sign-in');
 
         return $user->isPi() ? redirect()->route('pi.home') : redirect()->intended(route('dashboard'));
     }
 
     public function logout(Request $request): RedirectResponse
     {
+        Activity::log('signed_out', null, [], null, $request->user(), 'Sign-in');
         Auth::logout();
         $request->session()->invalidate();
         $request->session()->regenerateToken();

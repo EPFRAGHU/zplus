@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Support\Activity\LogsActivity;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Attributes\Hidden;
 use Illuminate\Database\Eloquent\Model;
@@ -14,6 +15,8 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 #[Hidden(['account_number', 'aadhaar'])]
 class Employee extends Model
 {
+    use LogsActivity;
+
     public const STATUSES = ['active' => 'Active', 'notice' => 'On notice', 'inactive' => 'Inactive'];
 
     public const DOCUMENT_TYPES = [

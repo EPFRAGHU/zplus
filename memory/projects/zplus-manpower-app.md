@@ -1,7 +1,7 @@
 # ZPlus Manpower app
 
 **Repo:** epfraghu/zplus, branch `claude/manpower-app-foundation`
-**Status:** Live. Version **2.0.0** (02 Nov 2026, 10:15 PM IST). 114 tests passing. Project started **01 Nov 2026, 04:01 PM IST**.
+**Status:** Live. Version **2.1.0** (03 Nov 2026, 9:00 PM IST). 120 tests passing. Project started **01 Nov 2026, 04:01 PM IST**.
 **Live URL:** https://zplus.epf-dashboard.online (admin: the owner's Gmail; password was shown in chat once, owner told to change it via tinker)
 
 ## Stack
@@ -45,6 +45,7 @@ Size (non-blank lines): ~6,000 app code (PHP 3,010, Blade 2,004, migrations 704)
 - EPF / ESIC switched on/off per employee by the user (switches on the Employees list and in the form's KYC tab; `PATCH employees/{id}/statutory`). Drives the salary deduction and the employer EPF 13% (wages capped ₹15,000) / ESIC 3.25% per person on sub-bills, tax invoices and bill screens; stored per bill line (`invoice_lines.epf/esic`). Daily-contract staff switched on by migration to keep old behaviour. `App\Support\Statutory` holds the rules.
 - Letterheads: Z Plus classic (with footer); SWACHHA banner on sub-bill, covering letter, tax invoice, appointment letter (fits one page), attendance certificate, salary payout sheet
 - Version display and release notes
+- **Activity log (v2.1.0)** – owner asked: only he (Super Admin) sees it; log changes AND views/downloads. `activity_logs` table (user, role, action, section, record label, field changes old→new, note, IP, time); immutable model. Super Admin = `users.is_super_admin` (migration made the first Admin super admin = owner's account in production); `php artisan users:super-admin <email>` moves it; other Admins can't edit that account. New logged models must `use LogsActivity`; new sensitive GET routes go in `LogAccess::ROUTES`.
 - **PI portal + Users (v2.0.0)** – agreed design with owner: PI logins (role `pi`, linked to projects via `project_user`) see only their projects; mark/save attendance; Submit → status `submitted`, certificate PDF stored (`submitted_pdf_path`), frozen for PI; PI uploads signed copy in app or e-mails it; **no send-back step**; operator may correct days after submission – each change recorded in `attendance_changes` and printed on the certificate; operator approves (lock) → **sub-bill auto-generated** (draft); tax invoice stays one click; PI can view/download own sub-bills. Routes split by middleware `role:` (staff vs pi) + `active`. Users screen (Admin): temporary passwords with forced change, switch off, login log (`login_events`). Role label "supervisor" shown as **Operator**.
 - **Data Upload** (`/data-upload`, Admin only, `App\Services\MasterImport`): one Excel template per master (agencies → clients → contracts → projects → posts → employees), built live with PhpSpreadsheet (Instructions sheet, heading comments, hidden Lists sheet for dropdowns, text format for numbers with leading zeros). Upload → check (New/Update/No change/Error) → Save. Matching keys: agency code; agency+client code; contract no.; contract+project code; contract+project+designation; employee code (or name+mobile). Blank cell = keep; required cells only for new records except identifying ones. Secrets (account no., Aadhaar) never exported.
 

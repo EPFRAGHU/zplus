@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Support\Activity\LogsActivity;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -11,6 +12,8 @@ use Illuminate\Database\Eloquent\Relations\HasManyThrough;
 #[Fillable(['gem_contract_id', 'name', 'code', 'title', 'pi_name', 'pi_designation', 'location', 'saturday_off'])]
 class Project extends Model
 {
+    use LogsActivity;
+
     /** PI logins for this project. */
     public function pis(): \Illuminate\Database\Eloquent\Relations\BelongsToMany
     {

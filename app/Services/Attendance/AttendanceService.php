@@ -60,6 +60,7 @@ final class AttendanceService
 
         return DB::transaction(function () use ($sheet, $codesByEntry, $days, $record, $by) {
             $changed = 0;
+            $log = [];
             foreach ($sheet->entries()->with('employee')->get() as $entry) {
                 if (! isset($codesByEntry[$entry->id])) {
                     continue;
@@ -68,6 +69,9 @@ final class AttendanceService
                 for ($d = 1; $d <= $days; $d++) {
                     $codes[$d] = strtoupper(trim((string) ($codesByEntry[$entry->id][$d] ?? 'A')));
                     $old = strtoupper((string) ($entry->codes[$d] ?? $entry->codes[(string) $d] ?? 'A'));
+                    if ($old !== $codes[$d] && count($log) < 200) {
+                        $log[($entry->employee?->name ?? 'Staff').' · day '.$d] = [$old, $codes[$d]];
+                    }
                     if ($record && $old !== $codes[$d]) {
                         $sheet->changes()->create(['employee_id' => $entry->employee_id, 'employee_name' => $entry->employee?->name ?? '',
                             'day' => $d, 'old_code' => $old, 'new_code' => $codes[$d], 'user_id' => $by?->id]);
@@ -75,6 +79,9 @@ final class AttendanceService
                     }
                 }
                 $entry->update(['codes' => $codes, 'paid_days' => AttendanceCodes::paidDays($codes)]);
+            }
+            if ($log) {
+                \App\Support\Activity\Activity::log('updated', $sheet, $log, count($log).' attendance '.\Illuminate\Support\Str::plural('code', count($log)).' changed', $by);
             }
 
             return $changed;

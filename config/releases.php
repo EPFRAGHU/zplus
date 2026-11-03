@@ -12,6 +12,14 @@ return [
     'timezone' => 'Asia/Kolkata',      // release times are Indian Standard Time
 
     'releases' => [
+        ['version' => '2.1.0', 'date' => '2026-11-03 21:00', 'title' => 'Activity log for the Super Admin', 'type' => 'feature', 'notes' => [
+            'Every add, edit, delete and status change is logged automatically: who, when, from which IP, and each field\'s old → new value',
+            'Views of employee details and downloads of salary sheets, bills, letters, certificates, documents and data exports are logged',
+            'Sign-ins, failed sign-ins, sign-outs, password changes and data uploads are logged; attendance saves list every code changed',
+            'Bank account and Aadhaar numbers appear only as "••••" plus the last 4 digits',
+            'Activity log page (Super Admin only) with filters by user, action, section, dates and search, and Excel download; entries cannot be changed or deleted',
+            'Super Admin: the owner\'s account; other Admins cannot change it',
+        ]],
         ['version' => '2.0.0', 'date' => '2026-11-02 22:15', 'title' => 'PI portal and user management', 'type' => 'major', 'notes' => [
             'PI (project in-charge) logins: a PI sees only their own projects and staff (no bank, Aadhaar, PAN, phone or salary)',
             'PI marks and saves attendance, then submits it: the certificate PDF is made automatically and the month is frozen for the PI',

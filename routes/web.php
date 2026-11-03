@@ -50,6 +50,10 @@ Route::middleware(['auth', 'active', 'role:pi'])->prefix('pi')->name('pi.')->gro
 Route::middleware(['auth', 'active', 'role:admin,accounts,supervisor'])->group(function () {
     Route::get('/', DashboardController::class)->name('dashboard');
 
+    // Activity log (Super Admin)
+    Route::get('activity', [\App\Http\Controllers\ActivityLogController::class, 'index'])->name('activity.index');
+    Route::get('activity/export', [\App\Http\Controllers\ActivityLogController::class, 'export'])->name('activity.export');
+
     // Users (Admin)
     Route::get('users', [UserController::class, 'index'])->name('users.index');
     Route::get('users/create', [UserController::class, 'create'])->name('users.create');

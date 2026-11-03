@@ -26,6 +26,7 @@ Owner/operator of the manpower business behind **M/S Z Plus Surakhya Seva** and 
 | **EPF / ESIC switches** | Per employee (`pf_applicable`, `esic_applicable`). On → bill adds employer EPF 13% (wages capped ₹15,000) / ESIC 3.25%; salary sheet deducts 12% / 0.75% |
 | **Salary payout sheet** | Bank transfer sheet per locked month; net = earned − EPF − ESIC for staff switched on |
 | **PI portal** | `/pi`, role `pi` linked to projects (`project_user`). Draft → Submitted (PDF stored) → operator corrections recorded in `attendance_changes` → Approved/locked → sub-bill auto-made |
+| **Activity log** | `/activity`, Super Admin only (`users.is_super_admin`, gate `view-activity`). Models with trait `LogsActivity` log add/edit/delete/status; `LogAccess` middleware logs views/downloads; `App\Support\Activity\Activity::log()` for anything else. Secrets masked. Entries immutable |
 | **Data Upload** | Setup → Data Upload: Excel templates per master, upload → check → save (`app/Services/MasterImport`) |
 | **Letterhead layout** | `classic` (ZPS, centred + footer) or `banner` (SWH, logo/registrations/pink address box) |
 → Full list: memory/glossary.md
