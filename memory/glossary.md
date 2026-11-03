@@ -56,3 +56,7 @@ P present, CL casual leave, EL earned leave, RH restricted holiday, CH compensat
 | Release notes | `/releases` page; version history in `config/releases.php` |
 | Salary payout sheet | Bank transfer sheet per locked month (net pay after EPF/ESIC) |
 | EPF / ESIC switch | Per-employee on/off controlling deductions and employer contributions on bills |
+| Super Admin | raghu.epf@gmail.com: the owner's account; only one that sees the Activity log; move with `php artisan users:super-admin <email>` |
+| Agency login | A login linked to one agency (ZPS or SWH) sees only that agency's data; "Both agencies" logins only by the Super Admin |
+| Activity log | Setup → Activity log: every add/edit/delete/status, sensitive view/download and sign-in |
+| Data Upload | Setup → Data Upload: Excel templates for masters |
