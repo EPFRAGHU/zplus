@@ -1,6 +1,6 @@
 <x-layouts.app title="Attendance" crumb="Operations / <span class='text-danger'>Attendance</span>">
   <form class="z-card p-3 mb-3 d-flex gap-2 align-items-end flex-wrap">
-    <div><label class="form-label small text-secondary mb-1" for="m">Month</label><input id="m" type="month" name="month" value="{{ $month->format('Y-m') }}" class="form-control"></div>
+    <div><label class="form-label small text-secondary mb-1" for="m">Month</label><x-month-picker :value="$month->format('Y-m')" /></div>
     <div><label class="form-label small text-secondary mb-1" for="f-agency">Agency</label>
       <select id="f-agency" name="agency" class="form-select"><option value="">All agencies</option>@foreach($agencies as $a)<option value="{{ $a->id }}" @selected($agencyId === $a->id)>{{ $a->name }}</option>@endforeach</select></div>
     <div><label class="form-label small text-secondary mb-1" for="f-client">Client</label>

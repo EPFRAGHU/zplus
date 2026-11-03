@@ -33,7 +33,7 @@
   </div>
   @endif
   <form class="z-card p-3 mb-3 d-flex gap-2 flex-wrap align-items-end">
-    <div><label class="form-label small text-secondary mb-1" for="m">Bill month</label><input id="m" type="month" name="month" value="{{ request('month') }}" class="form-control"></div>
+    <div><label class="form-label small text-secondary mb-1" for="m">Bill month</label><x-month-picker :value="request('month')" clearable /></div>
     <div><label class="form-label small text-secondary mb-1" for="f-agency">Agency</label>
       <select id="f-agency" name="agency" class="form-select"><option value="">All agencies</option>@foreach($agencies as $a)<option value="{{ $a->id }}" @selected($agencyId === $a->id)>{{ $a->name }}</option>@endforeach</select></div>
     <div><label class="form-label small text-secondary mb-1" for="f-client">Client</label>

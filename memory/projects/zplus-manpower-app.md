@@ -1,7 +1,7 @@
 # ZPlus Manpower app
 
 **Repo:** epfraghu/zplus, branch `claude/manpower-app-foundation`
-**Status:** Live. Version **2.2.2** (04 Nov 2026, 12:45 AM IST). 125 tests passing. Project started **01 Nov 2026, 04:01 PM IST**.
+**Status:** Live. Version **2.2.3** (04 Nov 2026, 1:15 AM IST). 125 tests passing. Project started **01 Nov 2026, 04:01 PM IST**.
 **Live URL:** https://zplus.epf-dashboard.online (admin: the owner's Gmail; password was shown in chat once, owner told to change it via tinker)
 
 ## Stack
@@ -81,6 +81,7 @@ What moves: code (GitHub or a copy), MySQL dump, uploaded files (`zplus-storage`
 - Cashfree Payouts (account verification, salary batches, webhooks), SMS (DLT) and WhatsApp messages, payslips per employee. Still to ask: does each agency have its own Cashfree account?
 
 ## Lessons
+- Owner uses **Firefox**: no native `<input type="month">` calendar there – use the `<x-month-picker>` component for month fields
 - Store month columns as `Y-m-d` (SQLite unique index broke with `Y-m-d 00:00:00`)
 - Blade: keep `@can` inside slots; no stray text after `@endif`; avoid `@if(x) (text` on one line – a "(" right after a directive breaks compilation; use closures/variables instead
 - dompdf can't read private storage: logos are embedded as data URIs

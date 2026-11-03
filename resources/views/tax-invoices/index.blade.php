@@ -2,7 +2,7 @@
   <x-slot:actions>@can('billing')<a class="btn btn-primary" href="{{ route('tax-invoices.create') }}"><i class="bi bi-plus-lg me-1"></i>Make tax invoice</a>@endcan</x-slot:actions>
   <div class="alert alert-light border small">A tax invoice combines a client's sub-bills for one month (one sub-bill per project) into a single GST invoice.</div>
   <form class="z-card p-3 mb-3 d-flex gap-2 flex-wrap align-items-end">
-    <div><label class="form-label small text-secondary mb-1" for="m">Month</label><input id="m" type="month" name="month" value="{{ request('month') }}" class="form-control"></div>
+    <div><label class="form-label small text-secondary mb-1" for="m">Month</label><x-month-picker :value="request('month')" clearable /></div>
     <div><label class="form-label small text-secondary mb-1" for="f-agency">Agency</label>
       <select id="f-agency" name="agency" class="form-select"><option value="">All agencies</option>@foreach($agencies as $a)<option value="{{ $a->id }}" @selected($agencyId === $a->id)>{{ $a->name }}</option>@endforeach</select></div>
     <div><label class="form-label small text-secondary mb-1" for="f-client">Client</label>

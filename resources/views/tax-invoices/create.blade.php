@@ -2,7 +2,7 @@
   <form method="get" action="{{ route('tax-invoices.create') }}" class="z-card p-3 mb-3 d-flex gap-2 flex-wrap align-items-end">
     <div><label class="form-label small text-secondary mb-1" for="c">Client</label>
       <select id="c" name="client" class="form-select" required><option value="">Choose client</option>@foreach($clients as $c)<option value="{{ $c->id }}" @selected($client?->id === $c->id)>{{ $c->label() }}</option>@endforeach</select></div>
-    <div><label class="form-label small text-secondary mb-1" for="m">Month</label><input id="m" type="month" name="month" value="{{ $month->format('Y-m') }}" class="form-control" required></div>
+    <div><label class="form-label small text-secondary mb-1" for="m">Month</label><x-month-picker :value="$month->format('Y-m')" required /></div>
     <button class="btn btn-outline-secondary">Show sub-bills</button>
   </form>
 
