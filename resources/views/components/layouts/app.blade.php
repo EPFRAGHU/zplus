@@ -105,6 +105,10 @@ body{font-size:.9rem}
         <h1 class="h4 fw-bold mb-0">{{ $title ?? 'Dashboard' }}</h1>
         @isset($crumb)<div class="crumb">Dashboard / {!! $crumb !!}</div>@endisset
       </div>
+      @unless(auth()->user()->isPi())
+        <span class="badge rounded-pill text-bg-light border align-self-center fw-semibold" title="Agency you are working for">
+          <i class="bi bi-building me-1"></i>{{ auth()->user()->agency?->name ?? 'Both agencies' }}</span>
+      @endunless
       <div class="ms-auto d-flex gap-2 flex-wrap">{{ $actions ?? '' }}</div>
     </div>
     @if (session('status'))<div class="alert alert-success py-2">{{ session('status') }}</div>@endif

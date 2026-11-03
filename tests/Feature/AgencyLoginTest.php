@@ -72,7 +72,7 @@ class AgencyLoginTest extends TestCase
         $this->get('/invoices')->assertOk()->assertDontSee($this->swhInvoice->invoice_no);
         $this->get('/attendance?month=2026-10')->assertOk()->assertDontSee('SWHPROJ');
         $this->get('/posts')->assertOk()->assertDontSee('Field Worker');
-        $this->get('/')->assertOk()->assertDontSee('SWHPROJ')->assertSee('Admin · ZPS');
+        $this->get('/')->assertOk()->assertDontSee('SWHPROJ')->assertSee('Admin · ZPS')->assertSee('You are working for')->assertSee('M/S Z Plus Surakhya Seva');
         $this->get('/data-upload/employees/template?data=1')->assertOk();
 
         foreach (["/employees/{$this->swhEmployee->id}", "/contracts/{$this->swhContract->id}", "/agencies/{$this->swh->id}/edit",
@@ -101,6 +101,7 @@ class AgencyLoginTest extends TestCase
             $this->get("/invoices/{$this->swhInvoice->id}")->assertOk();
         }
         $this->actingAs($this->owner)->get('/agencies/create')->assertOk();
+        $this->get('/')->assertSee('You are working for')->assertSee('Both agencies');
     }
 
     public function test_agency_admin_manages_only_their_own_agencys_logins(): void

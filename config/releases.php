@@ -12,6 +12,11 @@ return [
     'timezone' => 'Asia/Kolkata',      // release times are Indian Standard Time
 
     'releases' => [
+        ['version' => '2.2.1', 'date' => '2026-11-04 00:15', 'title' => 'Agency name on screen', 'type' => 'fix', 'notes' => [
+            'Dashboard shows "You are working for" with the agency\'s name, logo and GSTIN (or "Both agencies")',
+            'Every page shows the agency badge next to the page title',
+            'Single-agency logins no longer see the Agency filter on the dashboard',
+        ]],
         ['version' => '2.2.0', 'date' => '2026-11-03 23:30', 'title' => 'Separate logins for each agency', 'type' => 'feature', 'notes' => [
             'Each login works for one agency (Z Plus or SWACHHA) or, set by the Super Admin, for both',
             'A single-agency login sees and enters only its own agency\'s clients, contracts, projects, posts, staff, attendance, sub-bills and tax invoices; the other agency\'s records are "not found"',

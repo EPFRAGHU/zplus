@@ -1,8 +1,29 @@
 <x-layouts.app title="Dashboard" crumb="Admin dashboard">
   @php($q = array_filter(['agency' => $agencyId, 'client' => $clientId, 'contract' => $contractId, 'project' => $projectId]))
+  @php($me = auth()->user())
+  @php($myAgency = $me->agency)
+  <div class="z-card mb-3 d-flex align-items-center gap-3 p-3" style="border-left:5px solid var(--z-accent)">
+    @if($myAgency)
+      @if($myAgency->logo_path)<img src="{{ route('agencies.logo', $myAgency) }}" alt="" style="width:56px;height:56px;object-fit:contain">@endif
+      <div>
+        <div class="small text-secondary text-uppercase" style="letter-spacing:.06em">You are working for</div>
+        <div class="fs-4 fw-bold lh-sm">{{ $myAgency->name }}</div>
+        <div class="small text-secondary">Agency code {{ $myAgency->code }}@if($myAgency->gstin) · GSTIN {{ $myAgency->gstin }}@endif · all data you see and enter is for this agency only</div>
+      </div>
+    @else
+      <div>
+        <div class="small text-secondary text-uppercase" style="letter-spacing:.06em">You are working for</div>
+        <div class="fs-4 fw-bold lh-sm">Both agencies</div>
+        <div class="small text-secondary">{{ $agencies->pluck('name')->implode(' and ') ?: 'No agencies added yet' }} · use the Agency filter below to look at one</div>
+      </div>
+    @endif
+    <div class="ms-auto text-end small text-secondary d-none d-md-block">{{ $me->name }}<br>{{ \App\Models\User::ROLES[$me->role] ?? $me->role }}</div>
+  </div>
   <form class="z-card p-3 mb-3 d-flex gap-2 align-items-end flex-wrap">
+    @unless($myAgency)
     <div><label class="form-label small text-secondary mb-1" for="f-agency">Agency</label>
       <select id="f-agency" name="agency" class="form-select"><option value="">All agencies</option>@foreach($agencies as $a)<option value="{{ $a->id }}" @selected($agencyId === $a->id)>{{ $a->name }}</option>@endforeach</select></div>
+    @endunless
     <div><label class="form-label small text-secondary mb-1" for="f-client">Client</label>
       <select id="f-client" name="client" class="form-select"><option value="">All clients</option>@foreach($clients as $c)<option value="{{ $c->id }}" data-agency="{{ $c->agency_id }}" @selected($clientId === $c->id)>{{ $c->name }}</option>@endforeach</select></div>
     <div><label class="form-label small text-secondary mb-1" for="f-contract">GeM contract</label>
@@ -12,7 +33,7 @@
     <button class="btn btn-outline-secondary">Show</button>
     @if($q)<a class="btn btn-link" href="{{ route('dashboard') }}">Clear</a>@endif
     <span class="small text-secondary w-100">
-      Showing {{ $agencyId ? $agencies->firstWhere('id', $agencyId)?->name : 'all agencies' }}{{ $clientId ? ' · '.$clients->firstWhere('id', $clientId)?->name : '' }}{{ $contractId ? ' · '.$contractOptions->firstWhere('id', $contractId)?->bid_no : '' }}{{ $projectId ? ' · '.$projectOptions->firstWhere('id', $projectId)?->name : '' }}
+      Showing {{ $myAgency ? $myAgency->name : ($agencyId ? $agencies->firstWhere('id', $agencyId)?->name : 'all agencies') }}{{ $clientId ? ' · '.$clients->firstWhere('id', $clientId)?->name : '' }}{{ $contractId ? ' · '.$contractOptions->firstWhere('id', $contractId)?->bid_no : '' }}{{ $projectId ? ' · '.$projectOptions->firstWhere('id', $projectId)?->name : '' }}
     </span>
   </form>
   <div class="row row-cols-2 row-cols-md-3 row-cols-xl-6 g-3 mb-3">
@@ -155,7 +176,7 @@
   <script>
     (function () {
       // Agency narrows clients; agency and client narrow contracts; contract narrows projects.
-      const agency = document.getElementById('f-agency'), client = document.getElementById('f-client'),
+      const agency = document.getElementById('f-agency') || { value: '', addEventListener() {} }, client = document.getElementById('f-client'),
             contract = document.getElementById('f-contract'), project = document.getElementById('f-project');
       function narrow(select, test) {
         [...select.options].forEach(o => { if (o.value) { o.hidden = o.disabled = !test(o); } });
