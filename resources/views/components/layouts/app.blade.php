@@ -119,5 +119,27 @@ body{font-size:.9rem}
   </main>
 </div>
 <script src="{{ asset('vendor/bootstrap/bootstrap.bundle.min.js') }}"></script>
+@if(! auth()->user()->isPi() && auth()->user()->agency_id)
+<script>
+  // Single-agency login: every agency dropdown in a form is filled with the user's own agency and locked.
+  (function () {
+    const mine = '{{ auth()->user()->agency_id }}';
+    const lock = sel => {
+      if (!sel || sel.dataset.agencyLocked) return;
+      [...sel.options].forEach(o => { if (o.value !== mine) o.remove(); });
+      if (sel.value !== mine) { sel.value = mine; sel.dispatchEvent(new Event('change', { bubbles: true })); }
+      sel.dataset.agencyLocked = '1';
+      sel.setAttribute('aria-readonly', 'true');
+      sel.tabIndex = -1;
+      sel.style.pointerEvents = 'none';
+      sel.classList.add('bg-light');
+      sel.title = 'You work for this agency';
+    };
+    const run = () => document.querySelectorAll('form select[name="agency_id"]').forEach(lock);
+    run();
+    document.addEventListener('shown.bs.modal', run);
+  })();
+</script>
+@endif
 </body>
 </html>

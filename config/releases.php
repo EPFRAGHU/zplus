@@ -12,6 +12,10 @@ return [
     'timezone' => 'Asia/Kolkata',      // release times are Indian Standard Time
 
     'releases' => [
+        ['version' => '2.2.2', 'date' => '2026-11-04 00:45', 'title' => 'Agency filled in on forms', 'type' => 'fix', 'notes' => [
+            'For a Z Plus or SWACHHA login, the Agency field on Add client, Add GeM contract, Add employee and Add new post is filled in and locked to their agency',
+            'The Super Admin and both-agency logins still choose the agency',
+        ]],
         ['version' => '2.2.1', 'date' => '2026-11-04 00:15', 'title' => 'Agency name on screen', 'type' => 'fix', 'notes' => [
             'Dashboard shows "You are working for" with the agency\'s name, logo and GSTIN (or "Both agencies")',
             'Every page shows the agency badge next to the page title',

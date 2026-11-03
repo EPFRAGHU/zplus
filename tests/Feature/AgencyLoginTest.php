@@ -151,4 +151,15 @@ class AgencyLoginTest extends TestCase
         // New employee codes continue after the highest code of either agency.
         $this->assertSame('EMP-5002', Employee::nextCode());
     }
+
+    public function test_agency_logins_get_their_agency_filled_in_on_forms(): void
+    {
+        $this->actingAs($this->agencyAdmin($this->zps));
+        $this->get('/clients/create')->assertOk()->assertSee('You work for this agency');
+        $this->post('/clients', ['agency_id' => '', 'name' => 'AIIMS Bhubaneswar', 'short_code' => 'AIIMS', 'state_code' => '21', 'payment_term_days' => 30, 'status' => 'active'])
+            ->assertSessionHasNoErrors();
+        $this->assertSame($this->zps->id, Client::query()->where('short_code', 'AIIMS')->value('agency_id'));
+
+        $this->actingAs($this->owner)->get('/clients/create')->assertOk()->assertSee('Choose agency')->assertDontSee('You work for this agency');
+    }
 }

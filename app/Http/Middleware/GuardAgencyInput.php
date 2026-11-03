@@ -22,6 +22,9 @@ class GuardAgencyInput
 
     public function handle(Request $request, Closure $next): Response
     {
+        if (AgencyContext::id() && ! $request->isMethod('GET') && $request->exists('agency_id') && blank($request->input('agency_id'))) {
+            $request->merge(['agency_id' => AgencyContext::id()]);   // an agency login always works for its own agency
+        }
         if (AgencyContext::id() && ! $request->isMethod('GET')) {
             foreach (self::FIELDS as $field => $model) {
                 $ids = collect((array) $request->input($field))->flatten()->filter(fn ($v) => is_numeric($v))->map(fn ($v) => (int) $v)->unique();

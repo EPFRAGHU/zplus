@@ -6,7 +6,7 @@
     @endisset
     <div class="row g-3">
       <x-select name="agency_id" label="Agency" :options="$agencies->pluck('name', 'id')" :value="$client->agency_id" required placeholder="Choose agency" col="col-md-6"
-        :hint="($hasContracts ?? false) ? 'This client has GeM contracts, so its agency cannot be changed.' : 'Works with both agencies? Save this one, then add the client again for the other agency.'" />
+        :hint="($hasContracts ?? false) ? 'This client has GeM contracts, so its agency cannot be changed.' : (auth()->user()->agency_id ? 'Clients you add belong to your agency.' : 'Works with both agencies? Save this one, then add the client again for the other agency.')" />
       <div class="col-md-6"></div>
       <x-field name="name" label="Client name" :value="$client->name" required hint="e.g. ICMR-NIHR (RMRCBB), Bhubaneswar" />
       <x-field name="short_code" label="Bill code" :value="$client->short_code" required col="col-md-3" hint="Bill numbers start with this, e.g. ICMR" />
