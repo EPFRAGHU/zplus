@@ -51,7 +51,7 @@ class AttendanceController extends Controller
     public function open(Request $request): RedirectResponse
     {
         $data = $request->validate([
-            'project_id' => ['required', 'exists:projects,id'],
+            'project_id' => ['required', new \App\Rules\ExistsInMyAgency(\App\Models\Project::class)],
             'month' => ['required', 'date_format:Y-m'],
             'holidays' => ['nullable', 'regex:/^\s*\d{1,2}(\s*,\s*\d{1,2})*\s*$/'],
         ], ['holidays.regex' => 'List holiday dates as numbers separated by commas, e.g. 2, 19, 20.']);

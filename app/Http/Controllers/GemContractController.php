@@ -83,8 +83,8 @@ class GemContractController extends Controller
     private function validated(Request $request, ?GemContract $contract = null): array
     {
         $data = $request->validate([
-            'agency_id' => ['required', 'exists:agencies,id'],
-            'client_id' => ['required', 'exists:clients,id'],
+            'agency_id' => ['required', new \App\Rules\ExistsInMyAgency(\App\Models\Agency::class)],
+            'client_id' => ['required', new \App\Rules\ExistsInMyAgency(\App\Models\Client::class)],
             'bid_no' => ['required', 'string', 'max:40'],
             'contract_no' => ['required', 'string', 'max:40', Rule::unique('gem_contracts')->ignore($contract)],
             'contract_date' => ['nullable', 'date'],

@@ -174,7 +174,7 @@ class LetterheadTest extends TestCase
         $this->assertStringContainsString('GSTIN No.-21AAAFZ5965B1ZD', $html);   // Z Plus letterhead
 
         $swh = Agency::query()->where('code', 'SWH')->firstOrFail();
-        $sheet->project->contract->update(['agency_id' => $swh->id]);
+        $sheet->project->contract->update(['agency_id' => $swh->id, 'client_id' => \App\Models\Client::query()->where('agency_id', $swh->id)->value('id')]);
         $sheet->load('project.contract.agency');
         $html = view('pdf.attendance-certificate', ['sheet' => $sheet, 'showBank' => false])->render();
         $this->assertStringContainsString('&ldquo;SWACHHA&rdquo;', $html);
@@ -191,7 +191,7 @@ class LetterheadTest extends TestCase
         $admin = User::factory()->create(['role' => 'admin']);
         $swh = Agency::query()->where('code', 'SWH')->firstOrFail();
         $employee = Employee::query()->with('post.project.contract')->firstOrFail();
-        $employee->post->project->contract->update(['agency_id' => $swh->id]);
+        $employee->post->project->contract->update(['agency_id' => $swh->id, 'client_id' => \App\Models\Client::query()->where('agency_id', $swh->id)->value('id')]);
 
         $response = $this->actingAs($admin)->get("/employees/{$employee->id}/appointment-letter")->assertOk();
         $pdf = $response->getContent();

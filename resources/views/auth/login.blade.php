@@ -13,7 +13,7 @@
     @error('email')<div class="invalid-feedback">{{ $message }}</div>@enderror</div>
   <div class="mb-3"><label class="form-label small fw-semibold" for="password">Password</label>
     <input id="password" name="password" type="password" required class="form-control"></div>
-  <div class="form-check mb-3"><input class="form-check-input" type="checkbox" name="remember" id="remember"><label class="form-check-label small" for="remember">Keep me signed in</label></div>
+  <div class="small text-secondary mb-3"><i class="bi bi-shield-lock me-1"></i>On a shared computer, always click <b>Sign out</b> when you finish.</div>
   <button class="btn btn-primary w-100">Sign in</button>
 </form>
 <div style="position:fixed;bottom:14px;left:0;right:0;text-align:center;font-size:.72rem;color:#8d8288">ZPlus Manpower v{{ \App\Support\Release::version() }} · {{ \App\Support\Release::current()['date']->format('d M Y, h:i A') }} IST</div>

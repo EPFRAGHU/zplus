@@ -39,15 +39,15 @@ class PostController extends Controller
     {
         Gate::authorize('manage-masters');
         $data = $request->validate([
-            'agency_id' => ['required', 'exists:agencies,id'],
-            'client_id' => ['required', 'exists:clients,id'],
+            'agency_id' => ['required', new \App\Rules\ExistsInMyAgency(\App\Models\Agency::class)],
+            'client_id' => ['required', new \App\Rules\ExistsInMyAgency(\App\Models\Client::class)],
             'contract_mode' => ['required', Rule::in(['existing', 'new'])],
-            'gem_contract_id' => ['required_if:contract_mode,existing', 'nullable', 'exists:gem_contracts,id'],
+            'gem_contract_id' => ['required_if:contract_mode,existing', 'nullable', new \App\Rules\ExistsInMyAgency(\App\Models\GemContract::class)],
             'bid_no' => ['required_if:contract_mode,new', 'nullable', 'string', 'max:40'],
             'contract_no' => ['required_if:contract_mode,new', 'nullable', 'string', 'max:40', 'unique:gem_contracts,contract_no'],
             'billing_type' => ['nullable', Rule::in(['monthly', 'daily'])],
             'project_mode' => ['required', Rule::in(['existing', 'new'])],
-            'project_id' => ['required_if:project_mode,existing', 'nullable', 'exists:projects,id'],
+            'project_id' => ['required_if:project_mode,existing', 'nullable', new \App\Rules\ExistsInMyAgency(\App\Models\Project::class)],
             'project_name' => ['required_if:project_mode,new', 'nullable', 'string', 'max:255'],
             'project_code' => ['nullable', 'alpha_num', 'max:12'],
             'pi_name' => ['nullable', 'string', 'max:255'],

@@ -59,10 +59,10 @@ class TaxInvoiceController extends Controller
     {
         Gate::authorize('billing');
         $data = $request->validate([
-            'client_id' => ['required', 'exists:clients,id'],
+            'client_id' => ['required', new \App\Rules\ExistsInMyAgency(\App\Models\Client::class)],
             'month' => ['required', 'date_format:Y-m'],
             'sub_bills' => ['required', 'array', 'min:1'],
-            'sub_bills.*' => ['integer', 'exists:invoices,id'],
+            'sub_bills.*' => ['integer', new \App\Rules\ExistsInMyAgency(\App\Models\Invoice::class)],
             'number' => ['nullable', 'string', 'max:40'],
             'invoice_date' => ['required', 'date'],
         ], ['sub_bills.required' => 'Tick at least one sub-bill to include.']);

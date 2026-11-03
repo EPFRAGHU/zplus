@@ -27,7 +27,7 @@ Owner/operator of the manpower business behind **M/S Z Plus Surakhya Seva** and 
 | **Salary payout sheet** | Bank transfer sheet per locked month; net = earned − EPF − ESIC for staff switched on |
 | **PI portal** | `/pi`, role `pi` linked to projects (`project_user`). Draft → Submitted (PDF stored) → operator corrections recorded in `attendance_changes` → Approved/locked → sub-bill auto-made |
 | **Activity log** | `/activity`, Super Admin only (`users.is_super_admin`, gate `view-activity`). Models with trait `LogsActivity` log add/edit/delete/status; `LogAccess` middleware logs views/downloads; `App\Support\Activity\Activity::log()` for anything else. Secrets masked. Entries immutable |
-| **Agency logins** | `users.agency_id` (null = both agencies). Trait `ScopedToAgency` (global `AgencyScope`) on Agency, Client, GemContract, Project, Post, Employee, EmployeeDocument, AttendanceSheet, Invoice, TaxInvoice; `GuardAgencyInput` middleware 404s other-agency ids in forms; `AgencyContext::unscoped()` for cross-agency uniqueness checks. New agency-owned models/inputs must be added to both |
+| **Agency logins** | `users.agency_id` (null = both agencies). Trait `ScopedToAgency` (global `AgencyScope`) on Agency, Client, GemContract, Project, Post, Employee, EmployeeDocument, AttendanceSheet, Invoice, TaxInvoice; `GuardAgencyInput` middleware 404s other-agency ids in forms; `AgencyContext::unscoped()` for cross-agency uniqueness checks. New agency-owned models/inputs must be added to both. Validate ids with `new ExistsInMyAgency(Model::class)`, never `exists:`; DB triggers (migration `harden_agency_isolation`) refuse cross-agency links |
 | **Data Upload** | Setup → Data Upload: Excel templates per master, upload → check → save (`app/Services/MasterImport`) |
 | **Letterhead layout** | `classic` (ZPS, centred + footer) or `banner` (SWH, logo/registrations/pink address box) |
 → Full list: memory/glossary.md
@@ -49,5 +49,6 @@ Owner/operator of the manpower business behind **M/S Z Plus Surakhya Seva** and 
 - After pushing, tell the user: `git pull`, `php artisan migrate`, `php artisan serve`
 - **Every deployed change gets a new version**: add an entry at the top of `config/releases.php` (MAJOR milestone / MINOR feature / PATCH fix, with date and notes). It shows in the sidebar and on /releases
 - The owner often **discusses ideas first** ("just asking", "don't change anything"): explain and preview only; build or change code only when explicitly told to proceed
+- Shared computers: signed-in responses `no-store` (`NoStoreWhenSignedIn`), sign-out sends `Clear-Site-Data`, no remember-me, `AuthenticateSession` ends other sessions on password change
 - No pull request unless asked
 - Production: Hostinger VPS with Coolify (Docker Compose), https://zplus.epf-dashboard.online – see docs/DEPLOY_COOLIFY.md

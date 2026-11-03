@@ -159,9 +159,9 @@ class EmployeeController extends Controller
     {
         $data = $request->validate([
             'emp_code' => ['required', 'string', 'max:20', Rule::unique('employees')->ignore($employee)],
-            'agency_id' => ['required', 'exists:agencies,id'],
-            'client_id' => ['nullable', 'exists:clients,id'],
-            'post_id' => ['nullable', 'exists:posts,id'],
+            'agency_id' => ['required', new \App\Rules\ExistsInMyAgency(\App\Models\Agency::class)],
+            'client_id' => ['nullable', new \App\Rules\ExistsInMyAgency(\App\Models\Client::class)],
+            'post_id' => ['nullable', new \App\Rules\ExistsInMyAgency(\App\Models\Post::class)],
             'name' => ['required', 'string', 'max:255'],
             'father_name' => ['nullable', 'string', 'max:255'],
             'dob' => ['nullable', 'date', 'before:today'],

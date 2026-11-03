@@ -77,7 +77,7 @@ class ClientController extends Controller
     private function validated(Request $request, ?Client $client = null): array
     {
         return $request->validate([
-            'agency_id' => ['required', 'exists:agencies,id'],
+            'agency_id' => ['required', new \App\Rules\ExistsInMyAgency(\App\Models\Agency::class)],
             'name' => ['required', 'string', 'max:255'],
             'short_code' => ['required', 'alpha_num', 'max:12',
                 Rule::unique('clients')->where('agency_id', $request->input('agency_id'))->ignore($client)],

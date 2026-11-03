@@ -47,7 +47,7 @@ class SalaryPayoutTest extends TestCase
     {
         $sheet = $this->sheet();
         $swh = Agency::query()->where('code', 'SWH')->firstOrFail();
-        $sheet->project->contract->update(['agency_id' => $swh->id]);
+        $sheet->project->contract->update(['agency_id' => $swh->id, 'client_id' => \App\Models\Client::query()->where('agency_id', $swh->id)->value('id')]);
 
         $accounts = User::factory()->create(['role' => 'accounts']);
         $this->actingAs($accounts)->get("/attendance/{$sheet->id}")->assertOk()->assertSee('Salary payout sheet');

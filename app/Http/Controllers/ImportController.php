@@ -24,7 +24,7 @@ class ImportController extends Controller
     {
         Gate::authorize('gem-import');
         $data = $request->validate([
-            'client_id' => ['required', 'exists:clients,id'],
+            'client_id' => ['required', new \App\Rules\ExistsInMyAgency(\App\Models\Client::class)],
             'workbook' => ['required', 'file', 'mimes:xlsx,xls', 'max:10240'],
         ], ['client_id.required' => 'Choose the client these contracts belong to. Add it under Clients first if it is missing.']);
 

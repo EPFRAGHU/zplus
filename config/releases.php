@@ -12,6 +12,14 @@ return [
     'timezone' => 'Asia/Kolkata',      // release times are Indian Standard Time
 
     'releases' => [
+        ['version' => '2.3.0', 'date' => '2026-11-04 02:30', 'title' => 'Shared-computer safety and stricter agency isolation', 'type' => 'feature', 'notes' => [
+            'Pages, PDFs and downloads shown to a signed-in user are never kept in the browser cache, so Back after signing out shows nothing',
+            'Signing out tells the browser to clear this site\'s cache, cookies and storage',
+            '"Keep me signed in" removed (office computers are shared); earlier remember-me cookies no longer work',
+            'Changing a password (yourself, or an Admin resetting it) signs that user out on every other computer',
+            'Form checks look records up through the agency filter, so another agency\'s records are rejected even before saving',
+            'Database safety net: triggers refuse any contract, sub-bill, tax invoice or employee linked to a different agency\'s client or contract',
+        ]],
         ['version' => '2.2.3', 'date' => '2026-11-04 01:15', 'title' => 'Month and year picker', 'type' => 'fix', 'notes' => [
             'Month fields on Attendance, Sub-bills and Tax invoices open a calendar: choose the year with the arrows, then click the month',
             'Works the same in every browser, including Firefox (which has no built-in month calendar)',

@@ -25,7 +25,7 @@ class AuthController extends Controller
         $log = fn (?int $userId, bool $ok) => LoginEvent::query()->create(['user_id' => $userId, 'email' => $credentials['email'], 'success' => $ok,
             'ip' => $request->ip(), 'user_agent' => substr((string) $request->userAgent(), 0, 255)]);
 
-        if (! Auth::attempt($credentials + ['active' => true], $request->boolean('remember'))) {
+        if (! Auth::attempt($credentials + ['active' => true])) {   // no "remember me": office PCs are shared
             $user = User::query()->where('email', $credentials['email'])->first();
             $log($user?->id, false);
             Activity::log('sign_in_failed', $user, [], 'E-mail tried: '.$credentials['email'], $user, 'Sign-in');
@@ -49,6 +49,7 @@ class AuthController extends Controller
         $request->session()->invalidate();
         $request->session()->regenerateToken();
 
-        return redirect()->route('login');
+        // Tell the browser to drop everything it kept for this site (cached pages and PDFs, cookies, storage).
+        return redirect()->route('login')->header('Clear-Site-Data', '"cache", "cookies", "storage"');
     }
 }

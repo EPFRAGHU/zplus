@@ -42,6 +42,13 @@ In the resource → **Environment Variables**:
 | `APP_URL` | `https://zplus.epf-dashboard.online` |
 | `SERVICE_PASSWORD_ZPLUSDB`, `SERVICE_PASSWORD_ZPLUSROOT` | Coolify fills these with random passwords. Leave them. |
 
+Recommended for shared office computers (added in v2.3.0):
+
+| Name | Value |
+|---|---|
+| `SESSION_EXPIRE_ON_CLOSE` | `true` (closing the browser signs the user out) |
+| `SESSION_LIFETIME` | `60` (minutes of inactivity before sign-out) |
+
 **Save a copy of `APP_KEY` somewhere safe and never change it.** Bank account and Aadhaar numbers are encrypted
 with it; with a different key they cannot be read.
 
@@ -73,6 +80,13 @@ Data lives in two Docker volumes: the MySQL data and `storage/app` (signed scans
   Coolify can send it to S3-compatible storage; otherwise download backups regularly.
 - Uploaded files: from the server, `docker ps | grep zplus` to find the app container, then
   `docker cp <app-container>:/var/www/html/storage/app ./zplus-files-$(date +%F)` and copy that folder off the server.
+
+## Agency-isolation triggers (v2.3.0)
+
+The database refuses rows that mix agencies (e.g. a sub-bill under one agency for another agency's contract). MySQL needs
+`--log-bin-trust-function-creators=1` (already in `docker-compose.yaml`) for the app user to create these triggers; the first
+redeploy after v2.3.0 recreates the db container with that flag (data stays in its volume). If a trigger could not be
+created, the app still runs and protects data at application level; the reason is in the app log.
 
 ## Troubleshooting
 

@@ -97,8 +97,8 @@ class UserController extends Controller
             'role' => ['required', Rule::in(array_keys(User::ROLES))],
             'password' => [$user ? 'nullable' : 'required', Password::min(8)->letters()->numbers()],
             'projects' => ['array', Rule::requiredIf($request->input('role') === 'pi')],
-            'projects.*' => ['integer', 'exists:projects,id'],
-            'agency_id' => ['nullable', 'integer', 'exists:agencies,id'],
+            'projects.*' => ['integer', new \App\Rules\ExistsInMyAgency(\App\Models\Project::class)],
+            'agency_id' => ['nullable', 'integer', new \App\Rules\ExistsInMyAgency(\App\Models\Agency::class)],
         ], ['projects.required' => 'Choose at least one project for this PI.', 'phone.regex' => 'Enter a 10-digit mobile number.']);
         $data['active'] = $request->boolean('active');
 

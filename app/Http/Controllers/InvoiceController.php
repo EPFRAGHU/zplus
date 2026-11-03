@@ -70,7 +70,7 @@ class InvoiceController extends Controller
     public function store(Request $request, InvoiceGenerator $generator): RedirectResponse
     {
         Gate::authorize('billing');
-        $data = $request->validate(['attendance_sheet_id' => ['required', 'exists:attendance_sheets,id']]);
+        $data = $request->validate(['attendance_sheet_id' => ['required', new \App\Rules\ExistsInMyAgency(\App\Models\AttendanceSheet::class)]]);
         try {
             $invoice = $generator->generate(AttendanceSheet::query()->findOrFail($data['attendance_sheet_id']), $request->user());
         } catch (RuntimeException $e) {
