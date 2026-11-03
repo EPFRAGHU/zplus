@@ -21,7 +21,9 @@ class AppServiceProvider extends ServiceProvider
         Gate::define('billing', fn (User $u) => $u->hasRole('admin', 'accounts'));
         Gate::define('approve-invoice', fn (User $u) => $u->hasRole('admin', 'accounts'));
         Gate::define('unlock-attendance', fn (User $u) => $u->hasRole('admin'));
-        Gate::define('import', fn (User $u) => $u->hasRole('admin'));
+        Gate::define('import', fn (User $u) => $u->hasRole('admin'));   // Data Upload (each agency's own data)
+        Gate::define('gem-import', fn (User $u) => $u->hasRole('admin') && $u->worksForBothAgencies());   // GeM workbook covers both agencies
+        Gate::define('add-agency', fn (User $u) => $u->hasRole('admin', 'accounts') && $u->worksForBothAgencies());
         Gate::define('view-bank-details', fn (User $u) => $u->hasRole('admin', 'accounts'));
         Gate::define('manage-users', fn (User $u) => $u->hasRole('admin'));
         Gate::define('view-activity', fn (User $u) => $u->isSuperAdmin());

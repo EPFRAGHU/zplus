@@ -1,5 +1,5 @@
 <x-layouts.app title="Agencies" crumb="Masters / <span class='text-danger'>Agencies</span>">
-  <x-slot:actions>@can('manage-masters')<a class="btn btn-primary" href="{{ route('agencies.create') }}"><i class="bi bi-plus-lg me-1"></i>Add agency</a>@endcan</x-slot:actions>
+  <x-slot:actions>@can('add-agency')<a class="btn btn-primary" href="{{ route('agencies.create') }}"><i class="bi bi-plus-lg me-1"></i>Add agency</a>@endcan</x-slot:actions>
   @forelse ($agencies as $a)
     <div class="z-card mb-3">
       <div class="d-flex align-items-center gap-2 flex-wrap px-3 py-2 rounded-top bg-body-secondary border-bottom">

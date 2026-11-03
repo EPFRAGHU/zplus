@@ -15,14 +15,14 @@ class ImportController extends Controller
 {
     public function create(): View
     {
-        Gate::authorize('import');
+        Gate::authorize('gem-import');
 
         return view('import.create', ['clients' => Client::query()->with('agency')->orderBy('name')->get()]);
     }
 
     public function preview(Request $request, GemWorkbookImporter $importer): View|RedirectResponse
     {
-        Gate::authorize('import');
+        Gate::authorize('gem-import');
         $data = $request->validate([
             'client_id' => ['required', 'exists:clients,id'],
             'workbook' => ['required', 'file', 'mimes:xlsx,xls', 'max:10240'],
@@ -45,7 +45,7 @@ class ImportController extends Controller
 
     public function commit(Request $request, GemWorkbookImporter $importer): RedirectResponse
     {
-        Gate::authorize('import');
+        Gate::authorize('gem-import');
         $pending = $request->session()->pull('import');
         if (! $pending || ! Storage::disk('local')->exists($pending['path'])) {
             return redirect()->route('import.create')->withErrors(['workbook' => 'Upload the workbook again; the preview expired.']);

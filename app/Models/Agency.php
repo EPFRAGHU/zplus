@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use App\Support\Activity\LogsActivity;
+use App\Support\Agency\ScopedToAgency;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
@@ -11,7 +12,7 @@ use Illuminate\Support\Facades\Storage;
 #[Fillable(['name', 'code', 'tagline', 'registrations', 'address', 'email', 'website', 'letterhead_emails', 'phone', 'phones', 'logo_path', 'letterhead_style', 'gstin', 'pan', 'signatory_name', 'signatory_title', 'bank_name', 'bank_account_no', 'bank_ifsc', 'bank_branch'])]
 class Agency extends Model
 {
-    use LogsActivity;
+    use LogsActivity, ScopedToAgency;
 
     /** Logo as a data URI for PDFs (dompdf cannot read private storage paths), or null. */
     public function logoDataUri(): ?string

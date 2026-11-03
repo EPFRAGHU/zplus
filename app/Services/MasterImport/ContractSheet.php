@@ -83,6 +83,10 @@ final class ContractSheet extends MasterSheet
             $errors[] = "Client code {$clientCode} is not a client of {$agencyCode}. Upload or add the client first.";
         }
         $existing = $this->contracts[$no] ?? null;
+        if (! $existing && $no && \App\Support\Agency\AgencyContext::id()
+            && \App\Support\Agency\AgencyContext::unscoped(fn () => GemContract::query()->where('contract_no', $v['contract_no'])->exists())) {
+            $errors[] = "Contract {$no} belongs to another agency.";
+        }
         if ($existing && $agency && $client && ((int) $existing->agency_id !== (int) $agency->id || (int) $existing->client_id !== (int) $client->id)) {
             $errors[] = "Contract {$no} is already in the app under a different agency or client; change it on the GeM Contracts page.";
         }

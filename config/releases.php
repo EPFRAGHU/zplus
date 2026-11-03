@@ -12,6 +12,13 @@ return [
     'timezone' => 'Asia/Kolkata',      // release times are Indian Standard Time
 
     'releases' => [
+        ['version' => '2.2.0', 'date' => '2026-11-03 23:30', 'title' => 'Separate logins for each agency', 'type' => 'feature', 'notes' => [
+            'Each login works for one agency (Z Plus or SWACHHA) or, set by the Super Admin, for both',
+            'A single-agency login sees and enters only its own agency\'s clients, contracts, projects, posts, staff, attendance, sub-bills and tax invoices; the other agency\'s records are "not found"',
+            'Agency Admins create logins (operators, accounts, PIs) for their own agency only; only the Super Admin creates both-agency logins',
+            'Data Upload rejects rows for the other agency, its contract numbers and its employee codes; employee codes stay unique across both agencies',
+            'Adding agencies and the GeM workbook import are for both-agency logins only; the sidebar shows which agency a login works for',
+        ]],
         ['version' => '2.1.0', 'date' => '2026-11-03 21:00', 'title' => 'Activity log for the Super Admin', 'type' => 'feature', 'notes' => [
             'Every add, edit, delete and status change is logged automatically: who, when, from which IP, and each field\'s old → new value',
             'Views of employee details and downloads of salary sheets, bills, letters, certificates, documents and data exports are logged',

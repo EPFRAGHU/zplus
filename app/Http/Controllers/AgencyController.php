@@ -27,12 +27,15 @@ class AgencyController extends Controller
     {
         Gate::authorize('manage-masters');
 
+        Gate::authorize('add-agency');
+
         return view('agencies.form', ['agency' => new Agency]);
     }
 
     public function store(Request $request): RedirectResponse
     {
         Gate::authorize('manage-masters');
+        Gate::authorize('add-agency');
         $agency = Agency::query()->create(Arr::except($this->validated($request), ['logo']));
         $this->saveLogo($request, $agency);
 

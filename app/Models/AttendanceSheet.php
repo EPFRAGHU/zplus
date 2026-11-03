@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use App\Support\Activity\LogsActivity;
+use App\Support\Agency\ScopedToAgency;
 use Carbon\CarbonImmutable;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Casts\Attribute;
@@ -15,7 +16,7 @@ use Illuminate\Database\Eloquent\Relations\HasOne;
 // status: draft → submitted (by the PI, PDF made) → locked (approved by the agency)
 class AttendanceSheet extends Model
 {
-    use LogsActivity;
+    use LogsActivity, ScopedToAgency;
 
     /**
      * Always store the month as "Y-m-d" (first of the month). A plain date cast saves

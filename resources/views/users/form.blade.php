@@ -18,6 +18,19 @@
         <div class="form-text">Admin: everything. Accounts: masters and bills. Operator: attendance. PI: only their own projects.</div>
       </div>
       <div class="col-md-4">
+        <label class="form-label" for="f-agency">Works for</label>
+        @if(auth()->user()->agency_id)
+          <input type="text" class="form-control" value="{{ auth()->user()->agency?->name }}" disabled id="f-agency">
+          <div class="form-text">Logins you create work for your agency only.</div>
+        @else
+          <select id="f-agency" name="agency_id" class="form-select @error('agency_id') is-invalid @enderror">
+            @if($canPickBoth)<option value="" @selected(old('agency_id', $user->agency_id) === null)>Both agencies</option>@endif
+            @foreach($agencies as $a)<option value="{{ $a->id }}" @selected((string) old('agency_id', $user->agency_id) === (string) $a->id)>{{ $a->name }} ({{ $a->code }})</option>@endforeach
+          </select>
+          @error('agency_id')<div class="invalid-feedback">{{ $message }}</div>@else<div class="form-text">The login sees only this agency's data.{{ $canPickBoth ? ' "Both agencies" is for staff who work for both.' : '' }}</div>@enderror
+        @endif
+      </div>
+      <div class="col-md-4">
         <label class="form-label" for="f-password">{{ $editing ? 'New temporary password' : 'Temporary password' }}</label>
         <input id="f-password" type="text" name="password" autocomplete="new-password" class="form-control @error('password') is-invalid @enderror" @required(! $editing)>
         @error('password')<div class="invalid-feedback">{{ $message }}</div>@else<div class="form-text">At least 8 characters with letters and numbers. {{ $editing ? 'Leave blank to keep the current password.' : '' }} The user must change it at first sign-in.</div>@enderror

@@ -61,6 +61,17 @@ class User extends Authenticatable
         return $this->role === 'pi';
     }
 
+    /** The agency this login works for; null = both agencies. */
+    public function agency(): \Illuminate\Database\Eloquent\Relations\BelongsTo
+    {
+        return $this->belongsTo(Agency::class);
+    }
+
+    public function worksForBothAgencies(): bool
+    {
+        return $this->agency_id === null;
+    }
+
     /** Projects a PI is in charge of. */
     public function projects(): \Illuminate\Database\Eloquent\Relations\BelongsToMany
     {

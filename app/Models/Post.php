@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use App\Support\Activity\LogsActivity;
+use App\Support\Agency\ScopedToAgency;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -11,7 +12,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 #[Fillable(['project_id', 'designation', 'sanctioned_qty', 'rate'])]
 class Post extends Model
 {
-    use LogsActivity;
+    use LogsActivity, ScopedToAgency;
 
     protected function casts(): array
     {

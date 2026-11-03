@@ -47,7 +47,7 @@ Route::middleware(['auth', 'active', 'role:pi'])->prefix('pi')->name('pi.')->gro
 });
 
 // Agency staff
-Route::middleware(['auth', 'active', 'role:admin,accounts,supervisor'])->group(function () {
+Route::middleware(['auth', 'active', 'role:admin,accounts,supervisor', \App\Http\Middleware\GuardAgencyInput::class])->group(function () {
     Route::get('/', DashboardController::class)->name('dashboard');
 
     // Activity log (Super Admin)

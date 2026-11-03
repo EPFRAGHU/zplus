@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use App\Support\Activity\LogsActivity;
+use App\Support\Agency\ScopedToAgency;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Attributes\Hidden;
 use Illuminate\Database\Eloquent\Model;
@@ -15,7 +16,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 #[Hidden(['account_number', 'aadhaar'])]
 class Employee extends Model
 {
-    use LogsActivity;
+    use LogsActivity, ScopedToAgency;
 
     public const STATUSES = ['active' => 'Active', 'notice' => 'On notice', 'inactive' => 'Inactive'];
 
@@ -84,7 +85,8 @@ class Employee extends Model
 
     public static function nextCode(): string
     {
-        $last = static::query()->where('emp_code', 'like', 'EMP-%')->orderByDesc('id')->value('emp_code');
+        // Codes are unique across both agencies, so look at every employee.
+        $last = \App\Support\Agency\AgencyContext::unscoped(fn () => static::query()->where('emp_code', 'like', 'EMP-%')->orderByDesc('id')->value('emp_code'));
         $n = $last ? ((int) substr($last, 4)) + 1 : 1001;
 
         return 'EMP-'.$n;

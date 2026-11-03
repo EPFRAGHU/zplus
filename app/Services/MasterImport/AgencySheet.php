@@ -82,6 +82,9 @@ final class AgencySheet extends MasterSheet
         if ($v['bank_ifsc'] && ! Ifsc::isValid($v['bank_ifsc'])) {
             $errors[] = 'Bank IFSC must have 11 characters: 4 letters, a zero, then 6 letters or digits.';
         }
+        if (\App\Support\Agency\AgencyContext::id() && $code && ! isset($this->agencies[$code])) {
+            $errors[] = 'You can only update your own agency. Adding agencies is done by the Super Admin.';
+        }
         $data = collect($v)->only(['code', 'name', 'tagline', 'address', 'gstin', 'pan', 'email', 'phone', 'phones', 'website', 'letterhead_emails',
             'registrations', 'signatory_name', 'signatory_title', 'bank_name', 'bank_account_no', 'bank_ifsc', 'bank_branch', 'letterhead_style'])->all();
 

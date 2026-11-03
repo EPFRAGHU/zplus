@@ -155,6 +155,9 @@ final class EmployeeSheet extends MasterSheet
         $existing = $code ? ($this->byCode[$code] ?? null)
             : ($v['name'] && $v['mobile'] ? ($this->byNameMobile[mb_strtolower(trim($v['name'])).'|'.$v['mobile']] ?? null) : null);
 
+        if ($code && ! $existing && \App\Support\Agency\AgencyContext::unscoped(fn () => Employee::query()->where('emp_code', $code)->exists())) {
+            $errors[] = "Employee code {$code} is already used by another agency's employee. Leave the code blank for a new person.";
+        }
         $data = [
             'emp_code' => $code, 'name' => $v['name'], 'agency_id' => $agency?->id,
             'client_id' => $post ? $post->project->contract->client_id : $client?->id, 'post_id' => $post?->id,

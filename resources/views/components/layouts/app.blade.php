@@ -73,6 +73,8 @@ body{font-size:.9rem}
       @can('import')
       <div class="z-label">Setup</div>
       <a class="{{ $is('master-import.*') }}" href="{{ route('master-import.index') }}"><i class="bi bi-file-earmark-spreadsheet"></i>Data Upload</a>
+      @endcan
+      @can('gem-import')
       <a class="{{ $is('import.*') }}" href="{{ route('import.create') }}"><i class="bi bi-file-earmark-arrow-up"></i>GeM Workbook Import</a>
       @endcan
       @can('manage-users')
@@ -91,7 +93,7 @@ body{font-size:.9rem}
     </a>
     <div class="z-user">
       <div class="text-white fw-semibold">{{ auth()->user()->name }}</div>
-      <div>{{ \App\Models\User::ROLES[auth()->user()->role] ?? auth()->user()->role }}</div>
+      <div>{{ \App\Models\User::ROLES[auth()->user()->role] ?? auth()->user()->role }}@unless(auth()->user()->isPi()) · {{ auth()->user()->agency?->code ?? 'Both agencies' }}@endunless</div>
       <a class="d-block small text-decoration-none mt-1" style="color:var(--z-rail-fg)" href="{{ route('account.password') }}"><i class="bi bi-key me-1"></i>Change password</a>
       <form method="post" action="{{ route('logout') }}" class="mt-2">@csrf<button class="btn btn-sm btn-outline-light w-100">Sign out</button></form>
     </div>
