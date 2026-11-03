@@ -12,6 +12,10 @@ return [
     'timezone' => 'Asia/Kolkata',      // release times are Indian Standard Time
 
     'releases' => [
+        ['version' => '2.3.1', 'date' => '2026-11-04 03:15', 'title' => 'Proof: no agency can enter the other\'s data', 'type' => 'fix', 'notes' => [
+            'New test tries all 30 add / edit / delete / status actions of a Z Plus login on SWACHHA data and the other way round (60 attempts): every one is refused and no row changes',
+            'An agency login\'s new records always get its own agency, even if a form does not send one',
+        ]],
         ['version' => '2.3.0', 'date' => '2026-11-04 02:30', 'title' => 'Shared-computer safety and stricter agency isolation', 'type' => 'feature', 'notes' => [
             'Pages, PDFs and downloads shown to a signed-in user are never kept in the browser cache, so Back after signing out shows nothing',
             'Signing out tells the browser to clear this site\'s cache, cookies and storage',
