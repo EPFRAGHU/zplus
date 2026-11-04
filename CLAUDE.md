@@ -39,6 +39,7 @@ Owner/operator of the manpower business behind **M/S Z Plus Surakhya Seva** and 
 → Details, status and open questions: memory/projects/zplus-manpower-app.md
 
 ## Preferences (how to work on this)
+- **Review every change against the owner's checklist before calling it done** and report in its format (Verdict · Critical/High/Medium/Low findings with fixes · fixed code · what to test). Don't invent problems; say plainly if unsafe; say when a fix changes behaviour; ask if config is missing → memory/context/review-checklist.md
 - Agency and client are shown on every page and PDF; lists are grouped into dark **agency blocks** with light-blue **client blocks** (`<x-client-block>`)
 - One agency per client record: a client served by both agencies is added twice
 - Each agency's PDFs use its own letterhead
