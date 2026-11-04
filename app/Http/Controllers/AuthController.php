@@ -9,6 +9,8 @@ use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\RateLimiter;
+use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
 use Illuminate\View\View;
 
@@ -25,7 +27,16 @@ class AuthController extends Controller
         $log = fn (?int $userId, bool $ok) => LoginEvent::query()->create(['user_id' => $userId, 'email' => $credentials['email'], 'success' => $ok,
             'ip' => $request->ip(), 'user_agent' => substr((string) $request->userAgent(), 0, 255)]);
 
+        // Per-account lock: 5 wrong passwords for one e-mail locks it for 15 minutes, whichever IP they come from.
+        // (The route's throttle:6,1 separately limits each IP.)
+        $lockKey = 'login:'.Str::lower($credentials['email']);
+        if (RateLimiter::tooManyAttempts($lockKey, 5)) {
+            $minutes = (int) ceil(RateLimiter::availableIn($lockKey) / 60);
+            throw ValidationException::withMessages(['email' => "Too many wrong attempts. Try again in {$minutes} minute(s) or ask your admin to reset the password."]);
+        }
+
         if (! Auth::attempt($credentials + ['active' => true])) {   // no "remember me": office PCs are shared
+            RateLimiter::hit($lockKey, 15 * 60);
             $user = User::query()->where('email', $credentials['email'])->first();
             $log($user?->id, false);
             Activity::log('sign_in_failed', $user, [], 'E-mail tried: '.$credentials['email'], $user, 'Sign-in');
@@ -33,6 +44,7 @@ class AuthController extends Controller
                 ? 'This account is switched off. Contact the agency.' : 'That email and password do not match an account.';
             throw ValidationException::withMessages(['email' => $message]);
         }
+        RateLimiter::clear($lockKey);
         $request->session()->regenerate();
         $user = $request->user();
         $user->forceFill(['last_login_at' => now()])->save();

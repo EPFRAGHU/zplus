@@ -29,7 +29,7 @@ Route::post('/logout', [AuthController::class, 'logout'])->middleware('auth')->n
 Route::middleware(['auth', 'active'])->group(function () {
     Route::view('/releases', 'releases.index')->name('releases');
     Route::get('/account/password', [AccountController::class, 'edit'])->name('account.password');
-    Route::put('/account/password', [AccountController::class, 'update'])->name('account.password.update');
+    Route::put('/account/password', [AccountController::class, 'update'])->middleware('throttle:6,1')->name('account.password.update');
 });
 
 // PI portal: a PI sees only the projects they are in charge of

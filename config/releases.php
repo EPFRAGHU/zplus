@@ -12,6 +12,12 @@ return [
     'timezone' => 'Asia/Kolkata',      // release times are Indian Standard Time
 
     'releases' => [
+        ['version' => '2.3.2', 'date' => '2026-11-04 07:10', 'title' => 'Security review fixes', 'type' => 'fix', 'notes' => [
+            '5 wrong passwords for one account lock it for 15 minutes, from any computer (each IP was already limited)',
+            'Change password is limited to 6 tries a minute',
+            'Browser security headers on every page: HTTPS-only (HSTS), no framing by other sites, no content-type guessing',
+            'Uploaded Excel files that were checked but never saved are deleted after a day',
+        ]],
         ['version' => '2.3.1', 'date' => '2026-11-04 03:15', 'title' => 'Proof: no agency can enter the other\'s data', 'type' => 'fix', 'notes' => [
             'New test tries all 30 add / edit / delete / status actions of a Z Plus login on SWACHHA data and the other way round (60 attempts): every one is refused and no row changes',
             'An agency login\'s new records always get its own agency, even if a form does not send one',

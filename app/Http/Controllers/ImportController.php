@@ -29,6 +29,7 @@ class ImportController extends Controller
         ], ['client_id.required' => 'Choose the client these contracts belong to. Add it under Clients first if it is missing.']);
 
         $path = $request->file('workbook')->store('imports', 'local');
+        \App\Support\Uploads\StaleImports::purge('imports');
         try {
             $plan = $importer->analyse(Storage::disk('local')->path($path));
         } catch (Throwable $e) {

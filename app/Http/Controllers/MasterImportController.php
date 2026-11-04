@@ -51,6 +51,7 @@ class MasterImportController extends Controller
         $request->validate(['file' => ['required', 'file', 'mimes:xlsx,xls', 'max:10240']],
             ['file.required' => 'Choose the filled Excel file.', 'file.mimes' => 'Upload the Excel template (.xlsx).']);
         $path = $request->file('file')->store('imports/masters', 'local');
+        \App\Support\Uploads\StaleImports::purge('imports/masters');
         try {
             $analysis = $this->importer->analyse($type, Storage::disk('local')->path($path));
         } catch (Throwable $e) {
