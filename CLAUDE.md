@@ -11,7 +11,7 @@ Owner/operator of the manpower business behind **M/S Z Plus Surakhya Seva** and 
 | **ZPS** / Z Plus | M/S Z Plus Surakhya Seva, manpower & security agency, GSTIN 21AAAFZ5965B1ZD |
 | **SWH** / SWACHHA | Manpower agency "Since-1972", GSTIN 21AADAS8034Q1Z6 (printed letterhead has a typo: 21AAADAS…) |
 | **ICMR** / NIHR / RMRCBB | ICMR-NIHR (RMRCBB), Bhubaneswar: the client both agencies supply staff to |
-| **PI** | Principal Investigator of a project; signs the monthly attendance certificate |
+| **PI** | Project In-charge of a project (NOT "Principal Investigator"); signs the monthly attendance certificate |
 → More: memory/context/business.md, memory/glossary.md
 
 ## Terms
