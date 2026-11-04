@@ -5,6 +5,8 @@
 |------|---------|
 | ZPS, Z Plus, ZPLUS | M/S Z Plus Surakhya Seva (agency code ZPS) |
 | SWH, SWACHHA | SWACHHA (agency code SWH) |
+| PI | Project In-charge (NOT Principal Investigator): signs the monthly attendance certificate; role `pi` in the app |
+| Operator | App role `supervisor`: marks/checks/locks attendance |
 | ICMR, NIHR, RMRCBB | ICMR-NIHR (RMRCBB), Bhubaneswar, client (short code ICMR, letter code NIHR) |
 | GOI | Government of India |
 

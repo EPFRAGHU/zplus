@@ -1,7 +1,7 @@
 # ZPlus Manpower app
 
 **Repo:** epfraghu/zplus, branch `claude/manpower-app-foundation`
-**Status:** Live. Version **2.3.1** (04 Nov 2026, 3:15 AM IST). 132 tests passing. Project started **01 Nov 2026, 04:01 PM IST**.
+**Status:** Live. Version **2.3.2** pushed (04 Nov 2026, 7:10 AM IST; owner must Redeploy in Coolify – live was v2.3.1). 136 tests passing. Project started **01 Nov 2026, 04:01 PM IST**.
 **Live URL:** https://zplus.epf-dashboard.online (admin: the owner's Gmail; password was shown in chat once, owner told to change it via tinker)
 
 ## Stack
@@ -46,6 +46,8 @@ Size (non-blank lines): ~6,000 app code (PHP 3,010, Blade 2,004, migrations 704)
 - Letterheads: Z Plus classic (with footer); SWACHHA banner on sub-bill, covering letter, tax invoice, appointment letter (fits one page), attendance certificate, salary payout sheet
 - Version display and release notes
 - **Month picker (v2.2.3)** – `<x-month-picker>` (year arrows + 12 month buttons, submits YYYY-MM) on Attendance, Sub-bills and Tax invoices month fields, for all logins (PIs use month buttons instead). Built because the owner's Firefox has no native month calendar.
+- **Security review fixes (v2.3.2)** – owner asked for a senior security review against their checklist. No Critical/High. Fixed: per-account sign-in lock (5 wrong passwords per e-mail → 15 min, any IP; `RateLimiter` key `login:<email>`, cleared on success) on top of per-IP `throttle:6,1`; `throttle:6,1` on change password; global `SecurityHeaders` middleware (nosniff, X-Frame-Options SAMEORIGIN, Referrer-Policy, Permissions-Policy, HSTS only over HTTPS; no CSP because views use inline scripts); `StaleImports::purge()` deletes unsaved uploaded Excel files older than a day. Not changed: Docker images unpinned (offered). Tests: `SecurityHardeningTest`.
+- **User Roles Guide PDF** – `docs/guides/User-Roles-Guide-v2.pdf` (2 pages A4, for Z Plus and SWACHHA admins): four roles table, monthly flow PI → Operator → Accounts → Admin, how to add a login, good practice. Renamed to -v2 after the PI wording fix because the owner kept opening the first copy. Source HTML was in the session scratchpad only – regenerate from the PDF text if it needs editing (render with Playwright `page.pdf`, A4, printBackground).
 - **Cross-agency write proof (v2.3.1)** – `tests/Feature/CrossAgencyWriteTest.php` fires every write route of one agency's Admin and PI at the other agency's records (both directions) and asserts a DB fingerprint of all agency tables is unchanged. **Add any new write route to its attack list.**
 - **Security audit (v2.3.0)** – owner asked for a multi-tenant/shared-device audit. Found isolation already solid (global scope, 404 binding, input guard, PI checks, no raw SQL, no localStorage). Fixed: `Cache-Control: no-store` for signed-in responses, `Clear-Site-Data` on sign-out, remember-me removed (+ all remember tokens cleared), `AuthenticateSession` (password change ends other sessions), `ExistsInMyAgency` rule replacing `exists:`, MySQL/SQLite triggers refusing cross-agency rows (compose: `--log-bin-trust-function-creators=1`). MySQL has no RLS – PostgreSQL RLS discussed as an option only if hosting many agencies or moving servers. Owner to set `SESSION_EXPIRE_ON_CLOSE=true`, `SESSION_LIFETIME=60` in Coolify.
 - **Agency logins (v2.2.0)** – owner's decisions: Z Plus admin login = zplussurakhyaseva@gmail.com, SWACHHA admin login = hr.swachha@gmail.com (owner creates/sets these on the Users page); each agency's Admin creates their own agency's operators/accounts/PIs; some staff can work for both agencies – only the Super Admin (raghu.epf@gmail.com) creates both-agency logins. Existing logins stayed "both" after the migration. Dashboard banner "You are working for <agency>" + agency badge on every page title (v2.2.1); agency dropdowns in forms pre-filled and locked for single-agency logins via layout script + server fills blank agency_id (v2.2.2). Single-agency logins: data filtered everywhere (global scope), other agency's records 404, tampered ids 404, Data Upload refuses other agency's codes; no Add agency / GeM workbook import.
@@ -63,11 +65,15 @@ Size (non-blank lines): ~6,000 app code (PHP 3,010, Blade 2,004, migrations 704)
 ## Decisions
 - **Colour theme**: still the current Crimson (accent #e23d4e, sidebar #1f1a1d). On 02 Nov 2026 eight themes were previewed (browser-only, nothing changed): 1 Current Crimson #e23d4e/#1f1a1d · 2 Navy Blue #2563eb/#0f1b33 · 3 Teal Green #0f9488/#0d2623 · 4 Royal Purple #7c3aed/#1e1433 · 5 Saffron Orange #ea6c0a/#2a1a0e · 6 Forest Green #15803d/#0f2418 · 7 Maroon Gold #9f1239/#2b0f17 (gold sidebar text #e8cfa0) · 8 Light Sidebar Blue #1d4ed8/white sidebar. No choice made yet. A change = the CSS variables in `resources/views/components/layouts/app.blade.php` (`--z-accent`, `--z-rail`, `--z-rail-active`, `--z-rail-fg`, `--z-bg`, Bootstrap primary) + a version entry; PDFs and status colours unaffected.
 - **Attendance flow (current, agreed)**: PI signs and e-mails the sheet (or uses the PI portal); operator marks/checks and locks; sub-bill made on lock; tax invoice one click.
+- **Super Admin sees everything**: raghu.epf@gmail.com keeps "Works for" = Both agencies; sees both agencies' data, PI submissions/signed copies/corrections, and the Activity log (filter by user). Agency admins never see the Activity log.
+- **Roles** (gates in `AppServiceProvider`): Admin = everything for the agency + users, Data Upload, unlock month. Accounts = masters, employees, bills (make/approve/paid), tax invoices, bank details, salary sheet; no users/Data Upload/unlock. Operator (`supervisor`) = mark/check/correct/lock attendance, view the rest; no masters, bills, bank details, salary sheet. PI = own projects only (portal).
 - Mobile self check-in (GPS/selfie) by employees: discussed, **not wanted**; attendance stays with PI/operator
 
 ## Owner to-do on the live app (as of 04 Nov 2026)
 - [ ] Coolify: add `SESSION_EXPIRE_ON_CLOSE=true` and `SESSION_LIFETIME=60`, then **Redeploy** (v2.3.x; db container restarts once for the trigger flag; everyone signs in again)
-- [ ] After redeploy, optional check in app container: `grep "Could not create trigger" storage/logs/laravel.log` should print nothing
+- [ ] Redeploy for **v2.3.2** (security fixes) before sending the roles guide (it mentions the 15-minute lock)
+- [ ] After redeploy, check triggers in the app container: `php artisan tinker --execute="echo count(DB::select('SHOW TRIGGERS'));"` → above 0 (NOT the laravel.log grep: production logs go to stderr, see Coolify Logs for "Could not create trigger")
+- [ ] Send `User-Roles-Guide-v2.pdf` to the Z Plus and SWACHHA admins
 - [ ] Users: set zplussurakhyaseva@gmail.com "Works for" = Z Plus (was "Both" after v2.2.0); add hr.swachha@gmail.com as Admin for SWACHHA
 - [ ] Agencies → Edit: bank details for Z Plus and SWACHHA (printed on tax invoices); optionally rename "SWACHHA" to "M/S SWACHHA"
 - [ ] Load data: Clients → GeM contracts → Projects → Posts → Employees (by hand or Data Upload); set EPF/ESIC switches
@@ -93,6 +99,9 @@ What moves: code (GitHub or a copy), MySQL dump, uploaded files (`zplus-storage`
 - Cashfree Payouts (account verification, salary batches, webhooks), SMS (DLT) and WhatsApp messages, payslips per employee. Still to ask: does each agency have its own Cashfree account?
 
 ## Lessons
+- **PI = Project In-charge**, never "Principal Investigator" – owner corrected this
+- Production `LOG_CHANNEL=stderr`: there is no storage/logs/laravel.log on the live app; use Coolify Logs
+- When re-sending a corrected file, give it a new name (e.g. -v2): the owner's app shows the old copy for the same name
 - Owner uses **Firefox**: no native `<input type="month">` calendar there – use the `<x-month-picker>` component for month fields
 - Store month columns as `Y-m-d` (SQLite unique index broke with `Y-m-d 00:00:00`)
 - Blade: keep `@can` inside slots; no stray text after `@endif`; avoid `@if(x) (text` on one line – a "(" right after a directive breaks compilation; use closures/variables instead
