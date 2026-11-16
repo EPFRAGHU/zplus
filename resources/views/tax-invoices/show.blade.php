@@ -40,6 +40,12 @@
           <button class="btn btn-primary">{{ $next[1] }}</button>
         </form>
       @endif
+      @if($tax->status !== 'paid' && (! $tax->contract || ! \App\Services\Billing\TaxInvoiceBuilder::isNewStyle($tax->number, $tax->contract)))
+        @can('billing')<form method="post" action="{{ route('tax-invoices.recalculate', $tax) }}" class="d-grid mt-2"
+          onsubmit="return confirm('Give this tax invoice the work order number (SW/001/26-27 style) and work its figures out again with the current rules?{{ $tax->status === 'submitted' ? ' It was already submitted: send the client the new PDF.' : '' }}')">@csrf
+          <button class="btn btn-outline-primary btn-sm"><i class="bi bi-arrow-repeat me-1"></i>Renumber and recalculate</button></form>
+        <div class="small text-warning-emphasis mt-1">Made before 16 Nov 2026: old-style number.</div>@endcan
+      @endif
       @if($tax->status === 'draft')
         @can('billing')<form method="post" action="{{ route('tax-invoices.destroy', $tax) }}" class="d-grid mt-2" onsubmit="return confirm('Delete this draft tax invoice? Its sub-bills can be invoiced again.')">@csrf @method('delete')<button class="btn btn-outline-danger btn-sm">Delete draft</button></form>@endcan
       @endif

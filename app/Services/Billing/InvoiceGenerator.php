@@ -68,10 +68,11 @@ final class InvoiceGenerator
             $this->writeLines($invoice, $sheet, $totals);
 
             if ($tax) {
-                $tax->refresh();
-                $t = TaxInvoiceBuilder::totals($tax->subBills()->get(), $tax->contract ?? $contract);
-                $tax->update(['taxable' => $t->taxable, 'cgst' => $t->cgst, 'sgst' => $t->sgst, 'igst' => $t->igst,
-                    'total' => $t->total, 'rounded_total' => $t->roundedTotal]);
+                try {
+                    app(TaxInvoiceBuilder::class)->refresh($tax->refresh());   // new number + totals
+                } catch (RuntimeException) {
+                    // e.g. it mixes work orders: its figures are refreshed when it is remade; the bill itself is done
+                }
             }
         });
 

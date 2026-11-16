@@ -113,6 +113,7 @@ Route::middleware(['auth', 'active', 'role:admin,accounts,supervisor', \App\Http
     Route::post('tax-invoices', [TaxInvoiceController::class, 'store'])->name('tax-invoices.store');
     Route::get('tax-invoices/{taxInvoice}', [TaxInvoiceController::class, 'show'])->name('tax-invoices.show');
     Route::post('tax-invoices/{taxInvoice}/status', [TaxInvoiceController::class, 'status'])->name('tax-invoices.status');
+    Route::post('tax-invoices/{taxInvoice}/recalculate', [TaxInvoiceController::class, 'recalculate'])->name('tax-invoices.recalculate');
     Route::delete('tax-invoices/{taxInvoice}', [TaxInvoiceController::class, 'destroy'])->name('tax-invoices.destroy');
     Route::get('tax-invoices/{taxInvoice}/pdf', [TaxInvoiceController::class, 'pdf'])->name('tax-invoices.pdf');
 

@@ -12,6 +12,10 @@ return [
     'timezone' => 'Asia/Kolkata',      // release times are Indian Standard Time
 
     'releases' => [
+        ['version' => '2.5.3', 'date' => '2026-11-16 22:58', 'title' => 'Old tax invoices get the SW/001/26-27 number', 'type' => 'fix', 'notes' => [
+            'Tax invoices made before 16 Nov 2026 (e.g. SW26271/TI/01/2026) are renumbered to their work order\'s number for the month, SW/001/26-27 (the serial their sub-bills carry), linked to the work order and worked out again',
+            '"Renumber and recalculate" button on such a tax invoice; "Recalculate all" on the Sub-bills page now also covers them; paid tax invoices are never changed',
+        ]],
         ['version' => '2.5.2', 'date' => '2026-11-16 22:52', 'title' => 'Submitted bills can be recalculated too', 'type' => 'fix', 'notes' => [
             'Recalculate (one bill or "Recalculate all") now also corrects bills already submitted to the client, and their tax invoice if not paid; send the client the new PDF',
             'Paid bills and bills in a paid tax invoice are never changed',

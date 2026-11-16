@@ -10,6 +10,7 @@ use App\Models\GeneratedDocument;
 use App\Models\Invoice;
 use App\Models\Project;
 use App\Services\Billing\InvoiceGenerator;
+use App\Services\Billing\TaxInvoiceBuilder;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -108,7 +109,18 @@ class InvoiceController extends Controller
                 $skipped[] = $e->getMessage();
             }
         }
-        $msg = count($done).' '.\Illuminate\Support\Str::plural('bill', count($done)).' recalculated with the current rules'.($done ? ': '.implode(', ', $done) : '').'.';
+        $taxes = [];
+        foreach (TaxInvoiceBuilder::outdated()->get() as $tax) {
+            try {
+                [$oldNo, $newNo, $oldTotal, $newTotal] = app(TaxInvoiceBuilder::class)->refresh($tax);
+                \App\Support\Activity\Activity::log('updated', $tax, [], "Recalculated with current rules: {$oldNo} ₹{$oldTotal} → {$newNo} ₹{$newTotal}", section: 'Tax invoices');
+                $taxes[] = "{$oldNo} → {$newNo}";
+            } catch (RuntimeException $e) {
+                $skipped[] = $e->getMessage();
+            }
+        }
+        $msg = count($done).' '.\Illuminate\Support\Str::plural('bill', count($done)).' recalculated with the current rules'.($done ? ': '.implode(', ', $done) : '').'.'
+            .($taxes ? ' Tax invoices renumbered: '.implode(', ', $taxes).'.' : '');
 
         $response = back()->with('status', $msg);
 

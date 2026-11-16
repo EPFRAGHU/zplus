@@ -323,4 +323,34 @@ class OwnerChangesTest extends TestCase
         $this->actingAs(User::factory()->create(['role' => 'supervisor', 'agency_id' => $agency->id]));
         $this->post("/invoices/{$old->id}/recalculate")->assertForbidden();
     }
+
+    public function test_old_tax_invoice_gets_the_work_order_number_when_recalculated(): void
+    {
+        [, , $contract] = $this->swachha();
+        $contract->update(['service_charge_includes_gst' => false]);
+        $bills = $this->billMonth($contract->load('projects'), '2026-10-01');
+        $tax = app(TaxInvoiceBuilder::class)->create($contract, CarbonImmutable::parse('2026-10-01'), collect($bills)->pluck('id')->all(), $this->admin);
+        // As made before 16 Nov 2026: client-style number, no work order, bills submitted
+        $tax->forceFill(['number' => 'SW26271/TI/01/2026', 'gem_contract_id' => null, 'status' => 'submitted'])->save();
+        foreach ($bills as $b) {
+            $b->forceFill(['invoice_no' => 'OLD/'.$b->id, 'status' => 'submitted'])->save();
+        }
+        $contract->update(['service_charge_includes_gst' => true]);
+
+        $this->get("/tax-invoices/{$tax->id}")->assertOk()->assertSee('Renumber and recalculate');
+        $this->get('/invoices')->assertSee('SW26271/TI/01/2026 (tax invoice)');
+        $this->post('/invoices-recalculate-outdated')->assertSessionHasNoErrors();   // the tax invoice is renumbered with its bills
+
+        $tax->refresh();
+        $this->assertSame('SW/001/26-27', $tax->number);
+        $this->assertSame($contract->id, $tax->gem_contract_id);
+        $this->assertSame('submitted', $tax->status);
+        $this->assertSame(['SW/001/26-27(CCRH)', 'SW/001/26-27(HTA)'], \App\Models\Invoice::query()->orderBy('invoice_no')->pluck('invoice_no')->all());
+        $html = view('pdf.tax-invoice', \App\Http\Controllers\TaxInvoiceController::pdfData($tax))->render();
+        $this->assertStringContainsString('Invoice No- SW/001/26-27', $html);
+
+        $tax->forceFill(['status' => 'paid', 'number' => 'OLD/TI'])->save();
+        $this->post("/tax-invoices/{$tax->id}/recalculate")->assertSessionHasErrors('tax');
+        $this->assertSame('OLD/TI', $tax->fresh()->number);
+    }
 }

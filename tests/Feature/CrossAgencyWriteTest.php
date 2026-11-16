@@ -110,6 +110,7 @@ class CrossAgencyWriteTest extends TestCase
             'make a tax invoice from their bill' => fn () => $this->post('/tax-invoices', ['gem_contract_id' => $o['contract']->id, 'month' => '2026-09', 'sub_bills' => [$o['invoice']->id], 'invoice_date' => '2026-10-05']),
             'tax invoice of their bill under my work order' => fn () => $this->post('/tax-invoices', ['month' => '2026-09', 'sub_bills' => [$o['invoice']->id], 'invoice_date' => '2026-10-05']),
             'change their tax invoice status' => fn () => $this->post("/tax-invoices/{$o['tax']->id}/status", ['status' => 'submitted']),
+            'recalculate their tax invoice' => fn () => $this->post("/tax-invoices/{$o['tax']->id}/recalculate"),
             'delete their tax invoice' => fn () => $this->delete("/tax-invoices/{$o['tax']->id}"),
             'add a PI In-charge under their agency' => fn () => $this->post('/incharges', ['agency_id' => $o['agency']->id, 'name' => 'X', 'status' => 'active']),
             'edit their PI In-charge' => fn () => $this->put("/incharges/{$o['incharge']->id}", ['agency_id' => $o['agency']->id, 'name' => 'Hacked', 'status' => 'active']),

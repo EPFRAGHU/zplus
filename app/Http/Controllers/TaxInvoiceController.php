@@ -102,6 +102,20 @@ class TaxInvoiceController extends Controller
         return back()->with('status', 'Tax invoice marked '.TaxInvoice::STATUSES[$data['status']].'.');
     }
 
+    /** Gives an unpaid tax invoice made under the old rules its work order number (SW/001/26-27) and current figures. */
+    public function recalculate(TaxInvoice $taxInvoice): RedirectResponse
+    {
+        Gate::authorize('billing');
+        try {
+            [$oldNo, $newNo, $oldTotal, $newTotal] = $this->builder->refresh($taxInvoice);
+        } catch (RuntimeException $e) {
+            return back()->withErrors(['tax' => $e->getMessage()]);
+        }
+        \App\Support\Activity\Activity::log('updated', $taxInvoice, [], "Recalculated with current rules: {$oldNo} ₹{$oldTotal} → {$newNo} ₹{$newTotal}", section: 'Tax invoices');
+
+        return redirect()->route('tax-invoices.show', $taxInvoice)->with('status', "Tax invoice {$oldNo} is now {$newNo}: ₹".number_format((float) $oldTotal, 2).' → ₹'.number_format((float) $newTotal, 2).'.');
+    }
+
     public function destroy(TaxInvoice $taxInvoice): RedirectResponse
     {
         Gate::authorize('billing');

@@ -149,6 +149,59 @@ final class TaxInvoiceBuilder
         ];
     }
 
+    /**
+     * Brings an unpaid tax invoice made under the old rules up to date: links it to its work order, gives it the
+     * work order's number for the month (SW/001/26-27, the serial its sub-bills carry) and works its totals out again.
+     *
+     * @return array{0: string, 1: string, 2: string, 3: string} [old number, new number, old total, new total]
+     */
+    public function refresh(TaxInvoice $tax): array
+    {
+        if ($tax->status === 'paid') {
+            throw new RuntimeException("Tax invoice {$tax->number} is already paid, so it cannot be changed.");
+        }
+        $subBills = $tax->subBills()->get();
+        if ($subBills->isEmpty()) {
+            throw new RuntimeException("Tax invoice {$tax->number} has no sub-bills.");
+        }
+        if ($subBills->pluck('gem_contract_id')->unique()->count() > 1) {
+            throw new RuntimeException("Tax invoice {$tax->number} holds sub-bills of more than one work order. Delete it and make one tax invoice per work order.");
+        }
+        $contract = GemContract::query()->with('agency')->findOrFail($subBills->first()->gem_contract_id);
+        [$oldNo, $oldTotal] = [$tax->number, (string) $tax->rounded_total];
+
+        DB::transaction(function () use ($tax, $contract, $subBills) {
+            $number = $tax->number;
+            if (! self::isNewStyle($number, $contract)) {
+                $base = $this->numbers->taxInvoiceNumber($contract, $tax->month);
+                $number = $base;
+                for ($n = 2; TaxInvoice::query()->where('agency_id', $contract->agency_id)->where('number', $number)->whereKeyNot($tax->id)->exists(); $n++) {
+                    $number = $base.'-'.$n;
+                }
+            }
+            $t = self::totals($subBills, $contract);
+            $tax->update(['gem_contract_id' => $contract->id, 'number' => $number,
+                'taxable' => $t->taxable, 'cgst' => $t->cgst, 'sgst' => $t->sgst, 'igst' => $t->igst,
+                'total' => $t->total, 'rounded_total' => $t->roundedTotal]);
+        });
+        $tax->refresh();
+
+        return [$oldNo, $tax->number, $oldTotal, (string) $tax->rounded_total];
+    }
+
+    /** Unpaid tax invoices still carrying an old-style number (e.g. ICMR/TI/01/2026) or no work order. */
+    public static function outdated(): \Illuminate\Database\Eloquent\Builder
+    {
+        return TaxInvoice::query()->where('status', '!=', 'paid')
+            ->where(fn ($q) => $q->whereNull('gem_contract_id')->orWhere('number', 'not like', '%/___/__-__'));
+    }
+
+    /** SW/001/26-27 (optionally -2) with the work order's agency prefix. */
+    public static function isNewStyle(string $number, GemContract $contract): bool
+    {
+        return (bool) preg_match('#^'.preg_quote($contract->agency->numberPrefix(), '#').'/\d{3}/\d{2}-\d{2}(-\d+)?$#', $number);
+    }
+
     /** Releases the sub-bills of a draft tax invoice and deletes it. */
     public function delete(TaxInvoice $tax): void
     {
