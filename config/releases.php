@@ -12,6 +12,10 @@ return [
     'timezone' => 'Asia/Kolkata',      // release times are Indian Standard Time
 
     'releases' => [
+        ['version' => '2.5.2', 'date' => '2026-11-16 22:52', 'title' => 'Submitted bills can be recalculated too', 'type' => 'fix', 'notes' => [
+            'Recalculate (one bill or "Recalculate all") now also corrects bills already submitted to the client, and their tax invoice if not paid; send the client the new PDF',
+            'Paid bills and bills in a paid tax invoice are never changed',
+        ]],
         ['version' => '2.5.1', 'date' => '2026-11-16 22:25', 'title' => 'Recalculate bills made before the new rules', 'type' => 'fix', 'notes' => [
             'Draft and approved bills made before 16 Nov 2026 can be worked out again with the current rules: service charge incl. GST (÷ 1.18), no rounding, new SW/001/26-27(CODE) number',
             'Sub-bills page lists those bills with a "Recalculate all" button; each bill also has "Recalculate with current rules"',

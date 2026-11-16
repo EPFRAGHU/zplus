@@ -5,7 +5,7 @@
   @if($outdated->isNotEmpty())
   <div class="alert alert-warning d-flex flex-wrap gap-2 align-items-center">
     <div><b>{{ $outdated->count() }} {{ \Illuminate\Support\Str::plural('bill', $outdated->count()) }} made with the old rules</b> (service charge 3.85% on the amount, old bill number):
-      <span class="mono small">{{ $outdated->pluck('invoice_no')->implode(', ') }}</span>. Draft and approved bills can be worked out again; submitted and paid bills are not changed.</div>
+      <span class="mono small">{{ $outdated->pluck('invoice_no')->implode(', ') }}</span>. Draft, approved and submitted bills are worked out again (send the client the new PDF of any bill already submitted); paid bills are never changed.</div>
     <form method="post" action="{{ route('invoices.recalculate-outdated') }}" class="ms-auto" onsubmit="return confirm('Recalculate these bills with the current rules? Their status stays the same; every change is recorded in the Activity log.')">@csrf
       <button class="btn btn-sm btn-warning"><i class="bi bi-arrow-repeat me-1"></i>Recalculate all</button></form>
   </div>

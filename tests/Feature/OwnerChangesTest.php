@@ -300,6 +300,8 @@ class OwnerChangesTest extends TestCase
         $tax = app(TaxInvoiceBuilder::class)->create($contract, CarbonImmutable::parse('2026-10-01'), [$old->id], $this->admin);
         $submitted = $bills['CCRH'];
         $submitted->forceFill(['status' => 'submitted'])->save();
+        $paid = $this->billMonth($contract, '2026-11-01')['HTA'];
+        $paid->forceFill(['status' => 'paid'])->save();
         $contract->update(['service_charge_includes_gst' => true]);
 
         $this->get('/invoices')->assertSee('made with the old rules')->assertSee('SW26271/HTA/01/2026');
@@ -312,10 +314,12 @@ class OwnerChangesTest extends TestCase
         $this->assertSame('SW/001/26-27(HTA)', $old->invoice_no);                 // new-style number
         $this->assertSame('97967.00', $old->rounded_total);                     // (80,400 + 2,623.22) x 1.18 = 97,967.40
         $this->assertSame('97967.00', $tax->fresh()->rounded_total);              // its draft tax invoice follows
-        $this->assertFalse($submitted->fresh()->service_charge_includes_gst);    // submitted bills are not touched
-        $this->assertSame(1, \App\Models\ActivityLog::query()->where('note', 'like', 'Recalculated with current rules%')->count());
+        $this->assertTrue($submitted->fresh()->service_charge_includes_gst);     // submitted bills too (owner, 16 Nov 2026)
+        $this->assertSame('submitted', $submitted->fresh()->status);
+        $this->assertFalse($paid->fresh()->service_charge_includes_gst);         // paid bills are never touched
+        $this->assertSame(3, \App\Models\ActivityLog::query()->where('note', 'like', 'Recalculated with current rules%')->count());   // Oct HTA, Oct CCRH, Nov CCRH (draft); Nov HTA is paid
 
-        $this->post("/invoices/{$submitted->id}/recalculate")->assertSessionHasErrors('invoice');
+        $this->post("/invoices/{$paid->id}/recalculate")->assertSessionHasErrors('invoice');
         $this->actingAs(User::factory()->create(['role' => 'supervisor', 'agency_id' => $agency->id]));
         $this->post("/invoices/{$old->id}/recalculate")->assertForbidden();
     }

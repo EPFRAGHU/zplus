@@ -39,19 +39,20 @@ final class InvoiceGenerator
 
     /**
      * Works a bill out again with today's rules (service charge incl. GST, exact figures, SW/001/26-27(CODE) numbers),
-     * keeping its status, date and attendance. Only for bills not yet submitted or paid, and not in a submitted or paid
-     * tax invoice; a draft tax invoice holding it is worked out again too. Returns [old total, new total].
+     * keeping its status, date and attendance. Not for paid bills, nor bills in a paid tax invoice; a tax invoice holding
+     * it is worked out again too. (Owner, 16 Nov 2026: submitted bills too – the corrected PDF is then sent again.)
+     * Returns [old total, new total].
      *
      * @return array{0: string, 1: string}
      */
     public function recalculate(Invoice $invoice, User $user): array
     {
-        if (! in_array($invoice->status, ['draft', 'approved'], true)) {
-            throw new RuntimeException("Bill {$invoice->invoice_no} is already {$invoice->status}, so it cannot be changed.");
+        if ($invoice->status === 'paid') {
+            throw new RuntimeException("Bill {$invoice->invoice_no} is already paid, so it cannot be changed.");
         }
         $tax = $invoice->taxInvoice;
-        if ($tax && $tax->status !== 'draft') {
-            throw new RuntimeException("Bill {$invoice->invoice_no} is in tax invoice {$tax->number}, which is already {$tax->status}.");
+        if ($tax && $tax->status === 'paid') {
+            throw new RuntimeException("Bill {$invoice->invoice_no} is in tax invoice {$tax->number}, which is already paid.");
         }
         $sheet = $invoice->sheet;
         if (! $sheet || ! $sheet->isLocked()) {
@@ -80,9 +81,9 @@ final class InvoiceGenerator
     /** Bills that would change if worked out again: made under the old rules and still open. */
     public static function outdated(): \Illuminate\Database\Eloquent\Builder
     {
-        return Invoice::query()->whereIn('status', ['draft', 'approved'])
+        return Invoice::query()->whereIn('status', ['draft', 'approved', 'submitted'])
             ->where(fn ($q) => $q->where('service_charge_includes_gst', false)->orWhere('invoice_no', 'not like', '%/___/__-__(%'))
-            ->where(fn ($q) => $q->whereNull('tax_invoice_id')->orWhereHas('taxInvoice', fn ($t) => $t->where('status', 'draft')));
+            ->where(fn ($q) => $q->whereNull('tax_invoice_id')->orWhereHas('taxInvoice', fn ($t) => $t->where('status', '!=', 'paid')));
     }
 
     private static function isNewStyle(string $number, $contract): bool
