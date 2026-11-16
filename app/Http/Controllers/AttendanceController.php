@@ -114,6 +114,24 @@ class AttendanceController extends Controller
         return $this->attempt(fn () => $this->attendance->unlock($sheet), 'Month unlocked.');
     }
 
+    /** Admin: deletes this project's month (sub-bill unless paid, attendance, corrections, scans) so it can be started afresh. */
+    public function reset(Request $request, AttendanceSheet $sheet): RedirectResponse
+    {
+        Gate::authorize('reset-month');
+        $request->validate(['confirm' => ['required', 'in:RESET']], ['confirm.required' => 'Type RESET to confirm.', 'confirm.in' => 'Type RESET (in capitals) to confirm.']);
+        $sheet->load('project');
+        $label = $sheet->project->name.' ('.$sheet->project->code.') '.$sheet->month->format('F Y');
+        $month = $sheet->month->format('Y-m');
+        try {
+            $summary = $this->attendance->reset($sheet);
+        } catch (\RuntimeException $e) {
+            return back()->withErrors(['reset' => $e->getMessage()]);
+        }
+        \App\Support\Activity\Activity::log('deleted', null, [], "Month reset: {$label}. {$summary}", section: 'Attendance', label: $label);
+
+        return redirect()->route('attendance.index', ['month' => $month])->with('status', "{$label} reset. {$summary} You can start the month again.");
+    }
+
     /** Salary payout (bank transfer) sheet for a locked month: earned salary, employee EPF and ESIC, net pay and bank details. */
     public function payouts(AttendanceSheet $sheet, \App\Services\Payroll\SalaryPayoutSheet $payouts): Response
     {

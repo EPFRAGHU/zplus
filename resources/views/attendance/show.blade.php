@@ -9,7 +9,26 @@
       @endcan
     @endif
     @if($sheet->certificate_path)<a class="btn btn-outline-secondary" href="{{ route('attendance.scan', $sheet) }}" target="_blank"><i class="bi bi-file-earmark-check me-1"></i>Signed scan</a>@endif
+    @can('reset-month')<button class="btn btn-outline-danger" type="button" data-bs-toggle="collapse" data-bs-target="#reset-month"><i class="bi bi-arrow-counterclockwise me-1"></i>Reset this month</button>@endcan
   </x-slot:actions>
+  @can('reset-month')
+  @php($resetBill = $sheet->invoice)
+  <div class="collapse mb-3 @if($errors->has('confirm') || $errors->has('reset')) show @endif" id="reset-month"><div class="alert alert-danger">
+    <div class="fw-bold mb-1"><i class="bi bi-exclamation-triangle me-1"></i>Reset {{ $sheet->project->name }} for {{ $sheet->month->format('F Y') }}</div>
+    <div class="small">This deletes, for this project and month only:
+      <ul class="mb-1"><li>the attendance of all {{ $sheet->entries->count() }} employees, the corrections and the uploaded PDFs</li>
+        @if($resetBill)<li>sub-bill <b class="mono">{{ $resetBill->invoice_no }}</b> ({{ inr($resetBill->rounded_total) }}, {{ $resetBill->status }})@if($resetBill->taxInvoice) – it is taken out of tax invoice <b class="mono">{{ $resetBill->taxInvoice->number }}</b>@endif</li>@endif</ul>
+      @if($resetBill && $resetBill->status === 'submitted')<div class="fw-semibold">This sub-bill was already submitted to the client. Tell them it is withdrawn.</div>@endif
+      Paid bills are never reset. The month's bill number is kept for the next sub-bill. The reset is recorded in the Activity log and cannot be undone.</div>
+    @error('reset')<div class="small fw-semibold mt-1">{{ $message }}</div>@enderror
+    <form method="post" action="{{ route('attendance.reset', $sheet) }}" class="d-flex gap-2 align-items-center mt-2 flex-wrap">@csrf
+      <label class="small" for="reset-confirm">Type <b>RESET</b> to confirm</label>
+      <input id="reset-confirm" name="confirm" class="form-control form-control-sm @error('confirm') is-invalid @enderror" style="max-width:140px" autocomplete="off" required>
+      <button class="btn btn-sm btn-danger">Reset this month</button>
+      @error('confirm')<div class="small text-danger w-100">{{ $message }}</div>@enderror
+    </form>
+  </div></div>
+  @endcan
 
   <div class="d-flex flex-wrap gap-3 small mb-3">
     <span>Status: <x-status :value="$sheet->status" /></span>

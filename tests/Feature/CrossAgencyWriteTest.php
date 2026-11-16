@@ -102,6 +102,7 @@ class CrossAgencyWriteTest extends TestCase
             'start a month for their project' => fn () => $this->post('/attendance', ['project_id' => $o['project']->id, 'month' => '2026-11']),
             'change their attendance' => fn () => $this->put("/attendance/{$o['open']->id}", ['codes' => $codes]),
             'lock their month' => fn () => $this->post("/attendance/{$o['open']->id}/lock", ['certificate' => $pdf()]),
+            'reset their month' => fn () => $this->post("/attendance/{$o['locked']->id}/reset", ['confirm' => 'RESET']),
             'unlock their month' => fn () => $this->post("/attendance/{$o['locked']->id}/unlock"),
             'make a bill from their month' => fn () => $this->post('/invoices', ['attendance_sheet_id' => $o['open']->id]),
             'approve their bill' => fn () => $this->post("/invoices/{$o['invoice']->id}/status", ['status' => 'approved']),

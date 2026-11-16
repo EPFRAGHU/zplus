@@ -421,4 +421,46 @@ class OwnerChangesTest extends TestCase
         $this->assertSame(3, $contract->projects()->count());
         $this->assertSame(1, GemContract::query()->count());
     }
+
+    public function test_admin_can_reset_a_projects_month_and_make_it_again(): void
+    {
+        \Illuminate\Support\Facades\Storage::fake('local');
+        [, , $contract] = $this->swachha();
+        $bills = $this->billMonth($contract->load('projects'), '2026-10-01');
+        $tax = app(TaxInvoiceBuilder::class)->create($contract, CarbonImmutable::parse('2026-10-01'), collect($bills)->pluck('id')->all(), $this->admin);
+        $hta = $bills['HTA'];
+        $hta->forceFill(['status' => 'submitted'])->save();
+        $sheet = $hta->sheet;
+        \Illuminate\Support\Facades\Storage::disk('local')->put('certificates/x.pdf', 'scan');
+        $sheet->forceFill(['certificate_path' => 'certificates/x.pdf'])->save();
+        $ccrhTotal = (string) $bills['CCRH']->rounded_total;
+
+        $this->get("/attendance/{$sheet->id}")->assertSee('Reset this month')->assertSee('already submitted');
+        $this->post("/attendance/{$sheet->id}/reset", ['confirm' => 'reset'])->assertSessionHasErrors('confirm');   // must type RESET
+        $this->post("/attendance/{$sheet->id}/reset", ['confirm' => 'RESET'])->assertSessionHasNoErrors();
+
+        $this->assertNull(\App\Models\AttendanceSheet::query()->find($sheet->id));
+        $this->assertSame(0, \App\Models\AttendanceEntry::query()->where('attendance_sheet_id', $sheet->id)->count());
+        $this->assertNull(\App\Models\Invoice::query()->find($hta->id));
+        $this->assertSame($ccrhTotal, (string) $tax->fresh()->rounded_total);                       // tax invoice now only CCRH
+        \Illuminate\Support\Facades\Storage::disk('local')->assertMissing('certificates/x.pdf');
+        $this->assertTrue(\App\Models\ActivityLog::query()->where('note', 'like', 'Month reset: HTA (HTA) October 2026.%')->exists());
+
+        // Started again: the same bill number comes back.
+        $again = $this->billMonth($contract->fresh()->load('projects')->setRelation('projects', $contract->projects()->where('code', 'HTA')->get()), '2026-10-01');
+        $this->assertSame('SW/001/26-27(HTA)', $again['HTA']->invoice_no);
+
+        // The last sub-bill of a tax invoice: the tax invoice goes too. Paid: refused.
+        $ccrhSheet = $bills['CCRH']->sheet;
+        $this->post("/attendance/{$ccrhSheet->id}/reset", ['confirm' => 'RESET'])->assertSessionHasNoErrors();
+        $this->assertNull(\App\Models\TaxInvoice::query()->find($tax->id));
+        $again['HTA']->forceFill(['status' => 'paid'])->save();
+        $this->post("/attendance/{$again['HTA']->attendance_sheet_id}/reset", ['confirm' => 'RESET'])->assertSessionHasErrors('reset');
+
+        // Admin only.
+        foreach (['accounts', 'supervisor'] as $role) {
+            $this->actingAs(User::factory()->create(['role' => $role]));
+            $this->post("/attendance/{$again['HTA']->attendance_sheet_id}/reset", ['confirm' => 'RESET'])->assertForbidden();
+        }
+    }
 }

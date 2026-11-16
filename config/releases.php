@@ -12,6 +12,12 @@ return [
     'timezone' => 'Asia/Kolkata',      // release times are Indian Standard Time
 
     'releases' => [
+        ['version' => '2.7.0', 'date' => '2026-11-16 23:50', 'title' => 'Reset a project\'s month', 'type' => 'feature', 'notes' => [
+            'Attendance month page → "Reset this month" (Admin only, type RESET to confirm): deletes that project\'s month – the attendance of all its employees, the corrections, the uploaded PDFs and its sub-bill – so the month can be started again',
+            'Works for draft, approved and submitted sub-bills; never for paid ones. The sub-bill is taken out of its tax invoice: a tax invoice left empty is deleted, otherwise it is worked out again',
+            'The work order\'s bill number for the month is kept, so the new sub-bill gets the same number',
+            'Every reset is recorded in the Activity log',
+        ]],
         ['version' => '2.6.3', 'date' => '2026-11-16 23:40', 'title' => 'Enter a work order once, add projects to it', 'type' => 'fix', 'notes' => [
             'Work Orders list: "Add project" on every work order, so projects using the same GeM bid and contract number go under it without typing them again',
             'Add work order: typing a bid or contract number that is already saved shows it, with a link to add your project there; saving a duplicate explains the same',

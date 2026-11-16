@@ -133,6 +133,58 @@ final class AttendanceService
         $sheet->forceFill(['status' => 'draft', 'locked_at' => null, 'locked_by' => null])->save();
     }
 
+    /**
+     * Resets one project's month completely, e.g. a month made as an example (owner, 16 Nov 2026; Admin only):
+     * its sub-bill (any status except paid) is removed and taken out of its tax invoice (a tax invoice left empty is
+     * deleted, otherwise worked out again), and the attendance sheet with every employee's codes, the corrections
+     * and the uploaded PDFs is deleted, so the month can be started afresh. The work order's bill number for the
+     * month is kept, so the next sub-bill gets it again. Returns a summary for the Activity log.
+     */
+    public function reset(AttendanceSheet $sheet): string
+    {
+        $invoice = $sheet->invoice()->with('taxInvoice')->first();
+        if ($invoice && $invoice->status === 'paid') {
+            throw new RuntimeException("Sub-bill {$invoice->invoice_no} is paid, so this month cannot be reset.");
+        }
+        if ($invoice?->taxInvoice && $invoice->taxInvoice->status === 'paid') {
+            throw new RuntimeException("Tax invoice {$invoice->taxInvoice->number} is paid, so this month cannot be reset.");
+        }
+        $files = array_filter([$sheet->certificate_path, $sheet->submitted_pdf_path]);
+        $summary = [];
+
+        DB::transaction(function () use ($sheet, $invoice, &$summary) {
+            if ($invoice) {
+                $tax = $invoice->taxInvoice;
+                $invoice->forceFill(['tax_invoice_id' => null])->save();
+                $invoice->lines()->delete();
+                $invoice->delete();
+                $summary[] = "sub-bill {$invoice->invoice_no} (₹{$invoice->rounded_total}, {$invoice->status}) deleted";
+                if ($tax) {
+                    $left = $tax->subBills()->get();
+                    if ($left->isEmpty()) {
+                        $tax->delete();
+                        $summary[] = "tax invoice {$tax->number} deleted (no sub-bills left)";
+                    } else {
+                        $t = \App\Services\Billing\TaxInvoiceBuilder::totals($left, $tax->contract ?? $left->first()->contract);
+                        $tax->update(['taxable' => $t->taxable, 'cgst' => $t->cgst, 'sgst' => $t->sgst, 'igst' => $t->igst,
+                            'total' => $t->total, 'rounded_total' => $t->roundedTotal]);
+                        $summary[] = "tax invoice {$tax->number} worked out again without it (now ₹{$t->roundedTotal})";
+                    }
+                }
+            }
+            $people = $sheet->entries()->count();
+            \App\Models\AttendanceChange::query()->where('attendance_sheet_id', $sheet->id)->delete();
+            $sheet->entries()->delete();
+            $sheet->delete();
+            $summary[] = "attendance of {$people} ".\Illuminate\Support\Str::plural('employee', $people).' deleted';
+        });
+        foreach ($files as $path) {
+            Storage::disk('local')->delete($path);   // signed scan / PDF as submitted by the PI
+        }
+
+        return ucfirst(implode('; ', $summary)).'.';
+    }
+
     private function assertEditable(AttendanceSheet $sheet): void
     {
         if ($sheet->isLocked()) {
