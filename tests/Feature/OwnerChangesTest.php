@@ -480,7 +480,7 @@ class OwnerChangesTest extends TestCase
             ->assertSee('SW-1001')->assertSee('SW-1002')                       // staff of both locked projects
             ->assertSee('11112222333')->assertSee('99998888777')->assertSee('CNRB0000001')
             ->assertSee('Not included – attendance not locked yet')->assertSee('MPH');
-        $this->assertStringContainsString('₹1,02,000.00', $page->getContent());   // 80,400 + 21,600
+        $this->assertStringContainsString('₹99,960.00', $page->getContent());   // (80,400 − 1,608 TDS) + (21,600 − 432 TDS)
 
         $this->get("/bank-letters/pdf?agency={$agency->id}&month=2026-10")->assertOk()->assertHeader('content-type', 'application/pdf');
         $data = app(\App\Services\Payroll\BankLetter::class)->build($agency, CarbonImmutable::parse('2026-10-01'),

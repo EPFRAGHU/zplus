@@ -18,7 +18,7 @@
 @endif
 <p style="margin-left:28px">{{ $contracts->map(fn ($k) => ($k->contract_type === 'offline' ? 'Work order' : 'GeM contract').' no. '.$k->contract_no)->implode('; ') }}.</p>
 <p>Sir / Madam,</p>
-<p style="text-align:justify">Kindly debit our current account no. <b>{{ $agency->bank_account_no ?: '____________' }}</b> by <b>₹{{ $rs($total) }}</b> ({{ $totalWords }}) and credit the salaries of our employees as listed below. The amounts are net of employee EPF and ESIC deductions.</p>
+<p style="text-align:justify">Kindly debit our current account no. <b>{{ $agency->bank_account_no ?: '____________' }}</b> by <b>₹{{ $rs($total) }}</b> ({{ $totalWords }}) and credit the salaries of our employees as listed below. The amounts are net of employee EPF, ESIC and TDS deductions.</p>
 
 @if($sbi->isNotEmpty())
 <div class="b" style="margin-top:8px;font-size:11px">A. Accounts in State Bank of India (transfer within the bank)</div>

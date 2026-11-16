@@ -47,9 +47,9 @@
     </div>
 
     <div class="z-card mb-3">
-      <div class="z-card-h"><h2>Month-wise attendance and payments</h2><span class="small text-secondary">Net pay = earned − employee EPF 12% − ESIC 0.75% (when switched on), as on the salary payout sheet and bank letter</span></div>
+      <div class="z-card-h"><h2>Month-wise attendance and payments</h2><span class="small text-secondary">Net pay = earned − employee EPF 12% − ESIC 0.75% (when switched on) − TDS 2%, as on the salary payout sheet and bank letter</span></div>
       <div class="table-responsive"><table class="table">
-        <thead><tr><th>Month</th><th>Project</th><th>Attendance</th><th class="num">Paid days</th><th class="num">Earned</th><th class="num">EPF</th><th class="num">ESIC</th><th class="num">Net paid to bank</th><th>Paid to</th><th>Sub-bill</th></tr></thead>
+        <thead><tr><th>Month</th><th>Project</th><th>Attendance</th><th class="num">Paid days</th><th class="num">Earned</th><th class="num">EPF</th><th class="num">ESIC</th><th class="num">TDS 2%</th><th class="num">Net paid to bank</th><th>Paid to</th><th>Sub-bill</th></tr></thead>
         <tbody>
         @forelse($months as $m)
           @php($p = $m['pay'])
@@ -61,18 +61,19 @@
             <td class="num">{{ $p ? inr($p['earned'] / 100, true) : '' }}</td>
             <td class="num">{{ $p ? inr($p['epf'] / 100, true) : '' }}</td>
             <td class="num">{{ $p ? inr($p['esic'] / 100, true) : '' }}</td>
+            <td class="num">{{ $p ? inr($p['tds'] / 100, true) : '' }}</td>
             <td class="num fw-semibold">{{ $p ? inr($p['net'] / 100, true) : '' }}</td>
             <td class="small">@if($p){{ $employee->bank_name ?? '—' }} <span class="mono">{{ $employee->maskedAccount() }}</span>@if($showBank && $m['sheet']->isLocked()) · <a href="{{ route('attendance.bank-letter', $m['sheet']) }}" target="_blank">bank letter</a>@endif @else<span class="text-secondary">Month not locked</span>@endif</td>
             <td class="small">@if($m['bill'])<a class="mono" href="{{ route('invoices.show', $m['bill']->invoice_id) }}">{{ $m['bill']->invoice->invoice_no }}</a> · {{ inr($m['bill']->amount) }}@else — @endif</td>
           </tr>
         @empty
-          <tr><td colspan="10" class="text-center text-secondary py-4">No attendance for this employee yet.</td></tr>
+          <tr><td colspan="11" class="text-center text-secondary py-4">No attendance for this employee yet.</td></tr>
         @endforelse
         </tbody>
         @if($months->isNotEmpty())
         <tfoot><tr class="fw-semibold"><td colspan="4">Total (locked months)</td>
           <td class="num">{{ inr($months->sum(fn ($m) => $m['pay']['earned'] ?? 0) / 100, true) }}</td><td class="num">{{ inr($months->sum(fn ($m) => $m['pay']['epf'] ?? 0) / 100, true) }}</td>
-          <td class="num">{{ inr($months->sum(fn ($m) => $m['pay']['esic'] ?? 0) / 100, true) }}</td><td class="num">{{ inr($months->sum(fn ($m) => $m['pay']['net'] ?? 0) / 100, true) }}</td><td colspan="2"></td></tr></tfoot>
+          <td class="num">{{ inr($months->sum(fn ($m) => $m['pay']['esic'] ?? 0) / 100, true) }}</td><td class="num">{{ inr($months->sum(fn ($m) => $m['pay']['tds'] ?? 0) / 100, true) }}</td><td class="num">{{ inr($months->sum(fn ($m) => $m['pay']['net'] ?? 0) / 100, true) }}</td><td colspan="2"></td></tr></tfoot>
         @endif
       </table></div>
     </div>

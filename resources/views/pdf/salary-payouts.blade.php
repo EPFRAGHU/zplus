@@ -15,24 +15,24 @@
 <table class="grid">
   <thead><tr>
     <th>Sl.</th><th>Name of the staff</th><th>Designation</th><th>Paid days</th><th>Rate (₹)</th><th>Earned (₹)</th>
-    <th>EPF 12% (₹)</th><th>ESIC 0.75% (₹)</th><th>Net pay (₹)</th><th>Name as per bank</th><th>Bank</th><th>IFSC</th><th>A/c no.</th><th>UAN / ESIC IP</th>
+    <th>EPF 12% (₹)</th><th>ESIC 0.75% (₹)</th><th>TDS {{ \App\Support\Statutory::TDS_PERCENT }}% (₹)</th><th>Net pay (₹)</th><th>Name as per bank</th><th>Bank</th><th>IFSC</th><th>A/c no.</th><th>UAN / ESIC IP</th>
   </tr></thead>
   <tbody>
   @foreach($lines as $i => $l)
     @php($e = $l['employee'])
     <tr><td class="c">{{ $i + 1 }}</td><td>{{ $e->name }}</td><td>{{ $e->post?->designation }}</td>
       <td class="c">{{ rtrim(rtrim($l['paid_days'], '0'), '.') }}</td><td class="n">{{ number_format((float) $l['rate'], 2) }}</td>
-      <td class="n">{{ $rs($l['earned']) }}</td><td class="n">{{ $e->pf_applicable ? $rs($l['epf']) : 'Off' }}</td><td class="n">{{ $e->esic_applicable ? $rs($l['esic']) : 'Off' }}</td><td class="n b">{{ $rs($l['net']) }}</td>
+      <td class="n">{{ $rs($l['earned']) }}</td><td class="n">{{ $e->pf_applicable ? $rs($l['epf']) : 'Off' }}</td><td class="n">{{ $e->esic_applicable ? $rs($l['esic']) : 'Off' }}</td><td class="n">{{ $rs($l['tds']) }}</td><td class="n b">{{ $rs($l['net']) }}</td>
       <td>{{ $e->account_holder ?? $e->name }}</td><td>{{ $e->bank_name ?: '—' }}</td><td class="mono">{{ $e->ifsc ?: '—' }}</td><td class="mono">{{ $e->account_number ?: '—' }}</td>
       <td style="font-size:8.5px">{{ $e->uan ?: '—' }}<br>{{ $e->esic_ip ?: '—' }}</td></tr>
   @endforeach
   </tbody>
   <tfoot><tr class="b"><td colspan="5" class="r">Total ({{ $lines->count() }} {{ \Illuminate\Support\Str::plural('person', $lines->count()) }})</td>
-    <td class="n">{{ $rs($sum('earned')) }}</td><td class="n">{{ $rs($sum('epf')) }}</td><td class="n">{{ $rs($sum('esic')) }}</td><td class="n">{{ $rs($sum('net')) }}</td><td colspan="5"></td></tr></tfoot>
+    <td class="n">{{ $rs($sum('earned')) }}</td><td class="n">{{ $rs($sum('epf')) }}</td><td class="n">{{ $rs($sum('esic')) }}</td><td class="n">{{ $rs($sum('tds')) }}</td><td class="n">{{ $rs($sum('net')) }}</td><td colspan="5"></td></tr></tfoot>
 </table>
 <p style="font-size:10px;margin-top:6px"><b>Total net pay to transfer: ₹{{ $rs($sum('net')) }}</b> ({{ \App\Support\AmountInWords::rupees(number_format($sum('net') / 100, 2, '.', '')) }})</p>
 <p style="font-size:8.5px;color:#444">Earned = rate × paid days ÷ {{ $sheet->month->daysInMonth }} days (rate × paid days for daily posts), rounded to whole rupees, as on the bill.
-  EPF 12% on earned wages up to ₹15,000 and ESIC 0.75% on earned wages (rounded up), deducted only for staff with EPF / ESIC switched on.
+  EPF 12% on earned wages up to ₹15,000 and ESIC 0.75% on earned wages (rounded up), deducted only for staff with EPF / ESIC switched on. TDS {{ \App\Support\Statutory::TDS_PERCENT }}% on earned wages (rounded to the rupee) deducted for everyone. Net pay = earned − EPF − ESIC − TDS.
   The employer's EPF and ESIC are charged to the client on the bill.</p>
 <table class="sign"><tr><td style="vertical-align:bottom">Prepared by: ____________</td><td class="r">For {{ $agency->name }}<br><br><br>Authorised signatory</td></tr></table>
 </body></html>

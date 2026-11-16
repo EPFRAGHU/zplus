@@ -7,6 +7,7 @@ final class Statutory
 {
     public const EMPLOYEE_EPF_PERCENT = '12';
     public const EMPLOYEE_ESIC_PERCENT = '0.75';
+    public const TDS_PERCENT = '2';          // TDS deducted from every employee's earned salary (owner, 17 Nov 2026)
     public const EPF_WAGE_CEILING = 15000;   // EPF is worked out on wages up to this amount a month
     public const ESIC_WAGE_LIMIT = 21000;    // ESIC covers staff earning up to this amount a month
 

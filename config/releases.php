@@ -12,6 +12,11 @@ return [
     'timezone' => 'Asia/Kolkata',      // release times are Indian Standard Time
 
     'releases' => [
+        ['version' => '2.9.0', 'date' => '2026-11-17 00:10', 'title' => 'TDS 2% on salaries', 'type' => 'feature', 'notes' => [
+            'Salary payout sheet: TDS 2% of the earned amount (rounded to the rupee) is deducted from every employee; Net pay = earned − EPF 12% − ESIC 0.75% − TDS 2%',
+            'The bank letters (per project and the Bank Letter module) and Employee Management use the same net pay, so the amounts sent to the bank are after TDS',
+            'Bills to the client are not affected',
+        ]],
         ['version' => '2.8.0', 'date' => '2026-11-17 00:03', 'title' => 'Bank Letter module: all employees of the month in one letter', 'type' => 'feature', 'notes' => [
             'New "Bank Letter" menu (Admin / Accounts): choose agency and month to see every employee of all its projects with net salary, bank, account no. and IFSC (other banks), with SBI / NEFT totals',
             'One salary transfer letter PDF on the agency\'s own letterhead (SWACHHA or Z Plus): SBI accounts by Emp ID, other banks by NEFT with account no. and IFSC; projects can be left out by unticking',

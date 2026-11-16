@@ -16,6 +16,9 @@ use Illuminate\Support\Collection;
  * for daily posts, rounded to whole rupees). Employee deductions apply only when switched on for the employee:
  *   EPF 12%    on earned wages up to the Rs 15,000 ceiling, rounded to the nearest rupee
  *   ESIC 0.75% on earned wages, rounded up to the next rupee
+ * and for everyone (owner, 17 Nov 2026):
+ *   TDS 2%     on earned wages, rounded to the nearest rupee
+ * Net pay = earned − EPF − ESIC − TDS.
  */
 final class SalaryPayoutSheet
 {
@@ -46,13 +49,15 @@ final class SalaryPayoutSheet
         });
     }
 
-    /** @return array{epf: int, esic: int, net: int} in paise */
+    /** @return array{epf: int, esic: int, tds: int, net: int} in paise */
     public function deductions(int $earned, bool $epfOn, bool $esicOn): array
     {
         $epf = $epfOn ? $this->roundNearest(Money::percent(Statutory::epfBase($earned), Statutory::EMPLOYEE_EPF_PERCENT)) : 0;
         $esic = $esicOn ? $this->roundUp(Money::percent($earned, Statutory::EMPLOYEE_ESIC_PERCENT)) : 0;
 
-        return ['epf' => $epf, 'esic' => $esic, 'net' => $earned - $epf - $esic];
+        $tds = $this->roundNearest(Money::percent($earned, Statutory::TDS_PERCENT));
+
+        return ['epf' => $epf, 'esic' => $esic, 'tds' => $tds, 'net' => $earned - $epf - $esic - $tds];
     }
 
     private function roundNearest(int $paise): int

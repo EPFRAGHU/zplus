@@ -38,9 +38,9 @@ class SalaryPayoutTest extends TestCase
         $lines = app(SalaryPayoutSheet::class)->lines($sheet->fresh())->keyBy(fn ($l) => $l['employee']->post->designation);
 
         $apm = $lines['Academic Programme Manager'];   // 55,000 for the full month
-        $this->assertSame([5500000, 180000, 0, 5320000], [$apm['earned'], $apm['epf'], $apm['esic'], $apm['net']]);
+        $this->assertSame([5500000, 180000, 0, 110000, 5210000], [$apm['earned'], $apm['epf'], $apm['esic'], $apm['tds'], $apm['net']]);   // TDS 2% = 1,100
         $apa = $lines['Academic Programme Assistant'];  // 31,000
-        $this->assertSame([3100000, 180000, 0, 2920000], [$apa['earned'], $apa['epf'], $apa['esic'], $apa['net']]);
+        $this->assertSame([3100000, 180000, 0, 62000, 2858000], [$apa['earned'], $apa['epf'], $apa['esic'], $apa['tds'], $apa['net']]);   // TDS 620
     }
 
     public function test_sheet_prints_on_the_agency_letterhead_for_accounts_only(): void
