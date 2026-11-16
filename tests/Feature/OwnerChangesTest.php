@@ -390,5 +390,16 @@ class OwnerChangesTest extends TestCase
         $order('sort=name&dir=asc', ['Anil', 'Mohan', 'Zara']);
         $order('sort=name&dir=desc', ['Zara', 'Mohan', 'Anil']);
         $this->get('/staff?sort=name&dir=asc')->assertSee('Sorted A→Z. Click for Z→A');
+
+        // Project In-charge column after Agency, sortable; staff without a PI go last.
+        $k = GemContract::query()->create(['agency_id' => $agency->id, 'client_id' => Client::query()->create(['agency_id' => $agency->id, 'name' => 'C', 'short_code' => 'C'])->id, 'bid_no' => 'B', 'contract_no' => 'K']);
+        foreach (['Anil' => 'Dr. Zeta', 'Zara' => 'Dr. Alpha'] as $name => $piName) {
+            $pi = ProjectIncharge::query()->create(['agency_id' => $agency->id, 'name' => $piName]);
+            $post = $k->projects()->create(['name' => $name, 'code' => strtoupper($name), 'project_incharge_id' => $pi->id])->posts()->create(['designation' => 'X', 'sanctioned_qty' => 1, 'rate' => 1]);
+            Employee::query()->where('name', $name)->update(['post_id' => $post->id]);
+        }
+        $this->get('/staff')->assertSeeInOrder(['Agency', 'Project In-charge', 'Post · project'])->assertSee('Dr. Zeta');
+        $order('sort=pi&dir=asc', ['Zara', 'Anil', 'Mohan']);   // Dr. Alpha, Dr. Zeta, none
+        $order('sort=pi&dir=desc', ['Anil', 'Zara', 'Mohan']);   // Dr. Zeta, Dr. Alpha, none still last
     }
 }

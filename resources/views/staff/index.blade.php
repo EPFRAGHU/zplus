@@ -81,13 +81,14 @@
   <div class="z-card">
     <div class="z-card-h"><h2>All employees</h2><span class="small text-secondary">{{ $employees->count() }} in total</span></div>
     <div class="table-responsive"><table class="table table-hover">
-      <thead><tr><th><a class="text-reset text-decoration-none text-nowrap" href="{{ $sortLinks['emp_code']['url'] }}" title="{{ $sortLinks['emp_code']['title'] }}">Emp ID <i class="bi {{ $sortLinks['emp_code']['icon'] }}"></i></a></th><th><a class="text-reset text-decoration-none text-nowrap" href="{{ $sortLinks['name']['url'] }}" title="{{ $sortLinks['name']['title'] }}">Name <i class="bi {{ $sortLinks['name']['icon'] }}"></i></a></th><th>Agency</th><th><a class="text-reset text-decoration-none text-nowrap" href="{{ $sortLinks['post']['url'] }}" title="{{ $sortLinks['post']['title'] }}">Post · project <i class="bi {{ $sortLinks['post']['icon'] }}"></i></a></th><th>Mobile</th><th>Bank</th><th>EPF / ESIC</th><th>Status</th></tr></thead>
+      <thead><tr><th><a class="text-reset text-decoration-none text-nowrap" href="{{ $sortLinks['emp_code']['url'] }}" title="{{ $sortLinks['emp_code']['title'] }}">Emp ID <i class="bi {{ $sortLinks['emp_code']['icon'] }}"></i></a></th><th><a class="text-reset text-decoration-none text-nowrap" href="{{ $sortLinks['name']['url'] }}" title="{{ $sortLinks['name']['title'] }}">Name <i class="bi {{ $sortLinks['name']['icon'] }}"></i></a></th><th>Agency</th><th><a class="text-reset text-decoration-none text-nowrap" href="{{ $sortLinks['pi']['url'] }}" title="{{ $sortLinks['pi']['title'] }}">Project In-charge <i class="bi {{ $sortLinks['pi']['icon'] }}"></i></a></th><th><a class="text-reset text-decoration-none text-nowrap" href="{{ $sortLinks['post']['url'] }}" title="{{ $sortLinks['post']['title'] }}">Post · project <i class="bi {{ $sortLinks['post']['icon'] }}"></i></a></th><th>Mobile</th><th>Bank</th><th>EPF / ESIC</th><th>Status</th></tr></thead>
       <tbody>
       @foreach($employees as $e)
         <tr @class(['table-active' => $employee?->id === $e->id])>
           <td class="mono"><a href="{{ route('staff.index', array_filter(['employee' => $e->id, 'sort' => $sort, 'dir' => $sort ? $dir : null])) }}">{{ $e->emp_code }}</a></td>
           <td><a href="{{ route('staff.index', array_filter(['employee' => $e->id, 'sort' => $sort, 'dir' => $sort ? $dir : null])) }}">{{ $e->name }}</a></td>
           <td><span class="badge text-bg-light border">{{ $e->agency?->code }}</span></td>
+          <td class="small">{{ \App\Http\Controllers\StaffController::inchargeName($e) ?? '—' }}</td>
           <td class="small">{{ $e->post ? $e->post->designation.' · '.$e->post->project->code : '—' }}</td>
           <td class="small">{{ $e->mobile ?? '—' }}</td>
           <td class="small">{{ $e->bank_name ?? '—' }} <span class="mono">{{ $e->maskedAccount() }}</span></td>

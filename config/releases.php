@@ -12,6 +12,10 @@ return [
     'timezone' => 'Asia/Kolkata',      // release times are Indian Standard Time
 
     'releases' => [
+        ['version' => '2.6.2', 'date' => '2026-11-16 23:32', 'title' => 'Project In-charge column on Employee Management', 'type' => 'fix', 'notes' => [
+            'Employee Management list: new "Project In-charge" column after Agency (from the Project In-charge master), sortable A→Z / Z→A',
+            'Staff without a Project In-charge or post stay at the bottom in either order',
+        ]],
         ['version' => '2.6.1', 'date' => '2026-11-16 23:28', 'title' => 'Sort the Employee Management list', 'type' => 'fix', 'notes' => [
             'Employee Management: click Emp ID, Name or Post · project to sort A→Z; click again for Z→A (arrow shows the order)',
             'Employee IDs sort by number: SW-999, SW-1002, SW-1010',
