@@ -1,5 +1,5 @@
 <x-layouts.app :title="'Work order '.$contract->contract_no" :crumb="'Masters / <a href=\''.route('contracts.index').'\'>Work Orders</a>'">
-  <x-slot:actions>@can('manage-masters')<a class="btn btn-outline-secondary" href="{{ route('contracts.edit', $contract) }}"><i class="bi bi-pencil me-1"></i>Edit work order</a>@endcan</x-slot:actions>
+  <x-slot:actions>@can('manage-masters')<a class="btn btn-outline-primary" href="#add-project"><i class="bi bi-plus-lg me-1"></i>Add project</a><a class="btn btn-outline-secondary" href="{{ route('contracts.edit', $contract) }}"><i class="bi bi-pencil me-1"></i>Edit work order</a>@endcan</x-slot:actions>
   <div class="z-card p-3 mb-3">
     <div class="row g-3 small">
       <div class="col-md-3"><div class="text-secondary">Agency</div><div class="fw-semibold">{{ $contract->agency->name }}</div></div>
@@ -123,9 +123,10 @@
   @endforeach
 
   @can('manage-masters')
-  <form method="post" action="{{ route('projects.store', $contract) }}" class="z-card p-3">
+  <form method="post" action="{{ route('projects.store', $contract) }}" class="z-card p-3" id="add-project">
     @csrf
     <h2 class="h6 fw-bold">Add a project to this work order</h2>
+    <div class="small text-secondary mb-2">The project uses this work order's bid no. <span class="mono">{{ $contract->bid_no ?: '—' }}</span> and contract no. <span class="mono">{{ $contract->contract_no }}</span>; no need to enter them again.</div>
     @include('contracts._project-fields', ['p' => null])
     <div class="text-end mt-2"><button class="btn btn-primary">Add project</button></div>
   </form>

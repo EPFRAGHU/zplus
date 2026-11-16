@@ -402,4 +402,23 @@ class OwnerChangesTest extends TestCase
         $order('sort=pi&dir=asc', ['Zara', 'Anil', 'Mohan']);   // Dr. Alpha, Dr. Zeta, none
         $order('sort=pi&dir=desc', ['Anil', 'Zara', 'Mohan']);   // Dr. Zeta, Dr. Alpha, none still last
     }
+
+    public function test_a_saved_work_order_is_reused_for_more_projects(): void
+    {
+        [$agency, $client, $contract] = $this->swachha();
+        $this->get('/contracts')->assertOk()->assertSee('#add-project', false)->assertSee('Add project');
+        $this->get("/contracts/{$contract->id}")->assertSee('id="add-project"', false)->assertSee('no need to enter them again');
+
+        // Typing a saved number on "Add work order" points to it; saving it again explains what to do.
+        $this->get('/contracts/create')->assertSee('GEMC-511687731718030')->assertSee('already-saved', false);
+        $this->post('/contracts', ['agency_id' => $agency->id, 'client_id' => $client->id, 'contract_type' => 'online', 'bid_no' => $contract->bid_no,
+            'contract_no' => $contract->contract_no, 'billing_type' => 'monthly', 'service_charge_percent' => 3.85, 'gst_percent' => 18,
+            'epf_percent' => 13, 'esic_percent' => 3.25, 'status' => 'active'])
+            ->assertSessionHasErrors(['contract_no' => 'This contract / work order number is already saved. Open it from Work Orders and use "Add project" to add another project under it.']);
+
+        // Another project under the same work order: no numbers typed again.
+        $this->post("/contracts/{$contract->id}/projects", ['name' => 'MPH', 'code' => 'MPH'])->assertSessionHasNoErrors();
+        $this->assertSame(3, $contract->projects()->count());
+        $this->assertSame(1, GemContract::query()->count());
+    }
 }

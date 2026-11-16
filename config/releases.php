@@ -12,6 +12,11 @@ return [
     'timezone' => 'Asia/Kolkata',      // release times are Indian Standard Time
 
     'releases' => [
+        ['version' => '2.6.3', 'date' => '2026-11-16 23:40', 'title' => 'Enter a work order once, add projects to it', 'type' => 'fix', 'notes' => [
+            'Work Orders list: "Add project" on every work order, so projects using the same GeM bid and contract number go under it without typing them again',
+            'Add work order: typing a bid or contract number that is already saved shows it, with a link to add your project there; saving a duplicate explains the same',
+            'Work order page: "Add project" button at the top',
+        ]],
         ['version' => '2.6.2', 'date' => '2026-11-16 23:32', 'title' => 'Project In-charge column on Employee Management', 'type' => 'fix', 'notes' => [
             'Employee Management list: new "Project In-charge" column after Agency (from the Project In-charge master), sortable A→Z / Z→A',
             'Staff without a Project In-charge or post stay at the bottom in either order',

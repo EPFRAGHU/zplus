@@ -91,7 +91,10 @@ class GemContractController extends Controller
     {
         return ['contract' => $contract, 'agencies' => Agency::query()->orderBy('name')->get(),
             'clients' => Client::query()->with('agency')->orderBy('name')->get(),
-            'locked' => $contract->exists && Invoice::query()->where('gem_contract_id', $contract->id)->exists()];
+            'locked' => $contract->exists && Invoice::query()->where('gem_contract_id', $contract->id)->exists(),
+            // Saved work orders (this login's agencies), so typing a known number points to it instead of making a duplicate.
+            'saved' => GemContract::query()->whereKeyNot($contract->id ?? 0)->get(['id', 'bid_no', 'contract_no'])
+                ->map(fn ($k) => ['bid' => $k->bid_no, 'no' => $k->contract_no, 'url' => route('contracts.show', $k).'#add-project'])->values()];
     }
 
     private function validated(Request $request, ?GemContract $contract = null): array
@@ -114,6 +117,7 @@ class GemContractController extends Controller
             'agency_id.required' => 'Choose the agency that raises bills on this contract.',
             'client_id.required' => 'Choose the client this contract is with.',
             'bid_no.required' => 'Enter the GeM bid number of this online contract.',
+            'contract_no.unique' => 'This contract / work order number is already saved. Open it from Work Orders and use "Add project" to add another project under it.',
         ]);
         $data['inter_state'] = $request->boolean('inter_state');
         $data['contract_type'] = $data['contract_type'] ?? null ?: 'online';

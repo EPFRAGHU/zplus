@@ -26,6 +26,8 @@
       <x-select name="contract_type" label="Contract" :options="\App\Models\GemContract::TYPES" :value="$contract->contract_type ?? 'online'" required col="col-md-2" />
       <x-field name="bid_no" label="GeM bid no." :value="$contract->bid_no" col="col-md-4" class="mono" hint="e.g. GEM/2026/B/7972720 (needed for online contracts)" />
       <x-field name="contract_no" label="Contract no. (GeM or work order)" :value="$contract->contract_no" required col="col-md-4" class="mono" hint="e.g. GEMC-511687731718030" />
+      <div class="col-12" id="already-saved" hidden><div class="alert alert-info small py-2 mb-0"><i class="bi bi-info-circle me-1"></i>
+        <span id="already-text"></span> <a id="already-link" href="#" class="fw-semibold">Open it and add your project there</a> instead of entering it again.</div></div>
       <x-field name="contract_date" label="Contract date" type="date" :value="$contract->contract_date?->toDateString()" col="col-md-4" />
       <x-select name="billing_type" label="Billing type" :options="['monthly' => 'Monthly rate (consolidated)', 'daily' => 'Daily rate × paid days']" :value="$contract->billing_type" required col="col-md-4" />
       <x-field name="sac_code" label="SAC / HSN code" :value="$contract->sac_code ?? '998514'" col="col-md-2" class="mono" hint="Printed on bills" />
@@ -46,6 +48,20 @@
         if (client.selectedOptions[0] && client.selectedOptions[0].disabled) client.value = '';
       }
       agency.addEventListener('change', update); update();
+    })();
+    (function () {   // a bid / contract number that is already saved: point to that work order
+      const saved = @json($saved), box = document.getElementById('already-saved');
+      const bid = document.getElementById('f-bid_no'), no = document.getElementById('f-contract_no');
+      const norm = v => (v || '').trim().toUpperCase();
+      function check() {
+        const hit = saved.find(k => (norm(no.value) && norm(k.no) === norm(no.value)) || (norm(bid.value) && norm(k.bid) === norm(bid.value)));
+        box.hidden = !hit;
+        if (hit) {
+          document.getElementById('already-text').textContent = 'Work order ' + hit.no + (hit.bid ? ' (bid ' + hit.bid + ')' : '') + ' is already saved.';
+          document.getElementById('already-link').href = hit.url;
+        }
+      }
+      [bid, no].forEach(i => i && i.addEventListener('input', check)); check();
     })();
   </script>
 </x-layouts.app>

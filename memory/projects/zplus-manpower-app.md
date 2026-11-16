@@ -1,7 +1,7 @@
 # ZPlus Manpower app
 
 **Repo:** epfraghu/zplus, branch `claude/manpower-app-foundation`
-**Status:** Live. Version **2.6.2** pushed (2026-11-16 22:15 IST). Coolify AUTO-DEPLOYS on every push to the branch (seen 16 Nov: v2.4.0 went live by itself) – pushing = going live. 149 tests passing. Project started **01 Nov 2026, 04:01 PM IST**.
+**Status:** Live. Version **2.6.3** pushed (2026-11-16 22:15 IST). Coolify AUTO-DEPLOYS on every push to the branch (seen 16 Nov: v2.4.0 went live by itself) – pushing = going live. 149 tests passing. Project started **01 Nov 2026, 04:01 PM IST**.
 **Live URL:** https://zplus.epf-dashboard.online (admin: the owner's Gmail; password was shown in chat once, owner told to change it via tinker)
 
 ## Stack

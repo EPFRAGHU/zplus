@@ -56,6 +56,7 @@
         <div class="ms-auto d-flex gap-2 align-items-center">
           @if($c->isDaily())<span class="badge text-bg-light border">Daily rate × days + EPF/ESIC</span>@endif
           <span class="badge rounded-pill text-bg-{{ $f < $s ? 'warning' : 'success' }}">{{ $f }}/{{ $s }} filled</span>
+          @can('manage-masters')<a class="btn btn-sm btn-outline-primary" href="{{ route('contracts.show', $c) }}#add-project" title="Add another project using this bid and contract number"><i class="bi bi-plus-lg"></i> Add project</a>@endcan
           <a class="btn btn-sm btn-outline-secondary" href="{{ route('contracts.show', $c) }}">Open</a>
         </div>
       </div>
