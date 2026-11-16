@@ -147,22 +147,15 @@ class AttendanceController extends Controller
      * Forwarding letter to the agency's bank for the month's salaries of one project: every employee, SBI accounts
      * (Emp ID, name, amount) and other banks by NEFT (account no., IFSC, amount). Net pay as on the salary payout sheet.
      */
-    public function bankLetter(AttendanceSheet $sheet, \App\Services\Payroll\SalaryPayoutSheet $payouts): Response
+    public function bankLetter(AttendanceSheet $sheet, \App\Services\Payroll\BankLetter $letters): Response
     {
         Gate::authorize('view-bank-details');
         abort_unless($sheet->isLocked(), 422, 'Lock the month before making the bank letter.');
         $sheet->load('entries.employee.post', 'project.contract.client', 'project.contract.agency');
-        $agency = $sheet->project->contract->agency;
-        $lines = $payouts->lines($sheet)->filter(fn ($l) => $l['net'] > 0);
-        [$withBank, $missing] = $lines->partition(fn ($l) => filled($l['employee']->account_number) && filled($l['employee']->ifsc));
-        [$sbi, $neft] = $withBank->partition(fn ($l) => str_starts_with(strtoupper((string) $l['employee']->ifsc), 'SBIN'));
-        $total = $withBank->sum('net');
+        $data = $letters->build($sheet->project->contract->agency, $sheet->month, collect([$sheet]), $sheet->project->code);
 
-        return Pdf::loadView('pdf.bank-letter', [
-            'sheet' => $sheet, 'agency' => $agency, 'sbi' => $sbi->values(), 'neft' => $neft->values(), 'missing' => $missing->values(),
-            'total' => $total, 'totalWords' => \App\Support\AmountInWords::rupees(\App\Support\Money::format($total)),
-            'reference' => $agency->numberPrefix().'/BANK/'.$sheet->project->code.'/'.$sheet->month->format('m').'/'.\App\Services\Billing\BillNumbers::financialYear($sheet->month),
-        ])->setPaper('a4')->stream('bank-letter-'.\App\Support\Codes::fileSafe($sheet->project->code).'-'.$sheet->month->format('Y-m').'.pdf');
+        return Pdf::loadView('pdf.bank-letter', $data)->setPaper('a4')
+            ->stream('bank-letter-'.\App\Support\Codes::fileSafe($sheet->project->code).'-'.$sheet->month->format('Y-m').'.pdf');
     }
 
     /** Printable "Monthly Attendance and Working Certificate" for the PI to sign. */

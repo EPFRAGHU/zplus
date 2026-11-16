@@ -93,6 +93,8 @@ Route::middleware(['auth', 'active', 'role:admin,accounts,supervisor', \App\Http
     Route::post('attendance/{sheet}/reset', [AttendanceController::class, 'reset'])->name('attendance.reset');
     Route::get('attendance/{sheet}/salary-payouts', [AttendanceController::class, 'payouts'])->name('attendance.payouts');
     Route::get('attendance/{sheet}/bank-letter', [AttendanceController::class, 'bankLetter'])->name('attendance.bank-letter');
+    Route::get('bank-letters', [\App\Http\Controllers\BankLetterController::class, 'index'])->name('bank-letters.index');
+    Route::get('bank-letters/pdf', [\App\Http\Controllers\BankLetterController::class, 'pdf'])->name('bank-letters.pdf');
     Route::get('attendance/{sheet}/certificate', [AttendanceController::class, 'certificate'])->name('attendance.certificate');
     Route::get('attendance/{sheet}/scan', [AttendanceController::class, 'scan'])->name('attendance.scan');
     Route::get('attendance/{sheet}/submitted-pdf', [AttendanceController::class, 'submittedPdf'])->name('attendance.submitted-pdf');

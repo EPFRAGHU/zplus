@@ -16,6 +16,8 @@ class LogAccess
         'employees.show' => ['viewed', 'Employee details'],
         'attendance.payouts' => ['downloaded', 'Salary payout sheet (bank details)'],
         'attendance.bank-letter' => ['downloaded', 'Bank forwarding letter (bank details)'],
+        'bank-letters.index' => ['viewed', 'Bank Letter (bank details of all employees)'],
+        'bank-letters.pdf' => ['downloaded', 'Bank letter for the month (bank details)'],
         'staff.index' => ['viewed', 'Employee Management (details, payments)'],
         'attendance.certificate' => ['downloaded', 'Attendance certificate'],
         'attendance.scan' => ['downloaded', 'Signed attendance certificate'],

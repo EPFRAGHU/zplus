@@ -12,6 +12,12 @@ return [
     'timezone' => 'Asia/Kolkata',      // release times are Indian Standard Time
 
     'releases' => [
+        ['version' => '2.8.0', 'date' => '2026-11-17 00:03', 'title' => 'Bank Letter module: all employees of the month in one letter', 'type' => 'feature', 'notes' => [
+            'New "Bank Letter" menu (Admin / Accounts): choose agency and month to see every employee of all its projects with net salary, bank, account no. and IFSC (other banks), with SBI / NEFT totals',
+            'One salary transfer letter PDF on the agency\'s own letterhead (SWACHHA or Z Plus): SBI accounts by Emp ID, other banks by NEFT with account no. and IFSC; projects can be left out by unticking',
+            'Projects whose month is not locked yet, and staff without bank details, are listed as not included',
+            'The per-project bank letter on the attendance page still works',
+        ]],
         ['version' => '2.7.0', 'date' => '2026-11-16 23:50', 'title' => 'Reset a project\'s month', 'type' => 'feature', 'notes' => [
             'Attendance month page → "Reset this month" (Admin only, type RESET to confirm): deletes that project\'s month – the attendance of all its employees, the corrections, the uploaded PDFs and its sub-bill – so the month can be started again',
             'Works for draft, approved and submitted sub-bills; never for paid ones. The sub-bill is taken out of its tax invoice: a tax invoice left empty is deleted, otherwise it is worked out again',

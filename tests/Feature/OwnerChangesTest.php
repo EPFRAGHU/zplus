@@ -231,11 +231,9 @@ class OwnerChangesTest extends TestCase
 
     private function bankLetterData($sheet): array
     {
-        $lines = app(\App\Services\Payroll\SalaryPayoutSheet::class)->lines($sheet->fresh());
-        [$sbi, $neft] = $lines->partition(fn ($l) => str_starts_with($l['employee']->ifsc, 'SBIN'));
+        $sheet = $sheet->fresh()->load('project.contract.client', 'project.contract.agency');
 
-        return ['sheet' => $sheet->fresh()->load('project.contract.client'), 'agency' => $sheet->project->contract->agency, 'sbi' => $sbi->values(), 'neft' => $neft->values(),
-            'missing' => collect(), 'total' => $lines->sum('net'), 'totalWords' => 'x', 'reference' => 'SW/BANK/HTA/11/26-27'];
+        return app(\App\Services\Payroll\BankLetter::class)->build($sheet->project->contract->agency, $sheet->month, collect([$sheet]), $sheet->project->code);
     }
 
     public function test_employee_management_shows_month_wise_attendance_and_payments(): void
@@ -462,5 +460,42 @@ class OwnerChangesTest extends TestCase
             $this->actingAs(User::factory()->create(['role' => $role]));
             $this->post("/attendance/{$again['HTA']->attendance_sheet_id}/reset", ['confirm' => 'RESET'])->assertForbidden();
         }
+    }
+
+    public function test_bank_letter_module_lists_all_employees_of_the_agency_for_the_month(): void
+    {
+        [$agency, $client, $contract, $people] = $this->swachha();
+        $mph = $contract->projects()->create(['name' => 'MPH', 'code' => 'MPH']);
+        $mph->posts()->create(['designation' => 'APM', 'sanctioned_qty' => 1, 'rate' => 55000]);
+        Employee::query()->create(['emp_code' => 'SW-1003', 'name' => 'No Bank Person', 'agency_id' => $agency->id, 'client_id' => $client->id,
+            'post_id' => $mph->posts()->first()->id, 'status' => 'active', 'joining_date' => '2026-04-01']);
+        $service = app(AttendanceService::class);
+        foreach (['HTA', 'CCRH'] as $code) {   // locked
+            $service->lock($service->open(Project::query()->where('code', $code)->firstOrFail(), CarbonImmutable::parse('2026-10-01')), $this->admin, null);
+        }
+        $service->open($mph, CarbonImmutable::parse('2026-10-01'));   // not locked yet
+
+        $this->get('/')->assertSee('Bank Letter');
+        $page = $this->get("/bank-letters?agency={$agency->id}&month=2026-10")->assertOk()
+            ->assertSee('SW-1001')->assertSee('SW-1002')                       // staff of both locked projects
+            ->assertSee('11112222333')->assertSee('99998888777')->assertSee('CNRB0000001')
+            ->assertSee('Not included – attendance not locked yet')->assertSee('MPH');
+        $this->assertStringContainsString('₹1,02,000.00', $page->getContent());   // 80,400 + 21,600
+
+        $this->get("/bank-letters/pdf?agency={$agency->id}&month=2026-10")->assertOk()->assertHeader('content-type', 'application/pdf');
+        $data = app(\App\Services\Payroll\BankLetter::class)->build($agency, CarbonImmutable::parse('2026-10-01'),
+            app(\App\Services\Payroll\BankLetter::class)->sheets($agency, CarbonImmutable::parse('2026-10-01'))[0]);
+        $html = view('pdf.bank-letter', $data)->render();
+        foreach (['Accounts in State Bank of India', 'Accounts in other banks (NEFT)', 'SW-1001', 'SW-1002', 'CNRB0000001', 'CCRH, HTA', 'Grand total to be debited (2 employees)', 'SW/BANK/10/26-27'] as $t) {
+            $this->assertStringContainsString($t, $html);
+        }
+
+        // Only those who may see bank details; another agency's id is refused.
+        $this->actingAs(User::factory()->create(['role' => 'supervisor', 'agency_id' => $agency->id]));
+        $this->get("/bank-letters?agency={$agency->id}&month=2026-10")->assertForbidden();
+        $other = Agency::query()->create(['name' => 'Z Plus', 'code' => 'ZPS']);
+        $this->actingAs(User::factory()->create(['role' => 'admin', 'agency_id' => $other->id]));
+        $this->get("/bank-letters?agency={$agency->id}&month=2026-10")->assertOk()->assertDontSee('SW-1001');
+        $this->get("/bank-letters/pdf?agency={$agency->id}&month=2026-10")->assertSessionHasErrors('agency');
     }
 }
