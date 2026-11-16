@@ -81,10 +81,10 @@ class StatutorySwitchTest extends TestCase
         $this->actingAs($this->admin)->get("/invoices/{$invoice->id}")->assertOk()->assertSee('Employer EPF');
 
         $tax = app(TaxInvoiceBuilder::class)->create($invoice->contract, CarbonImmutable::parse('2026-10-01'), [$invoice->id], $this->admin);
-        $tax->load('agency', 'client', 'subBills.project', 'subBills.contract');
-        $html = view('pdf.tax-invoice', ['tax' => $tax, 'agency' => $tax->agency, 'client' => $tax->client])->render();
-        $this->assertStringContainsString('Add: Employer EPF', $html);
-        $this->assertStringContainsString('1,950.00', $html);
+        $html = view('pdf.tax-invoice', \App\Http\Controllers\TaxInvoiceController::pdfData($tax))->render();
+        $this->assertStringContainsString('EPF@12%', $html);          // 13% employer EPF printed as 12% + EDLI 0.5% + admin 0.5%
+        $this->assertStringContainsString('1800.00', $html);          // 12% of 15,000
+        $this->assertStringContainsString('EDIL@0.5%', $html);
         $this->get("/tax-invoices/{$tax->id}")->assertOk()->assertSee('Add: Employer EPF');
 
         $line = app(SalaryPayoutSheet::class)->lines($sheet)->first(fn ($l) => $l['employee']->id === $apm->id);

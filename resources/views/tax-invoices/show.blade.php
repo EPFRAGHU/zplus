@@ -20,11 +20,11 @@
     </div></div>
     <div class="col-lg-4"><div class="z-card p-3">
       <table class="table table-sm mb-2">
-        @php($sb = $tax->subBills)
-        <tr><td>Wages</td><td class="num">{{ inr($sb->sum('wages'), true) }}</td></tr>
-        @if($sb->sum('epf') > 0)<tr><td>Add: Employer EPF</td><td class="num">{{ inr($sb->sum('epf'), true) }}</td></tr>@endif
-        @if($sb->sum('esic') > 0)<tr><td>Add: Employer ESIC</td><td class="num">{{ inr($sb->sum('esic'), true) }}</td></tr>@endif
-        <tr><td>Add: Service charge</td><td class="num">{{ inr($sb->sum('service_charge'), true) }}</td></tr>
+        <tr><td>Wages</td><td class="num">{{ inr($t->wages, true) }}</td></tr>
+        @if((float) $t->epf > 0)<tr><td>Add: Employer EPF</td><td class="num">{{ inr($t->epf, true) }}</td></tr>@endif
+        @if((float) $t->esic > 0)<tr><td>Add: Employer ESIC</td><td class="num">{{ inr($t->esic, true) }}</td></tr>@endif
+        <tr><td>Sub total</td><td class="num">{{ inr($t->subtotal, true) }}</td></tr>
+        <tr><td>Add: Service charge</td><td class="num">{{ inr($t->serviceCharge, true) }}</td></tr>
         <tr class="fw-semibold"><td>Total before tax</td><td class="num">{{ inr($tax->taxable, true) }}</td></tr>
         @if((float) $tax->igst > 0)<tr><td>Add: IGST</td><td class="num">{{ inr($tax->igst, true) }}</td></tr>
         @else<tr><td>Add: CGST</td><td class="num">{{ inr($tax->cgst, true) }}</td></tr><tr><td>Add: SGST</td><td class="num">{{ inr($tax->sgst, true) }}</td></tr>@endif
@@ -32,6 +32,7 @@
         <tr class="fs-5 fw-bold"><td>Rounded</td><td class="num">{{ inr($tax->rounded_total, true) }}</td></tr>
       </table>
       <div class="small text-secondary mb-3">{{ $tax->amountInWords() }}</div>
+      <div class="small text-secondary mb-3">Worked out on the combined sub-total of its sub-bills, with no rounding until the final total (as on your Excel tax invoice), so it can differ from the sum of the sub-bills by a few paise.</div>
       @if($next)
         <form method="post" action="{{ route('tax-invoices.status', $tax) }}" class="d-grid gap-2">@csrf
           <input type="hidden" name="status" value="{{ $next[0] }}">

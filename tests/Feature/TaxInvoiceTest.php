@@ -56,8 +56,8 @@ class TaxInvoiceTest extends TestCase
         // MPH 89,311.00 + Snakebite 33,600 x 1.0385 = 34,893.60 -> 1,24,204.60 before GST
         $this->assertSame('ZP/001/26-27', $tax->number);   // the serial its sub-bills ZP/001/26-27(MPH) and (SNAKE) carry
         $this->assertSame('124204.60', $tax->taxable);
-        $this->assertSame('11178.41', $tax->cgst);         // 8,037.99 + 3,140.42: GST worked out per sub-bill line, as on the sheet
-        $this->assertSame('146561.42', $tax->total);
+        $this->assertSame('11178.41', $tax->cgst);         // GST worked out once on the combined total, exactly (as on the agencies' tax invoice)
+        $this->assertSame('146561.43', $tax->total);       // exact sum; the sub-bills' own totals add up to 146561.42
         $this->assertSame('146561.00', $tax->rounded_total);
         $this->assertSame(2, $tax->subBills()->count());
         $this->assertCount(0, $builder->pending($client, CarbonImmutable::parse('2026-10-01')));
@@ -128,13 +128,14 @@ class TaxInvoiceTest extends TestCase
         $this->get("/tax-invoices/{$tax->id}")->assertOk()->assertSee('₹1,46,561.00')->assertSee('Bank details are missing');
         $this->get("/tax-invoices/{$tax->id}/pdf")->assertOk()->assertHeader('content-type', 'application/pdf');
 
-        $html = view('pdf.tax-invoice', ['tax' => $tax->load('subBills.project', 'subBills.contract'), 'agency' => $tax->agency, 'client' => $tax->client])->render();
+        $html = view('pdf.tax-invoice', \App\Http\Controllers\TaxInvoiceController::pdfData($tax))->render();
         $this->assertStringContainsString('TAX INVOICE', $html);
-        $this->assertStringContainsString('Providing Manpower – MPH', $html);
-        $this->assertStringContainsString('Providing Manpower – Snakebite', $html);
+        $this->assertStringContainsString('Invoice No- ZP/001/26-27', $html);
+        $this->assertStringContainsString('GEM CONTRACT NO-GEMC-511687731718030', $html);
+        $this->assertStringContainsString('ACADEMIC PROGRAMME MANAGER', $html);   // posts of each project
+        $this->assertStringContainsString('(SNAKE)', $html);
         $this->assertStringContainsString('998514', $html);
-        $this->assertStringContainsString('Reverse Charge (Y/N): N', $html);
-        $this->assertStringContainsString('Place of Supply: Odisha', $html);
+        $this->assertStringContainsString('Category of Service: Manpower Service', $html);
         $this->assertStringContainsString('One Lakh Forty Six Thousand Five Hundred Sixty One', $html);
 
         // A sub-bill inside a tax invoice cannot be deleted on its own.

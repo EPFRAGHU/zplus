@@ -101,10 +101,11 @@ class OwnerChangesTest extends TestCase
         $nov = $this->billMonth($contract, '2026-11-01');
         $this->assertSame('SW/002/26-27(HTA)', $nov['HTA']->invoice_no);
         $html = $this->get("/tax-invoices/{$tax->id}/pdf")->assertOk();
-        $pdfView = view('pdf.tax-invoice', ['tax' => $tax->load('contract', 'subBills.project', 'subBills.contract'), 'agency' => $tax->agency, 'client' => $tax->client])->render();
-        $this->assertStringContainsString('GEMC-511687731718030', $pdfView);
-        $this->assertStringContainsString('SW/001/26-27(CCRH)', $pdfView);
-        $this->assertStringContainsString('Projects: HTA, CCRH', $pdfView);
+        $pdfView = view('pdf.tax-invoice', \App\Http\Controllers\TaxInvoiceController::pdfData($tax))->render();
+        $this->assertStringContainsString('GEM CONTRACT NO-GEMC-511687731718030', $pdfView);
+        $this->assertStringContainsString('Invoice No- SW/001/26-27', $pdfView);
+        $this->assertStringContainsString('(HTA)', $pdfView);
+        $this->assertStringContainsString('(CCRH)', $pdfView);
     }
 
     public function test_serial_restarts_each_financial_year_and_each_agency_has_its_own(): void
@@ -174,7 +175,7 @@ class OwnerChangesTest extends TestCase
         $this->get("/contracts/{$contract->id}?month=2026-10")->assertSee('SW/001/26-27(HTA)')->assertSee('Add tax invoice SW/001/26-27');
         $ids = \App\Models\Invoice::query()->pluck('id')->all();
         $this->post('/tax-invoices', ['gem_contract_id' => $contract->id, 'month' => '2026-10', 'sub_bills' => $ids, 'invoice_date' => '2026-11-05'])->assertRedirect();
-        $this->get("/contracts/{$contract->id}?month=2026-10")->assertSee('Tax invoice Oct 2026');
+        $this->get("/contracts/{$contract->id}?month=2026-10")->assertSee('Tax invoice Oct 2026');   // footer row once made
     }
 
     public function test_pi_allotment_maps_one_pi_to_projects_under_different_work_orders(): void
@@ -247,5 +248,44 @@ class OwnerChangesTest extends TestCase
             ->assertSee('Month-wise attendance and payments')->assertSee('Oct 2026')->assertSee('₹80,400.00')->assertSee('SW/001/26-27(HTA)')->assertSee('11112222333');
         $this->actingAs(User::factory()->create(['role' => 'supervisor']));
         $this->get('/staff?employee='.$people['HTA']->id)->assertOk()->assertDontSee('11112222333')->assertSee('••••2333');
+    }
+
+    /** The SWACHHA tax invoice of October 2026 (GEMC-511687731718030), figure for figure. */
+    public function test_tax_invoice_reproduces_the_swachha_october_invoice_exactly(): void
+    {
+        $agency = Agency::query()->create(['name' => 'SWACHHA', 'code' => 'SWH', 'number_prefix' => 'SW']);
+        $client = Client::query()->create(['agency_id' => $agency->id, 'name' => 'ICMR-NIHR', 'short_code' => 'ICMR', 'state_code' => '21']);
+        $contract = GemContract::query()->create(['agency_id' => $agency->id, 'client_id' => $client->id, 'bid_no' => 'GEM/2026/B/7972720',
+            'contract_no' => 'GEMC-511687731718030', 'contract_date' => '2026-09-30']);
+        $plan = ['HTA' => [['PRS-II', 80400, 2], ['PRS-III', 93600, 1], ['SR ECON', 147600, 1], ['ADMIN OFFICER', 40000, 1], ['FO', 30000, 1]],
+            'MPH' => [['APA', 31000, 1], ['APM', 55000, 1]], 'CCRH' => [['PTS-I', 21600, 1], ['PTS-II', 24000, 1]]];
+        $n = 0;
+        foreach ($plan as $code => $posts) {
+            $project = $contract->projects()->create(['name' => $code, 'code' => $code]);
+            foreach ($posts as [$designation, $rate, $count]) {
+                $post = $project->posts()->create(['designation' => $designation, 'sanctioned_qty' => $count, 'rate' => $rate]);
+                for ($i = 0; $i < $count; $i++) {
+                    Employee::query()->create(['emp_code' => 'T-'.(++$n), 'name' => "Person {$n}", 'agency_id' => $agency->id, 'client_id' => $client->id,
+                        'post_id' => $post->id, 'status' => 'active', 'joining_date' => '2026-04-01']);
+                }
+            }
+        }
+        $bills = $this->billMonth($contract->load('projects'), '2026-10-01');
+        $tax = app(TaxInvoiceBuilder::class)->create($contract, CarbonImmutable::parse('2026-10-01'), collect($bills)->pluck('id')->all(), $this->admin, null, '2026-11-05');
+
+        $this->assertSame('SW/001/26-27', $tax->number);
+        $this->assertSame('623293.73', $tax->taxable);
+        $this->assertSame('56096.44', $tax->cgst);
+        $this->assertSame('735486.60', $tax->total);           // exact sum, as in Excel (not 623293.73 + 2 x 56096.44)
+        $this->assertSame('735487.00', $tax->rounded_total);
+
+        $html = view('pdf.tax-invoice', \App\Http\Controllers\TaxInvoiceController::pdfData($tax))->render();
+        foreach (['Invoice No- SW/001/26-27', 'Date:- 05.11.2026', 'GEM CONTRACT NO-GEMC-511687731718030, Dated- 30.09.2026', 'Month- OCT-2026',
+            '2593.55', '160800.00', '4761.29', '603600.00', '19693.73', '623293.73', '56096.44', '735486.60', '735487.00',
+            'Rupees Seven Lakh Thirty Five Thousand Four Hundred Eighty Seven Only', 'Service Charge @ 3.85% on sub total (Excluding GST)'] as $text) {
+            $this->assertStringContainsString($text, $html);
+        }
+        // 10 persons, 310 working days. (The Excel sheet showed 248: its total formula =SUM(F13:F19) leaves out the PTS-I and PTS-II rows.)
+        $this->assertMatchesRegularExpression('/<td class="c">10<\/td><td class="c">310<\/td>/', $html);
     }
 }

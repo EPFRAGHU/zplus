@@ -22,7 +22,7 @@ Owner/operator of the manpower business behind **M/S Z Plus Surakhya Seva** and 
 | **Post** | Sanctioned designation + rate under a project |
 | **Work order** | UI name for GeM contract (`gem_contracts`), Online/Offline; page shows projects → sub-bills → tax invoice |
 | **Sub-bill** | Monthly bill per project (`SW/001/26-27(HTA)`; older: `ICMR/MPH/01/2026`), model `Invoice` |
-| **Tax invoice** | Combines a **work order's** sub-bills for a month (`SW/001/26-27`, same serial; `App\Services\Billing\BillNumbers`) |
+| **Tax invoice** | Combines a **work order's** sub-bills for a month (`SW/001/26-27`, same serial; `App\Services\Billing\BillNumbers`). PDF in the agencies' own format (text header, posts of every project, EPF 12/EDLI 0.5/admin 0.5, ESI); figures worked out once on the combined sub-total (`TaxInvoiceBuilder::totals/particulars`) |
 | **PI Allotment** | `project_incharges` master (agency-scoped) linked to projects; Employee IDs SW-1001 / ZP-1001 |
 | **Service charge** | 3.85% **includes GST**: charged as (total × 3.85%) ÷ 1.18 = 3.26% on the total excluding GST (v2.4.0, flag on work order + stored per bill; older bills: plain 3.85%); then GST 18% (CGST 9 + SGST 9, or IGST) |
 | **EPF / ESIC switches** | Per employee (`pf_applicable`, `esic_applicable`). On → bill adds employer EPF 13% (wages capped ₹15,000) / ESIC 3.25%; salary sheet deducts 12% / 0.75% |
@@ -47,7 +47,7 @@ Owner/operator of the manpower business behind **M/S Z Plus Surakhya Seva** and 
 - Each agency's PDFs use its own letterhead
 - Never commit real staff data (names, PAN, Aadhaar, bank numbers) or the real workbooks; agency bank details are entered in the app, not in code
 - API keys go in `.env` by the user, never in chat or code
-- Money is integer paise; each person's amount rounds to whole rupees
+- Bill money is EXACT (brick/math `App\Support\Exact`, like Excel): no rounding of any figure, shown to 2 decimals; only the grand total is rounded ("Rounding off"). Salary payout sheet / bank letter: whole rupees per person (owner, 16 Nov 2026)
 - Run `php artisan test` before committing; render PDFs and look at them when changing PDF views
 - After pushing, tell the user: `git pull`, `php artisan migrate`, `php artisan serve`
 - **Every deployed change gets a new version**: add an entry at the top of `config/releases.php` (MAJOR milestone / MINOR feature / PATCH fix, with date and notes). It shows in the sidebar and on /releases

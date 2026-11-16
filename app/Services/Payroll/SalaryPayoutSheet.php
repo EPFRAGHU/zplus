@@ -32,7 +32,7 @@ final class SalaryPayoutSheet
             return $daily ? BillLine::daily($entry->employee->name, $entry->employee->rate(), $paid, $entry)
                 : BillLine::monthly($entry->employee->name, $entry->employee->rate(), $days, $paid, $entry);
         })->all();
-        $calc = new GemBillCalculator('0', '0');
+        $calc = new GemBillCalculator('0', '0', roundEachPerson: true);   // salaries in whole rupees
         $totals = $daily ? $calc->daily($billLines) : $calc->monthly($billLines);
 
         return collect($totals->lines)->map(function (BillLine $line) {

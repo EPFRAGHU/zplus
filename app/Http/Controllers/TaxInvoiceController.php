@@ -81,9 +81,9 @@ class TaxInvoiceController extends Controller
 
     public function show(TaxInvoice $taxInvoice): View
     {
-        $taxInvoice->load('agency', 'client', 'contract', 'subBills.project', 'subBills.contract');
+        $data = self::pdfData($taxInvoice);
 
-        return view('tax-invoices.show', ['tax' => $taxInvoice]);
+        return view('tax-invoices.show', ['tax' => $taxInvoice, 't' => $data['t']]);
     }
 
     public function status(Request $request, TaxInvoice $taxInvoice): RedirectResponse
@@ -116,10 +116,20 @@ class TaxInvoiceController extends Controller
 
     public function pdf(TaxInvoice $taxInvoice): Response
     {
-        $taxInvoice->load('agency', 'client', 'contract', 'subBills.project', 'subBills.contract');
-
-        return Pdf::loadView('pdf.tax-invoice', ['tax' => $taxInvoice, 'agency' => $taxInvoice->agency, 'client' => $taxInvoice->client])
+        return Pdf::loadView('pdf.tax-invoice', $this->pdfData($taxInvoice))
             ->setPaper('a4')->stream('tax-invoice-'.str_replace('/', '-', $taxInvoice->number).'.pdf');
+    }
+
+    /** Everything the tax invoice PDF needs: exact totals over all its sub-bills' staff, and the post-wise rows. */
+    public static function pdfData(TaxInvoice $taxInvoice): array
+    {
+        $taxInvoice->load('agency', 'client', 'contract', 'subBills.project', 'subBills.contract', 'subBills.lines');
+        $taxInvoice->setRelation('subBills', $taxInvoice->subBills->sortBy('id')->values());
+        $contract = $taxInvoice->contract ?? $taxInvoice->subBills->first()->contract;
+        $totals = TaxInvoiceBuilder::totals($taxInvoice->subBills, $contract);
+
+        return ['tax' => $taxInvoice, 'agency' => $taxInvoice->agency, 'client' => $taxInvoice->client, 't' => $totals,
+            'p' => TaxInvoiceBuilder::particulars($totals, (string) $contract->epf_percent)];
     }
 
     private function month(?string $value): CarbonImmutable

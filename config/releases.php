@@ -12,6 +12,13 @@ return [
     'timezone' => 'Asia/Kolkata',      // release times are Indian Standard Time
 
     'releases' => [
+        ['version' => '2.5.0', 'date' => '2026-11-16 22:15', 'title' => 'Tax invoice in the agencies\' own format; no rounding of bill figures', 'type' => 'feature', 'notes' => [
+            'Tax invoice PDF laid out like the SWACHHA tax invoice: agency header (GSTIN, PAN, EPF and ESIC numbers, mobile, e-mail), invoice no. SW/001/26-27, GeM contract no. and date, FROM / TO, bank details',
+            'Particulars: every post of every project under the work order (project in brackets), number of manpower, total working days, per-day wage and amount; then EPF 12%, EDLI 0.5%, PF admin 0.5%, ESI 3.25%, sub total, service charge, total, CGST / SGST, grand total, rounding off and amount in words',
+            'No figure on bills is rounded any more: everything is carried exactly, as in Excel, and only shown to 2 decimals; only the grand total is rounded ("Rounding off")',
+            'The tax invoice works out service charge and GST once on the combined sub-total of its sub-bills (as on the agencies\' tax invoice), so it can differ from the sum of the sub-bills by a few paise',
+            'The salary payout sheet and bank letter still pay each person in whole rupees',
+        ]],
         ['version' => '2.4.0', 'date' => '2026-11-16 21:40', 'title' => 'Work orders, new bill numbers, PI Allotment, bank letter, Employee Management', 'type' => 'feature', 'notes' => [
             '"GeM Contracts" are now "Work Orders", Online (GeM) or Offline; their details are entered once and used for every project, sub-bill and tax invoice',
             'Work order page: projects, then the month\'s sub-bills (Add sub-bill), then the tax invoice (Add tax invoice) in one place',

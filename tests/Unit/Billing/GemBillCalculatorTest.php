@@ -64,16 +64,17 @@ class GemBillCalculatorTest extends TestCase
         $this->assertSame('10281.15', $bill->igst); // 18% of 57117.50
     }
 
-    public function test_each_person_is_rounded_to_whole_rupees_like_the_sub_bill(): void
+    public function test_amounts_keep_their_paise_on_bills(): void
     {
-        // Sub-bill: rate/day = 31000 / 30; amount = ROUND(29 x rate/day, 0) = 29967 (29966.67 rounded).
-        $bill = $this->calc()->monthly([
-            BillLine::monthly('APA', rate: '31000', daysInMonth: 30, paidDays: '29'),
-            BillLine::monthly('APM', rate: '55000', daysInMonth: 30, paidDays: '30'),
-        ]);
+        // Owner, 16 Nov 2026: no rounding of figures on bills. 31000 / 30 x 29 = 29966.67.
+        $lines = fn () => [BillLine::monthly('APA', rate: '31000', daysInMonth: 30, paidDays: '29'), BillLine::monthly('APM', rate: '55000', daysInMonth: 30, paidDays: '30')];
+        $bill = $this->calc()->monthly($lines());
+        $this->assertSame('29966.67', $bill->lines[0]->amount);
+        $this->assertSame('84966.67', $bill->wages);
 
-        $this->assertSame('29967.00', $bill->lines[0]->amount);
-        $this->assertSame('84967.00', $bill->wages);
+        // The salary payout sheet still pays whole rupees per person.
+        $salary = (new GemBillCalculator('0', '0', roundEachPerson: true))->monthly($lines());
+        $this->assertSame('29967.00', $salary->lines[0]->amount);
     }
 
     public function test_staff_with_epf_and_esic_switched_off_add_nothing(): void

@@ -142,11 +142,12 @@ class LetterheadTest extends TestCase
         $invoice = app(InvoiceGenerator::class)->generate($sheet->fresh(), $admin);
         $tax = app(\App\Services\Billing\TaxInvoiceBuilder::class)->create($contract->fresh(), CarbonImmutable::parse('2026-10-01'), [$invoice->id], $admin);
 
-        $tax->load('agency', 'client', 'subBills.project', 'subBills.contract');
-        $html = view('pdf.tax-invoice', ['tax' => $tax, 'agency' => $tax->agency, 'client' => $tax->client])->render();
-        $this->assertStringContainsString('&ldquo;SWACHHA&rdquo;', $html);
-        $this->assertStringContainsString('Regd. Office Address:', $html);
-        $this->assertStringContainsString(':21AADAS8034Q1Z6', $html);
+        $html = view('pdf.tax-invoice', \App\Http\Controllers\TaxInvoiceController::pdfData($tax))->render();
+        // The tax invoice has the agencies' own text header (owner's format), not the letterhead image.
+        $this->assertStringContainsString('"SWACHHA"', $html);
+        $this->assertStringContainsString('GSTIN- 21AADAS8034Q1Z6', $html);
+        $this->assertStringContainsString('EPF NO- ORBBS2612050000', $html);
+        $this->assertStringContainsString('ESIC NO- 44000594740000999', $html);
         $this->assertStringContainsString('TAX INVOICE', $html);
 
         $this->actingAs($admin)->get("/tax-invoices/{$tax->id}/pdf")->assertOk()->assertHeader('content-type', 'application/pdf');

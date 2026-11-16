@@ -1,7 +1,7 @@
 # ZPlus Manpower app
 
 **Repo:** epfraghu/zplus, branch `claude/manpower-app-foundation`
-**Status:** Live. Version **2.4.0** pushed (16 Nov 2026, 9:40 PM IST; owner must Redeploy in Coolify). 148 tests passing. Project started **01 Nov 2026, 04:01 PM IST**.
+**Status:** Live. Version **2.5.0** pushed (2026-11-16 22:15 IST). Coolify AUTO-DEPLOYS on every push to the branch (seen 16 Nov: v2.4.0 went live by itself) – pushing = going live. 149 tests passing. Project started **01 Nov 2026, 04:01 PM IST**.
 **Live URL:** https://zplus.epf-dashboard.online (admin: the owner's Gmail; password was shown in chat once, owner told to change it via tinker)
 
 ## Stack
@@ -82,12 +82,13 @@ Size (non-blank lines): ~6,000 app code (PHP 3,010, Blade 2,004, migrations 704)
 - **Roles** (gates in `AppServiceProvider`): Admin = everything for the agency + users, Data Upload, unlock month. Accounts = masters, employees, bills (make/approve/paid), tax invoices, bank details, salary sheet; no users/Data Upload/unlock. Operator (`supervisor`) = mark/check/correct/lock attendance, view the rest; no masters, bills, bank details, salary sheet. PI = own projects only (portal).
 - Mobile self check-in (GPS/selfie) by employees: discussed, **not wanted**; attendance stays with PI/operator
 
+- **Tax invoice format (v2.5.0, 16 Nov 2026)**: owner sent SWACHHA's tax invoice PDF (Oct 2026, GEMC-…8030, SW/001/26-27): text header (name in quotes, address, GSTIN, PAN, EPF/ESIC nos parsed from `registrations`, MOB, Email), Invoice No + Date, GEM CONTRACT NO + Dated, Month, FROM/TO, Category of Service, bank details, Particulars (Sl, HSN merged, DES = post (project), No of Manpower, Total Working Days, Basic Wages = rate/days in month, Amount), EPF@12% / EDIL@0.5% / PF admin 0.5% / ESI@3.25%, Sub Total, Service Charge @ 3.85% on sub total (Excluding GST), Total, GST CGST/SGST, GRAND TOTAL, Rounding off, In Words. Reproduced to the paisa (test `test_tax_invoice_reproduces_the_swachha_october_invoice_exactly`: 603600 → 19693.73 → 623293.73 → 56096.44 ×2 → 735486.60 → 735487). Their sheet's total working days (248) was a formula error (=SUM(F13:F19) misses PTS rows); the app shows 310. "Don't round any monetary figures" → exact maths everywhere on bills.
 - **Owner's decisions for v2.4.0 (16 Nov 2026)**: database = add only, keep data (backup first); new service charge for NEW bills only (approved/paid keep amounts, drafts can be remade); Z Plus numbers ZP/001/26-27 and ZP-1001; existing EMP-xxxx IDs kept, new ones SW-/ZP-. Reference files were SWACHHA's Oct 2026 bills (CCRH, HTA, MPH: `SW/001/26-27(CODE)`, combined tax invoice `SW/001/26-27` on GEMC-…8030) – real staff data, never committed.
 - **Costing proposal for the Z Plus owner (13 Nov 2026)**: `docs/sales/ZPlus-Software-Costing.pdf` (13 pages, sample-data screenshots, DB diagram, tech, links). Market-equivalent effort 112 days → ₹5.6 L / ₹13.4 L / ₹22.4 L at ₹5k / ₹12k / ₹20k per day; proposed ₹2,50,000 one-time + AMC ₹5,000/month from month 4 (hosting, backups, updates, 4 h support) → ₹2,95,000 year 1, ₹60,000/yr after. Owner still to fill name/phone, confirm price, GST status, and whether SWACHHA pays separately. Days are market-equivalent, NOT a timesheet (app started 01 Nov 2026 – do not claim months of work). Built from a scratch copy of the app; the repo was not changed.
 
 ## Owner to-do on the live app (as of 04 Nov 2026)
 - [ ] Coolify: add `SESSION_EXPIRE_ON_CLOSE=true` and `SESSION_LIFETIME=60`, then **Redeploy** (v2.3.x; db container restarts once for the trigger flag; everyone signs in again)
-- [ ] Redeploy for **v2.4.0** (includes v2.3.2 security fixes); take a Coolify DB backup first. After redeploy: Agencies → check prefix SW / ZP; PI Allotment → add mobile/e-mail, check the auto-created PIs; Work Orders → set Online/Offline
+- [x] v2.4.0 deployed (auto) 16 Nov; DB backup /root/zplus-backup-2026-11-16.sql on the VPS (container `db-ppc5ypfm2aogcq4hfie2kwhv-…`; backup with `docker exec <db> sh -c 'mysqldump -u root -p"$MYSQL_ROOT_PASSWORD" --single-transaction --routines --triggers zplus' > ~/zplus-backup-DATE.sql`). After redeploy: Agencies → check prefix SW / ZP; PI Allotment → add mobile/e-mail, check the auto-created PIs; Work Orders → set Online/Offline
 - [ ] After redeploy, check triggers in the app container: `php artisan tinker --execute="echo count(DB::select('SHOW TRIGGERS'));"` → above 0 (NOT the laravel.log grep: production logs go to stderr, see Coolify Logs for "Could not create trigger")
 - [ ] Send `User-Roles-Guide-v2.pdf` to the Z Plus and SWACHHA admins
 - [ ] Users: set zplussurakhyaseva@gmail.com "Works for" = Z Plus (was "Both" after v2.2.0); add hr.swachha@gmail.com as Admin for SWACHHA

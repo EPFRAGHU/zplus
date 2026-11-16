@@ -8,6 +8,9 @@ final class BillLine
     public string $epfAmount = '0.00';    // employer EPF for this person
     public string $esicAmount = '0.00';   // employer ESIC for this person
 
+    /** Exact (unrounded) amount, as Excel carries it; $amount is this shown to 2 decimals. */
+    public ?\Brick\Math\BigRational $exact = null;
+
     private function __construct(
         public readonly string $label,
         public readonly string $rate,
