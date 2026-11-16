@@ -46,6 +46,12 @@ class Project extends Model
         return $this->hasManyThrough(Employee::class, Post::class);
     }
 
+    /** Sub-bills of this project. */
+    public function invoices(): HasMany
+    {
+        return $this->hasMany(Invoice::class);
+    }
+
     public function attendanceSheets(): HasMany
     {
         return $this->hasMany(AttendanceSheet::class);

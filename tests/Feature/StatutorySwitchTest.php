@@ -76,8 +76,8 @@ class StatutorySwitchTest extends TestCase
 
         $html = view('pdf.invoice', ['invoice' => $invoice, 'agency' => $invoice->contract->agency, 'client' => $invoice->contract->client,
             'project' => $invoice->project, 'contract' => $invoice->contract])->render();
-        $this->assertStringContainsString('Employer EPF @ 13% on wages up to ₹15,000 (1 person)', $html);
-        $this->assertStringNotContainsString('Employer ESIC', $html);
+        $this->assertStringContainsString('EPF @ 13% (employer share, on wages up to ₹15,000)', $html);
+        $this->assertStringNotContainsString('ESIC @', $html);
         $this->actingAs($this->admin)->get("/invoices/{$invoice->id}")->assertOk()->assertSee('Employer EPF');
 
         $tax = app(TaxInvoiceBuilder::class)->create($invoice->contract, CarbonImmutable::parse('2026-10-01'), [$invoice->id], $this->admin);

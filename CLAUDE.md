@@ -23,7 +23,7 @@ Owner/operator of the manpower business behind **M/S Z Plus Surakhya Seva** and 
 | **Work order** | UI name for GeM contract (`gem_contracts`), Online/Offline; page shows projects → sub-bills → tax invoice |
 | **Sub-bill** | Monthly bill per project (`SW/001/26-27(HTA)`; older: `ICMR/MPH/01/2026`), model `Invoice` |
 | **Tax invoice** | Combines a **work order's** sub-bills for a month (`SW/001/26-27`, same serial; `App\Services\Billing\BillNumbers`). PDF in the agencies' own format (text header, posts of every project, EPF 12/EDLI 0.5/admin 0.5, ESI); figures worked out once on the combined sub-total (`TaxInvoiceBuilder::totals/particulars`) |
-| **PI Allotment** | `project_incharges` master (agency-scoped) linked to projects; Employee IDs SW-1001 / ZP-1001 |
+| **Project In-charge** (menu; was PI Allotment) | `project_incharges` master (agency-scoped) linked to projects; page shows PI → projects → employees → sub-bills; Employee IDs SW-1001 / ZP-1001 |
 | **Service charge** | 3.85% **includes GST**: charged as (total × 3.85%) ÷ 1.18 = 3.26% on the total excluding GST (v2.4.0, flag on work order + stored per bill; older bills: plain 3.85%); then GST 18% (CGST 9 + SGST 9, or IGST) |
 | **EPF / ESIC switches** | Per employee (`pf_applicable`, `esic_applicable`). On → bill adds employer EPF 13% (wages capped ₹15,000) / ESIC 3.25%; salary sheet deducts 12% / 0.75% |
 | **Salary payout sheet** | Bank transfer sheet per locked month; net = earned − EPF − ESIC for staff switched on |
@@ -44,7 +44,7 @@ Owner/operator of the manpower business behind **M/S Z Plus Surakhya Seva** and 
 - **Review every change against the owner's checklist before calling it done** and report in its format (Verdict · Critical/High/Medium/Low findings with fixes · fixed code · what to test). Don't invent problems; say plainly if unsafe; say when a fix changes behaviour; ask if config is missing → memory/context/review-checklist.md
 - Agency and client are shown on every page and PDF; lists are grouped into dark **agency blocks** with light-blue **client blocks** (`<x-client-block>`)
 - One agency per client record: a client served by both agencies is added twice
-- Each agency's PDFs use its own letterhead
+- Each agency's PDFs use its own letterhead, EXCEPT sub-bills and tax invoices: owner's own text-header formats (SWACHHA samples, 16 Nov 2026) for both agencies; numbers (EPF, ESIC, CL&RA) read from the agency's Registrations text (`App\Support\AgencyDetails`)
 - Never commit real staff data (names, PAN, Aadhaar, bank numbers) or the real workbooks; agency bank details are entered in the app, not in code
 - API keys go in `.env` by the user, never in chat or code
 - Bill money is EXACT (brick/math `App\Support\Exact`, like Excel): no rounding of any figure, shown to 2 decimals; only the grand total is rounded ("Rounding off"). Salary payout sheet / bank letter: whole rupees per person (owner, 16 Nov 2026)

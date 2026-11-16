@@ -55,7 +55,7 @@
   @foreach($p['rows'] as $i => $row)
     <tr><td class="c">{{ $i + 1 }}</td>
       @if($i === 0)<td class="c mid" rowspan="{{ count($p['rows']) }}">{{ $k?->sac_code ?: '998514' }}</td>@endif
-      <td>{{ strtoupper($row['designation']) }} <span style="font-size:8px;color:#444">({{ $row['project'] }})</span></td>
+      <td>{{ strtoupper($row['designation']) }}</td>
       <td class="c">{{ $row['manpower'] }}</td><td class="c">{{ $row['days'] }}</td><td class="c">{{ $row['perDay'] }}</td><td class="r">{{ $row['amount'] }}</td></tr>
   @endforeach
   <tr><td></td><td></td><td></td><td class="c">{{ $p['manpower'] }}</td><td class="c">{{ $p['days'] }}</td><td></td><td class="r b">{{ $t->wages }}</td></tr>

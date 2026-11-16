@@ -215,9 +215,9 @@ class WebFlowTest extends TestCase
         // Render the PDF templates as HTML to check their content.
         $html = view('pdf.invoice', ['invoice' => $invoice->load('lines'), 'agency' => $invoice->contract->agency,
             'client' => $invoice->contract->client, 'project' => $invoice->project, 'contract' => $invoice->contract])->render();
-        $this->assertStringContainsString('<th style="width:12%;text-align:left">Agency</th>', $html);
-        $this->assertStringContainsString('M/S Z Plus Surakhya Seva</b> (ZPS)', $html);
-        $this->assertStringContainsString('ICMR-NIHR (RMRCBB), Bhubaneswar</b> (ICMR)', $html);
+        $this->assertStringContainsString('M/S Z PLUS SURAKHYA SEVA', $html);                 // agency in the header
+        $this->assertStringContainsString('The Administrative Officer', $html);               // client in "To,"
+        $this->assertStringContainsString('Total Monthly Wages', $html);
 
         $letter = view('pdf.covering-letter', ['invoice' => $invoice, 'agency' => $invoice->contract->agency,
             'client' => $invoice->contract->client, 'project' => $invoice->project, 'contract' => $invoice->contract])->render();

@@ -1,4 +1,4 @@
-<x-layouts.app :title="$incharge->exists ? 'Edit '.$incharge->name : 'Add Project In-charge'" :crumb="'Masters / <a href=\''.route('incharges.index').'\'>PI Allotment</a>'">
+<x-layouts.app :title="$incharge->exists ? 'Edit '.$incharge->name : 'Add Project In-charge'" :crumb="'Masters / <a href=\''.route('incharges.index').'\'>Project In-charge</a>'">
   <form method="post" action="{{ $incharge->exists ? route('incharges.update', $incharge) : route('incharges.store') }}" class="z-card p-3">
     @csrf @if($incharge->exists) @method('put') @endif
     <div class="row g-3">

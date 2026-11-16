@@ -4,10 +4,10 @@
   <div class="col-md-2"><label class="form-label small text-secondary mb-1">Code (in bill no.) *</label><input class="form-control form-control-sm mono" name="code" value="{{ $p?->code }}" required maxlength="12" placeholder="HTA" title="Letters, numbers, / and -"></div>
   <div class="col-md-3"><label class="form-label small text-secondary mb-1">Project In-charge</label>
     <select class="form-select form-select-sm" name="project_incharge_id">
-      <option value="">{{ $p?->pi_name && ! $p?->project_incharge_id ? $p->pi_name.' (not in PI Allotment)' : 'Choose PI' }}</option>
+      <option value="">{{ $p?->pi_name && ! $p?->project_incharge_id ? $p->pi_name.' (not in Project In-charge list)' : 'Choose PI' }}</option>
       @foreach($pis as $pi)<option value="{{ $pi->id }}" @selected($p?->project_incharge_id === $pi->id)>{{ $pi->label() }}</option>@endforeach
     </select>
-    <div class="form-text"><a href="{{ route('incharges.index') }}">PI Allotment</a>: add a new PI there.</div>
+    <div class="form-text"><a href="{{ route('incharges.index') }}">Project In-charge</a>: add a new PI there.</div>
     @if($p?->pi_name && ! $p?->project_incharge_id)<input type="hidden" name="pi_name" value="{{ $p->pi_name }}">@endif
   </div>
   <div class="col-md-4"><label class="form-label small text-secondary mb-1">Location</label><input class="form-control form-control-sm" name="location" value="{{ $p?->location }}" placeholder="ICMR-NIHR, Bhubaneswar"></div>

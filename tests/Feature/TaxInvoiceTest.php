@@ -133,7 +133,7 @@ class TaxInvoiceTest extends TestCase
         $this->assertStringContainsString('Invoice No- ZP/001/26-27', $html);
         $this->assertStringContainsString('GEM CONTRACT NO-GEMC-511687731718030', $html);
         $this->assertStringContainsString('ACADEMIC PROGRAMME MANAGER', $html);   // posts of each project
-        $this->assertStringContainsString('(SNAKE)', $html);
+        $this->assertStringContainsString('PTS-III', $html);
         $this->assertStringContainsString('998514', $html);
         $this->assertStringContainsString('Category of Service: Manpower Service', $html);
         $this->assertStringContainsString('One Lakh Forty Six Thousand Five Hundred Sixty One', $html);

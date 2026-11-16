@@ -44,7 +44,13 @@ class LetterheadTest extends TestCase
         $invoice = app(InvoiceGenerator::class)->generate($sheet->fresh(), $admin)->load('lines', 'contract.agency', 'contract.client', 'project');
         $data = ['invoice' => $invoice, 'agency' => $invoice->contract->agency, 'client' => $invoice->contract->client, 'project' => $invoice->project, 'contract' => $invoice->contract];
 
-        foreach (['pdf.invoice', 'pdf.covering-letter'] as $view) {
+        // The sub-bill has the agencies' own text header (owner's format, 16 Nov 2026); the covering letter keeps the letterhead.
+        $bill = view('pdf.invoice', $data)->render();
+        $this->assertStringContainsString('M/S Z PLUS SURAKHYA SEVA', $bill);
+        $this->assertStringContainsString('GST Regd No: 21AAAFZ5965B1ZD', $bill);
+        $this->assertStringContainsString('EPF Regd No: OR/14330', $bill);
+        $this->assertStringContainsString('CL&amp;RA-KHU/L/CL(R&amp;A)-2119/2013', $bill);
+        foreach (['pdf.covering-letter'] as $view) {
             $html = view($view, $data)->render();
             $this->assertStringContainsString('M/S Z PLUS SURAKHYA SEVA', $html, $view);
             $this->assertStringContainsString('(A leading Organization of Manpower &amp; Security Services)', $html, $view);

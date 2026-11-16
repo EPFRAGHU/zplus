@@ -185,7 +185,7 @@ class InvoiceController extends Controller
 
     private function pdfData(Invoice $invoice): array
     {
-        $invoice->load('lines', 'project', 'contract.agency', 'contract.client');
+        $invoice->load('lines', 'project.incharge', 'contract.agency', 'contract.client');
 
         return ['invoice' => $invoice, 'agency' => $invoice->contract->agency, 'client' => $invoice->contract->client, 'project' => $invoice->project, 'contract' => $invoice->contract];
     }

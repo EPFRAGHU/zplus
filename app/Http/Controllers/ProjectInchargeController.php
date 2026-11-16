@@ -24,7 +24,9 @@ class ProjectInchargeController extends Controller
     public function index(Request $request): View
     {
         $agencyId = $request->integer('agency') ?: null;
-        $incharges = ProjectIncharge::query()->with(['agency', 'user', 'projects.contract'])
+        $incharges = ProjectIncharge::query()->with(['agency', 'user', 'projects.contract',
+            'projects.posts.activeEmployees' => fn ($q) => $q->orderBy('name'),
+            'projects.invoices' => fn ($q) => $q->latest('month')->orderBy('invoice_no')])
             ->when($agencyId, fn ($q) => $q->where('agency_id', $agencyId))
             ->when($request->string('q')->trim()->value(), fn ($q, $s) => $q->where(fn ($w) => $w->where('name', 'like', "%{$s}%")
                 ->orWhere('mobile', 'like', "%{$s}%")->orWhere('email', 'like', "%{$s}%")))
@@ -53,7 +55,7 @@ class ProjectInchargeController extends Controller
             return $incharge;
         });
 
-        return redirect()->route('incharges.index', ['agency' => $incharge->agency_id])->with('status', "{$incharge->name} added to PI Allotment.");
+        return redirect()->route('incharges.index', ['agency' => $incharge->agency_id])->with('status', "{$incharge->name} added to Project In-charge.");
     }
 
     public function edit(ProjectIncharge $incharge): View

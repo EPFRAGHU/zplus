@@ -104,8 +104,7 @@ class OwnerChangesTest extends TestCase
         $pdfView = view('pdf.tax-invoice', \App\Http\Controllers\TaxInvoiceController::pdfData($tax))->render();
         $this->assertStringContainsString('GEM CONTRACT NO-GEMC-511687731718030', $pdfView);
         $this->assertStringContainsString('Invoice No- SW/001/26-27', $pdfView);
-        $this->assertStringContainsString('(HTA)', $pdfView);
-        $this->assertStringContainsString('(CCRH)', $pdfView);
+        $this->assertStringContainsString('<td>STAFF</td>', $pdfView);                        // DES: the post only, as on the agencies' invoice
     }
 
     public function test_serial_restarts_each_financial_year_and_each_agency_has_its_own(): void
@@ -352,5 +351,26 @@ class OwnerChangesTest extends TestCase
         $tax->forceFill(['status' => 'paid', 'number' => 'OLD/TI'])->save();
         $this->post("/tax-invoices/{$tax->id}/recalculate")->assertSessionHasErrors('tax');
         $this->assertSame('OLD/TI', $tax->fresh()->number);
+    }
+
+    public function test_project_incharge_module_shows_projects_employees_and_their_sub_bills(): void
+    {
+        [$agency, , $contract, $people] = $this->swachha();
+        $pi = ProjectIncharge::query()->create(['agency_id' => $agency->id, 'name' => 'Dr. D. Sample', 'mobile' => '9876543210']);
+        Project::query()->where('code', 'HTA')->update(['project_incharge_id' => $pi->id]);
+        $this->billMonth($contract->load('projects'), '2026-10-01');
+
+        $this->get('/')->assertSee('Project In-charge');                                  // sidebar module
+        $this->get('/incharges')->assertOk()
+            ->assertSee('Dr. D. Sample')->assertSee('HTA')->assertSee('SW-1001')->assertSee('Person HTA')   // PI → project → employees
+            ->assertSee('SW/001/26-27(HTA)')                                                 // the sub-bill marked to this PI
+            ->assertSee('1 project without a Project In-charge');                            // CCRH
+
+        // The sub-bill PDF names the PI ("Kindly Attention … (P.I)") in the agencies' layout.
+        $bill = \App\Models\Invoice::query()->where('invoice_no', 'SW/001/26-27(HTA)')->firstOrFail()->load('lines', 'project.incharge', 'contract.agency', 'contract.client');
+        $html = view('pdf.invoice', ['invoice' => $bill, 'agency' => $bill->contract->agency, 'client' => $bill->contract->client, 'project' => $bill->project, 'contract' => $bill->contract])->render();
+        foreach (['SL No:-SW/001/26-27(HTA)', 'Total Monthly Wages', 'Service charge @ 3.26% (excluding GST', '18% GST (as per GST Rule By the GOI)', 'Grand Total Round Up', 'Kindly Attention Dr. D. Sample (P.I)', 'Authorized Signatory'] as $text) {
+            $this->assertStringContainsString($text, $html);
+        }
     }
 }

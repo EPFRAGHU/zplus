@@ -24,7 +24,7 @@ final class PiAllotment
     public static function assertSameAgency(mixed $inchargeId, GemContract $contract): void
     {
         if ($inchargeId && (int) ProjectIncharge::query()->whereKey($inchargeId)->value('agency_id') !== (int) $contract->agency_id) {
-            throw ValidationException::withMessages(['project_incharge_id' => 'This Project In-charge belongs to the other agency. Add them under this agency in PI Allotment.']);
+            throw ValidationException::withMessages(['project_incharge_id' => 'This Project In-charge belongs to the other agency. Add them under this agency in Project In-charge.']);
         }
     }
 
