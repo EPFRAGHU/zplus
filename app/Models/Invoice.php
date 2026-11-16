@@ -13,7 +13,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
 #[Fillable(['agency_id', 'invoice_no', 'gem_contract_id', 'project_id', 'attendance_sheet_id', 'month', 'invoice_date', 'billing_type',
-    'service_charge_percent', 'gst_percent', 'wages', 'epf', 'esic', 'subtotal', 'service_charge', 'taxable',
+    'service_charge_percent', 'service_charge_includes_gst', 'gst_percent', 'wages', 'epf', 'esic', 'subtotal', 'service_charge', 'taxable',
     'cgst', 'sgst', 'igst', 'total', 'rounded_total', 'status', 'created_by'])]
 class Invoice extends Model
 {
@@ -35,7 +35,7 @@ class Invoice extends Model
 
     protected function casts(): array
     {
-        $money = array_fill_keys(['wages', 'epf', 'esic', 'subtotal', 'service_charge', 'taxable', 'cgst', 'sgst', 'igst', 'total', 'rounded_total'], 'decimal:2');
+        $money = ['service_charge_includes_gst' => 'boolean'] + array_fill_keys(['wages', 'epf', 'esic', 'subtotal', 'service_charge', 'taxable', 'cgst', 'sgst', 'igst', 'total', 'rounded_total'], 'decimal:2');
 
         return $money + ['invoice_date' => 'date', 'approved_at' => 'datetime', 'paid_on' => 'date'];
     }
@@ -68,5 +68,20 @@ class Invoice extends Model
     public function amountInWords(): string
     {
         return AmountInWords::rupees((string) $this->rounded_total);
+    }
+
+    /** "Service charge @ 3.85% (incl. 18% GST) ÷ 1.18 = 3.26% (excluding GST)" or the older "@ 3.85% (excluding GST @ 18%)". */
+    public function serviceChargeLabel(): string
+    {
+        $sc = (float) $this->service_charge_percent;
+        $gst = (float) $this->gst_percent;
+        if ($this->service_charge_includes_gst) {
+            $factor = 1 + $gst / 100;
+
+            return sprintf('Service charge @ %s%% (incl. %s%% GST) ÷ %s = %s%% (excluding GST)', $sc, $gst, rtrim(rtrim(number_format($factor, 2), '0'), '.'),
+                rtrim(rtrim(number_format($sc / $factor, 2), '0'), '.'));
+        }
+
+        return sprintf('Service charge @ %s%% (excluding GST @ %s%%)', $sc, $gst);
     }
 }

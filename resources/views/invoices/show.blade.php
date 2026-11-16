@@ -8,7 +8,7 @@
   <div class="d-flex flex-wrap gap-3 small mb-3">
     <span>Agency: <b>{{ $invoice->contract->agency->name }}</b></span>
     <span>Client: <b>{{ $invoice->contract->client->name }}</b></span>
-    <span>GeM contract: <span class="mono">{{ $invoice->contract->contract_no }}</span></span>
+    <span>Work order: <span class="mono">{{ $invoice->contract->contract_no }}</span></span>
     <span>PI: <b>{{ $invoice->project->pi_name ?? '—' }}</b></span>
     <span>Tax invoice: @if($invoice->taxInvoice)<a class="mono" href="{{ route('tax-invoices.show', $invoice->taxInvoice) }}">{{ $invoice->taxInvoice->number }}</a>@else<span class="text-secondary">not yet</span> @can('billing')<a href="{{ route('tax-invoices.create', ['client' => $invoice->contract->client_id, 'month' => $invoice->month->format('Y-m')]) }}">Make tax invoice</a>@endcan @endif</span>
   </div>
@@ -31,7 +31,7 @@
           <tr><td>Wages</td><td class="num">{{ inr($invoice->wages, true) }}</td></tr>
           @if((float) $invoice->epf > 0)<tr><td>Employer EPF</td><td class="num">{{ inr($invoice->epf, true) }}</td></tr>@endif
           @if((float) $invoice->esic > 0)<tr><td>Employer ESIC</td><td class="num">{{ inr($invoice->esic, true) }}</td></tr>@endif
-          <tr><td>Service charge @ {{ (float) $invoice->service_charge_percent }}%</td><td class="num">{{ inr($invoice->service_charge, true) }}</td></tr>
+          <tr><td>{{ $invoice->serviceChargeLabel() }}</td><td class="num">{{ inr($invoice->service_charge, true) }}</td></tr>
           <tr class="fw-semibold"><td>Total before GST</td><td class="num">{{ inr($invoice->taxable, true) }}</td></tr>
           @if((float) $invoice->igst > 0)<tr><td>IGST @ {{ (float) $invoice->gst_percent }}%</td><td class="num">{{ inr($invoice->igst, true) }}</td></tr>
           @else<tr><td>CGST @ {{ (float) $invoice->gst_percent / 2 }}%</td><td class="num">{{ inr($invoice->cgst, true) }}</td></tr><tr><td>SGST @ {{ (float) $invoice->gst_percent / 2 }}%</td><td class="num">{{ inr($invoice->sgst, true) }}</td></tr>@endif

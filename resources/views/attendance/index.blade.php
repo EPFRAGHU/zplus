@@ -5,7 +5,7 @@
       <select id="f-agency" name="agency" class="form-select"><option value="">All agencies</option>@foreach($agencies as $a)<option value="{{ $a->id }}" @selected($agencyId === $a->id)>{{ $a->name }}</option>@endforeach</select></div>
     <div><label class="form-label small text-secondary mb-1" for="f-client">Client</label>
       <select id="f-client" name="client" class="form-select"><option value="">All clients</option>@foreach($clients as $c)<option value="{{ $c->id }}" data-agency="{{ $c->agency_id }}" @selected($clientId === $c->id)>{{ $c->name }}</option>@endforeach</select></div>
-    <div><label class="form-label small text-secondary mb-1" for="f-contract">GeM contract</label>
+    <div><label class="form-label small text-secondary mb-1" for="f-contract">Work order</label>
       <select id="f-contract" name="contract" class="form-select"><option value="">All contracts</option>@foreach($contracts as $k)<option value="{{ $k->id }}" data-agency="{{ $k->agency_id }}" data-client="{{ $k->client_id }}" @selected(request('contract') == $k->id)>{{ $k->bid_no }}</option>@endforeach</select></div>
     <div><label class="form-label small text-secondary mb-1" for="f-project">Project</label>
       <select id="f-project" name="project" class="form-select"><option value="">All projects</option>@foreach($allProjects as $pp)<option value="{{ $pp->id }}" data-agency="{{ $pp->contract->agency_id }}" data-client="{{ $pp->contract->client_id }}" data-contract="{{ $pp->gem_contract_id }}" @selected(request('project') == $pp->id)>{{ $pp->label() }}</option>@endforeach</select></div>
@@ -15,7 +15,7 @@
   <div class="z-card">
     <div class="z-card-h"><h2>{{ $month->format('F Y') }}</h2><span class="small text-secondary">{{ $sheets->only($projects->pluck('id')->all())->where('status', 'locked')->count() }} of {{ $projects->count() }} projects locked</span></div>
     <div class="table-responsive"><table class="table align-middle">
-      <thead><tr><th>Agency</th><th>Client</th><th>GeM contract</th><th>Project</th><th>PI</th><th class="num">Staff</th><th>Status</th><th style="min-width:330px"></th></tr></thead>
+      <thead><tr><th>Agency</th><th>Client</th><th>Work order</th><th>Project</th><th>PI</th><th class="num">Staff</th><th>Status</th><th style="min-width:330px"></th></tr></thead>
       <tbody>
       @php($agencyBlock = null) @php($clientBlock = null)
       @forelse($projects as $p)
@@ -54,7 +54,7 @@
           </td>
         </tr>
       @empty
-        <tr><td colspan="8" class="text-center text-secondary py-4">No projects match. Change the filters, or add GeM contracts first.</td></tr>
+        <tr><td colspan="8" class="text-center text-secondary py-4">No projects match. Change the filters, or add work orders first.</td></tr>
       @endforelse
       </tbody></table></div>
   </div>

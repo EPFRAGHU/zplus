@@ -39,7 +39,7 @@
     @if((float) $invoice->esic > 0)
       <tr><td>Add</td><td colspan="6">Employer ESIC @ {{ (float) $contract->esic_percent }}%{{ $people($esicCount) }}</td><td class="r">{{ $rs($invoice->esic) }}</td></tr>
     @endif
-    <tr><td>Add</td><td colspan="6">Service charge @ {{ (float) $invoice->service_charge_percent }}% (excluding GST @ {{ (float) $invoice->gst_percent }}%)</td><td class="r">{{ $rs($invoice->service_charge) }}</td></tr>
+    <tr><td>Add</td><td colspan="6">{{ $invoice->serviceChargeLabel() }}</td><td class="r">{{ $rs($invoice->service_charge) }}</td></tr>
     <tr class="b"><td></td><td colspan="6">Total</td><td class="r">{{ $rs($invoice->taxable) }}</td></tr>
     <tr><td>Add</td><td colspan="6">{{ (float) $invoice->gst_percent }}% GST (as per GST Rule by the GOI){{ (float) $invoice->igst > 0 ? ' – IGST' : ' – CGST '.$rs($invoice->cgst).' + SGST '.$rs($invoice->sgst) }}</td><td class="r">{{ $rs((float) $invoice->cgst + (float) $invoice->sgst + (float) $invoice->igst) }}</td></tr>
     <tr class="b"><td></td><td colspan="6">Grand total</td><td class="r">{{ $rs($invoice->total) }}</td></tr>

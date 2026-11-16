@@ -122,7 +122,29 @@ class AttendanceController extends Controller
         $sheet->load('entries.employee.post', 'project.contract.client', 'project.contract.agency');
 
         return Pdf::loadView('pdf.salary-payouts', ['sheet' => $sheet, 'lines' => $payouts->lines($sheet), 'agency' => $sheet->project->contract->agency])
-            ->setPaper('a4', 'landscape')->stream("salary-payouts-{$sheet->project->code}-{$sheet->month->format('Y-m')}.pdf");
+            ->setPaper('a4', 'landscape')->stream("salary-payouts-".\App\Support\Codes::fileSafe($sheet->project->code)."-{$sheet->month->format('Y-m')}.pdf");
+    }
+
+    /**
+     * Forwarding letter to the agency's bank for the month's salaries of one project: every employee, SBI accounts
+     * (Emp ID, name, amount) and other banks by NEFT (account no., IFSC, amount). Net pay as on the salary payout sheet.
+     */
+    public function bankLetter(AttendanceSheet $sheet, \App\Services\Payroll\SalaryPayoutSheet $payouts): Response
+    {
+        Gate::authorize('view-bank-details');
+        abort_unless($sheet->isLocked(), 422, 'Lock the month before making the bank letter.');
+        $sheet->load('entries.employee.post', 'project.contract.client', 'project.contract.agency');
+        $agency = $sheet->project->contract->agency;
+        $lines = $payouts->lines($sheet)->filter(fn ($l) => $l['net'] > 0);
+        [$withBank, $missing] = $lines->partition(fn ($l) => filled($l['employee']->account_number) && filled($l['employee']->ifsc));
+        [$sbi, $neft] = $withBank->partition(fn ($l) => str_starts_with(strtoupper((string) $l['employee']->ifsc), 'SBIN'));
+        $total = $withBank->sum('net');
+
+        return Pdf::loadView('pdf.bank-letter', [
+            'sheet' => $sheet, 'agency' => $agency, 'sbi' => $sbi->values(), 'neft' => $neft->values(), 'missing' => $missing->values(),
+            'total' => $total, 'totalWords' => \App\Support\AmountInWords::rupees(\App\Support\Money::format($total)),
+            'reference' => $agency->numberPrefix().'/BANK/'.$sheet->project->code.'/'.$sheet->month->format('m').'/'.\App\Services\Billing\BillNumbers::financialYear($sheet->month),
+        ])->setPaper('a4')->stream('bank-letter-'.\App\Support\Codes::fileSafe($sheet->project->code).'-'.$sheet->month->format('Y-m').'.pdf');
     }
 
     /** Printable "Monthly Attendance and Working Certificate" for the PI to sign. */
@@ -132,7 +154,7 @@ class AttendanceController extends Controller
         $showBank = Gate::allows('view-bank-details');
 
         return Pdf::loadView('pdf.attendance-certificate', compact('sheet', 'showBank'))
-            ->setPaper('a4', 'landscape')->stream("attendance-{$sheet->project->code}-{$sheet->month->format('Y-m')}.pdf");
+            ->setPaper('a4', 'landscape')->stream("attendance-".\App\Support\Codes::fileSafe($sheet->project->code)."-{$sheet->month->format('Y-m')}.pdf");
     }
 
     /** The certificate exactly as the PI submitted it. */
@@ -140,7 +162,7 @@ class AttendanceController extends Controller
     {
         abort_unless($sheet->submitted_pdf_path && Storage::disk('local')->exists($sheet->submitted_pdf_path), 404);
 
-        return Storage::disk('local')->response($sheet->submitted_pdf_path, "attendance-{$sheet->project->code}-{$sheet->month->format('Y-m')}-as-submitted.pdf");
+        return Storage::disk('local')->response($sheet->submitted_pdf_path, "attendance-".\App\Support\Codes::fileSafe($sheet->project->code)."-{$sheet->month->format('Y-m')}-as-submitted.pdf");
     }
 
     public function scan(AttendanceSheet $sheet): Response

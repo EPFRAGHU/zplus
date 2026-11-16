@@ -103,7 +103,7 @@ final class GemWorkbookImporter
                     [$agencyId, $clientId] = $agency ? [$agency->id, $this->clientFor($client, $agency)->id] : [null, null];
                 }
                 Employee::query()->create([
-                    'emp_code' => Employee::nextCode(),
+                    'emp_code' => Employee::nextCode($agencyId ? (int) $agencyId : null),
                     'agency_id' => $agencyId,
                     'client_id' => $clientId,
                     'post_id' => $postId,

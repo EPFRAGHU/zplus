@@ -63,9 +63,11 @@ body{font-size:.9rem}
       <div class="z-label">Masters</div>
       <a class="{{ $is('agencies.*') }}" href="{{ route('agencies.index') }}"><i class="bi bi-building"></i>Agencies</a>
       <a class="{{ $is('clients.*') }}" href="{{ route('clients.index') }}"><i class="bi bi-bank"></i>Clients</a>
-      <a class="{{ $is('contracts.*') }}" href="{{ route('contracts.index') }}"><i class="bi bi-file-earmark-text"></i>GeM Contracts</a>
+      <a class="{{ $is('contracts.*') }}" href="{{ route('contracts.index') }}"><i class="bi bi-file-earmark-text"></i>Work Orders</a>
+      <a class="{{ $is('incharges.*') }}" href="{{ route('incharges.index') }}"><i class="bi bi-person-badge"></i>PI Allotment</a>
       <a class="{{ $is('posts.*') }}" href="{{ route('posts.index') }}"><i class="bi bi-diagram-3"></i>Posts</a>
       <a class="{{ $is('employees.*') }}" href="{{ route('employees.index') }}"><i class="bi bi-people"></i>Employees</a>
+      <a class="{{ $is('staff.*') }}" href="{{ route('staff.index') }}"><i class="bi bi-person-lines-fill"></i>Employee Management</a>
       <div class="z-label">Operations</div>
       <a class="{{ $is('attendance.*') }}" href="{{ route('attendance.index') }}"><i class="bi bi-calendar-check"></i>Attendance</a>
       <a class="{{ $is('invoices.*') }}" href="{{ route('invoices.index') }}"><i class="bi bi-receipt"></i>Sub-bills</a>

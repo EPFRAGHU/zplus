@@ -15,7 +15,7 @@
           <dt class="col-sm-4 text-secondary fw-normal">Client</dt><dd class="col-sm-8">{{ $employee->client?->name ?? 'Not assigned to a client yet' }}</dd>
           <dt class="col-sm-4 text-secondary fw-normal">Post</dt><dd class="col-sm-8">{{ $employee->post?->designation ?? 'Not linked to a post' }}</dd>
           <dt class="col-sm-4 text-secondary fw-normal">Project</dt><dd class="col-sm-8">@if($employee->post)<a href="{{ route('contracts.show', $employee->post->project->contract) }}">{{ $employee->post->project->label() }}</a>@else — @endif</dd>
-          <dt class="col-sm-4 text-secondary fw-normal">GeM contract</dt><dd class="col-sm-8 mono">{{ $employee->post?->project->contract->contract_no ?? '—' }}</dd>
+          <dt class="col-sm-4 text-secondary fw-normal">Work order</dt><dd class="col-sm-8 mono">{{ $employee->post?->project->contract->contract_no ?? '—' }}</dd>
           <dt class="col-sm-4 text-secondary fw-normal">Monthly rate</dt><dd class="col-sm-8">{{ inr($employee->rate()) }} @if($employee->rate_override)<span class="badge text-bg-light border">differs from post</span>@endif</dd>
           <dt class="col-sm-4 text-secondary fw-normal">Joined</dt><dd class="col-sm-8">{{ $employee->joining_date?->format('d M Y') ?? '—' }}</dd>
           <dt class="col-sm-4 text-secondary fw-normal">Mobile</dt><dd class="col-sm-8">{{ $employee->mobile ?? '—' }}</dd>

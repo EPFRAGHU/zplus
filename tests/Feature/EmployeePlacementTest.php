@@ -94,7 +94,7 @@ class EmployeePlacementTest extends TestCase
         Employee::query()->create(['emp_code' => 'EMP-3002', 'name' => 'Unplaced Person', 'agency_id' => $swh->id]);
 
         $this->actingAs($admin)->get('/employees')->assertOk()
-            ->assertSee('<th>GeM contract</th><th>Project</th><th>Post</th>', false)
+            ->assertSee('<th>Work order</th><th>Project</th><th>Post</th>', false)
             ->assertSee('GEM/2026/B/7972720</a>', false)->assertSee('PI: Dr. S. Kanungo')
             ->assertSee('Not placed on a post')->assertSee('id="f-contract"', false);
         $this->get('/employees')->assertDontSee('@else')->assertDontSee('@endif');   // no stray template code

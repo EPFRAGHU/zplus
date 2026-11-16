@@ -25,7 +25,7 @@ final class AgencyScope implements Scope
         match ($model::class) {
             \App\Models\Agency::class => $builder->where($model->qualifyColumn('id'), $agency),
             \App\Models\Client::class, \App\Models\GemContract::class, \App\Models\Employee::class,
-            \App\Models\Invoice::class, \App\Models\TaxInvoice::class => $builder->where($model->qualifyColumn('agency_id'), $agency),
+            \App\Models\Invoice::class, \App\Models\TaxInvoice::class, \App\Models\ProjectIncharge::class => $builder->where($model->qualifyColumn('agency_id'), $agency),
             \App\Models\Project::class => $builder->whereIn($model->qualifyColumn('gem_contract_id'), $contracts()),
             \App\Models\Post::class, \App\Models\AttendanceSheet::class => $builder->whereIn($model->qualifyColumn('project_id'), $projects()),
             \App\Models\EmployeeDocument::class => $builder->whereIn($model->qualifyColumn('employee_id'),

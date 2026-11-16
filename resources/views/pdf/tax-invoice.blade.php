@@ -5,14 +5,18 @@
 @include('pdf._letterhead-footer')
 @include('pdf._letterhead')
 <div class="c b" style="font-size:14px;border:1px solid #555;padding:3px;margin-bottom:-1px">TAX INVOICE</div>
+@if($tax->contract)
+<div style="font-size:10px;border:1px solid #555;padding:3px 5px;margin-bottom:-1px">{{ $tax->contract->contract_type === 'offline' ? 'Work order no.' : 'GeM contract no.' }}: <b>{{ $tax->contract->contract_no }}</b>@if($tax->contract->contract_date), dated {{ $tax->contract->contract_date->format('d.m.Y') }}@endif
+  @if($tax->contract->bid_no) &nbsp;·&nbsp; GeM bid no.: {{ $tax->contract->bid_no }}@endif &nbsp;·&nbsp; Projects: {{ $tax->subBills->map(fn ($b) => $b->project->code)->unique()->implode(', ') }}</div>
+@endif
 <table class="box">
   <tr>
-    <td style="width:50%">Invoice No.: <b>{{ $tax->number }}</b><br>Invoice date: {{ $tax->invoice_date->format('d/m/Y') }}<br>Invoice month: {{ $tax->month->format('M-Y') }}<br>Reverse Charge (Y/N): N<br>State: Odisha &nbsp; Code: 21</td>
+    <td style="width:50%">Invoice No.: <b>{{ $tax->number }}</b><br>Invoice date: {{ $tax->invoice_date->format('d/m/Y') }}<br>Invoice month: {{ $tax->month->format('M-Y') }}<br>Reverse Charge (Y/N): N<br>@php($ownCode = substr((string) $agency->gstin, 0, 2) ?: '21')State: {{ \App\Support\IndianStates::name($ownCode) ?? 'Odisha' }} &nbsp; Code: {{ $ownCode }}</td>
     <td>Transport Mode: —<br>Vehicle number: —<br>Date of Supply: {{ $tax->month->format('M-Y') }}<br>Place of Supply: {{ $tax->place_of_supply }}</td>
   </tr>
   <tr>
-    <td><b>Bill to Party</b><br>Name: {{ $client->name }}<br>{{ $client->addressee ?? 'The Administrative Officer' }},<br>{!! nl2br(e($client->billing_address)) !!}<br>GSTIN: {{ $client->gstin ?? '—' }}<br>State: ODISHA &nbsp; Code: {{ $client->state_code }}</td>
-    <td><b>Ship to Party</b><br>Name: {{ $client->name }}<br>Address: as Bill to Party<br>GSTIN: {{ $client->gstin ?? '—' }}<br>State: ODISHA &nbsp; Code: {{ $client->state_code }}</td>
+    <td><b>Bill to Party</b><br>Name: {{ $client->name }}<br>{{ $client->addressee ?? 'The Administrative Officer' }},<br>{!! nl2br(e($client->billing_address)) !!}<br>GSTIN: {{ $client->gstin ?? '—' }}<br>State: {{ strtoupper(\App\Support\IndianStates::name($client->state_code) ?? '—') }} &nbsp; Code: {{ $client->state_code }}</td>
+    <td><b>Ship to Party</b><br>Name: {{ $client->name }}<br>Address: as Bill to Party<br>GSTIN: {{ $client->gstin ?? '—' }}<br>State: {{ strtoupper(\App\Support\IndianStates::name($client->state_code) ?? '—') }} &nbsp; Code: {{ $client->state_code }}</td>
   </tr>
 </table>
 <br>

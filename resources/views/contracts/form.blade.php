@@ -1,4 +1,4 @@
-<x-layouts.app :title="$contract->exists ? 'Edit GeM contract' : 'Add GeM contract'" crumb="Masters / GeM Contracts">
+<x-layouts.app :title="$contract->exists ? 'Edit work order' : 'Add work order'" crumb="Masters / Work Orders">
   <form method="post" action="{{ $contract->exists ? route('contracts.update', $contract) : route('contracts.store') }}" class="z-card p-3">
     @csrf @if($contract->exists) @method('put') @endif
     <div class="row g-3">
@@ -22,19 +22,21 @@
         @error('client_id')<div class="invalid-feedback">{{ $message }}</div>@enderror
         <div class="form-text">Only clients of the selected agency are listed.</div>
       </div>
-      <x-select name="status" label="Status" :options="['active' => 'Active', 'closed' => 'Closed']" :value="$contract->status ?? 'active'" required col="col-md-4" />
-      <x-field name="bid_no" label="GeM bid no." :value="$contract->bid_no" required col="col-md-4" class="mono" hint="e.g. GEM/2026/B/7972720" />
-      <x-field name="contract_no" label="GeM contract no." :value="$contract->contract_no" required col="col-md-4" class="mono" hint="e.g. GEMC-511687731718030" />
+      <x-select name="status" label="Status" :options="['active' => 'Active', 'closed' => 'Closed']" :value="$contract->status ?? 'active'" required col="col-md-2" />
+      <x-select name="contract_type" label="Contract" :options="\App\Models\GemContract::TYPES" :value="$contract->contract_type ?? 'online'" required col="col-md-2" />
+      <x-field name="bid_no" label="GeM bid no." :value="$contract->bid_no" col="col-md-4" class="mono" hint="e.g. GEM/2026/B/7972720 (needed for online contracts)" />
+      <x-field name="contract_no" label="Contract no. (GeM or work order)" :value="$contract->contract_no" required col="col-md-4" class="mono" hint="e.g. GEMC-511687731718030" />
       <x-field name="contract_date" label="Contract date" type="date" :value="$contract->contract_date?->toDateString()" col="col-md-4" />
       <x-select name="billing_type" label="Billing type" :options="['monthly' => 'Monthly rate (consolidated)', 'daily' => 'Daily rate × paid days']" :value="$contract->billing_type" required col="col-md-4" />
       <x-field name="sac_code" label="SAC / HSN code" :value="$contract->sac_code ?? '998514'" col="col-md-2" class="mono" hint="Printed on bills" />
-      <x-field name="service_charge_percent" label="Service charge (%)" :value="$contract->service_charge_percent" required col="col-md-2" hint="On the total before GST" />
+      <x-field name="service_charge_percent" label="Service charge (%)" :value="$contract->service_charge_percent" required col="col-md-2" hint="e.g. 3.85" />
       <x-field name="gst_percent" label="GST (%)" :value="$contract->gst_percent" required col="col-md-2" />
       <x-field name="epf_percent" label="Employer EPF (%)" :value="$contract->epf_percent" required col="col-md-2" hint="For staff with EPF on" />
       <x-field name="esic_percent" label="Employer ESIC (%)" :value="$contract->esic_percent" required col="col-md-2" hint="For staff with ESIC on" />
+      <div class="col-12"><div class="form-check"><input type="hidden" name="service_charge_includes_gst" value="0"><input class="form-check-input" type="checkbox" name="service_charge_includes_gst" value="1" id="sc_incl" @checked(old('service_charge_includes_gst', $contract->service_charge_includes_gst ?? true))><label class="form-check-label" for="sc_incl">Service charge % <b>includes GST</b>: charge (amount × service charge %) ÷ 1.18, e.g. 3.85% ÷ 1.18 = 3.26%. Untick to charge the full % on the amount.</label></div></div>
       <div class="col-12"><div class="form-check"><input class="form-check-input" type="checkbox" name="inter_state" value="1" id="inter_state" @checked(old('inter_state', $contract->inter_state))><label class="form-check-label" for="inter_state">Inter-state supply (charge IGST instead of CGST + SGST)</label></div></div>
     </div>
-    <div class="d-flex gap-2 justify-content-end mt-3"><a class="btn btn-outline-secondary" href="{{ $contract->exists ? route('contracts.show', $contract) : route('contracts.index') }}">Cancel</a><button class="btn btn-primary">Save contract</button></div>
+    <div class="d-flex gap-2 justify-content-end mt-3"><a class="btn btn-outline-secondary" href="{{ $contract->exists ? route('contracts.show', $contract) : route('contracts.index') }}">Cancel</a><button class="btn btn-primary">Save work order</button></div>
   </form>
   <script>
     (function () {

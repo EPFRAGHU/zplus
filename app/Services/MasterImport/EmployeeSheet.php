@@ -41,7 +41,7 @@ final class EmployeeSheet extends MasterSheet
     public function columns(): array
     {
         return [
-            new Column('emp_code', 'Employee code', help: 'Leave blank for new staff: the app gives the next code (EMP-1001 ...). Use the code to update someone already in the app.', example: 'EMP-1001', width: 13),
+            new Column('emp_code', 'Employee code', help: 'Leave blank for new staff: the app gives the next code of the agency (SW-1001, ZP-1001 ...). Use the code to update someone already in the app.', example: 'SW-1001', width: 13),
             new Column('name', 'Name', true, example: 'Amit Kumar', width: 24),
             new Column('agency_code', 'Agency code', true, help: 'Agency that employs this person', example: 'ZPS', width: 12),
             new Column('client_code', 'Client code', help: 'Client where the person works', example: 'ICMR', width: 12),
@@ -182,7 +182,7 @@ final class EmployeeSheet extends MasterSheet
     public function save(RowResult $r): Model
     {
         if (! $r->model && empty($r->data['emp_code'])) {
-            $r->data['emp_code'] = Employee::nextCode();
+            $r->data['emp_code'] = Employee::nextCode(isset($r->data['agency_id']) ? (int) $r->data['agency_id'] : null);
         }
 
         return parent::save($r);

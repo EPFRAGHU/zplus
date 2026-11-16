@@ -62,7 +62,8 @@ class AgencyController extends Controller
     {
         return $request->validate([
             'name' => ['required', 'string', 'max:255'],
-            'code' => ['required', 'alpha_num', 'max:10', Rule::unique('agencies')->ignore($agency)],
+            'code' => ['required', \App\Support\Codes::PATTERN, 'max:10', Rule::unique('agencies')->ignore($agency)],
+            'number_prefix' => ['nullable', 'alpha_num', 'max:6', Rule::unique('agencies')->ignore($agency)],
             'address' => ['nullable', 'string', 'max:1000'],
             'email' => ['nullable', 'email'],
             'phone' => ['nullable', 'string', 'max:20'],

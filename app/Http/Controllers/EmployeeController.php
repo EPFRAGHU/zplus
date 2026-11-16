@@ -58,13 +58,17 @@ class EmployeeController extends Controller
     {
         Gate::authorize('manage-masters');
 
-        return view('employees.form', ['employee' => new Employee(['status' => 'active', 'emp_code' => Employee::nextCode()])] + $this->formData());
+        $agencyId = auth()->user()->agency_id;   // an agency login knows its prefix now; others get it when the agency is chosen
+
+        return view('employees.form', ['employee' => new Employee(['status' => 'active', 'agency_id' => $agencyId, 'emp_code' => $agencyId ? Employee::nextCode($agencyId) : null])] + $this->formData());
     }
 
     public function store(Request $request): RedirectResponse
     {
         Gate::authorize('manage-masters');
-        $employee = Employee::query()->create($this->validated($request));
+        $data = $this->validated($request);
+        $data['emp_code'] = $data['emp_code'] ?? null ?: Employee::nextCode((int) $data['agency_id']);   // blank: SW-1001 / ZP-1001 …
+        $employee = Employee::query()->create($data);
 
         return redirect()->route('employees.show', $employee)->with('status', 'Employee added.');
     }
@@ -116,7 +120,7 @@ class EmployeeController extends Controller
         return Pdf::loadView('pdf.appointment-letter', [
             'employee' => $employee, 'project' => $project, 'contract' => $contract, 'agency' => $contract->agency,
             'number' => $doc->number, 'rate' => $rate, 'rateWords' => AmountInWords::rupees($rate),
-        ])->setPaper('a4')->stream("appointment-{$employee->emp_code}.pdf");
+        ])->setPaper('a4')->stream("appointment-".\App\Support\Codes::fileSafe($employee->emp_code).".pdf");
     }
 
     /** Switch EPF and ESIC on or off from the employees list. */
@@ -134,6 +138,7 @@ class EmployeeController extends Controller
             'agencies' => Agency::query()->withCount(['contracts'])->orderBy('name')->get()
                 ->each(fn ($a) => $a->posts_count = Post::query()->whereHas('project.contract', fn ($q) => $q->where('agency_id', $a->id))->count()),
             'clients' => Client::query()->with('agency')->orderBy('name')->get(),
+            'nextCodes' => Agency::query()->get()->mapWithKeys(fn ($a) => [$a->id => Employee::nextCode($a)]),
             'posts' => Post::query()->with('project.contract')->withCount('activeEmployees')->get()
                 ->sortBy(fn ($p) => $p->project->contract->bid_no.$p->project->name.$p->designation),
         ] + PostController::pickerData();   // own keys (agencies with post counts) win
@@ -158,7 +163,7 @@ class EmployeeController extends Controller
     private function validated(Request $request, ?Employee $employee = null): array
     {
         $data = $request->validate([
-            'emp_code' => ['required', 'string', 'max:20', Rule::unique('employees')->ignore($employee)],
+            'emp_code' => [$employee ? 'required' : 'nullable', 'string', 'max:20', Rule::unique('employees')->ignore($employee)],
             'agency_id' => ['required', new \App\Rules\ExistsInMyAgency(\App\Models\Agency::class)],
             'client_id' => ['nullable', new \App\Rules\ExistsInMyAgency(\App\Models\Client::class)],
             'post_id' => ['nullable', new \App\Rules\ExistsInMyAgency(\App\Models\Post::class)],

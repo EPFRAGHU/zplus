@@ -83,12 +83,17 @@ class Employee extends Model
         return $this->account_last4 ? '••••'.$this->account_last4 : null;
     }
 
-    public static function nextCode(): string
+    /**
+     * Next employee ID of an agency: SW-1001, SW-1002 … (ZP-1001 … for Z Plus), from the agency's number prefix.
+     * Codes are unique across both agencies, so every employee is looked at. Without an agency: EMP-1001 … as before.
+     */
+    public static function nextCode(Agency|int|null $agency = null): string
     {
-        // Codes are unique across both agencies, so look at every employee.
-        $last = \App\Support\Agency\AgencyContext::unscoped(fn () => static::query()->where('emp_code', 'like', 'EMP-%')->orderByDesc('id')->value('emp_code'));
-        $n = $last ? ((int) substr($last, 4)) + 1 : 1001;
+        $agency = is_int($agency) ? \App\Support\Agency\AgencyContext::unscoped(fn () => Agency::query()->find($agency)) : $agency;
+        $prefix = ($agency?->numberPrefix() ?? 'EMP').'-';
+        $codes = \App\Support\Agency\AgencyContext::unscoped(fn () => static::query()->where('emp_code', 'like', $prefix.'%')->pluck('emp_code'));
+        $max = $codes->map(fn ($c) => substr($c, strlen($prefix)))->filter(fn ($n) => ctype_digit($n))->map(fn ($n) => (int) $n)->max();
 
-        return 'EMP-'.$n;
+        return $prefix.max(1001, ($max ?? 1000) + 1);
     }
 }

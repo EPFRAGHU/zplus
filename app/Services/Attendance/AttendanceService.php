@@ -98,7 +98,7 @@ final class AttendanceService
             throw new RuntimeException('There is no one on this sheet yet. Ask the agency to link the staff to your project.');
         }
         $sheet->forceFill(['status' => 'submitted', 'submitted_at' => now(), 'submitted_by' => $pi->id])->save();
-        $path = sprintf('attendance-submitted/%s/%s-%s-%s.pdf', $sheet->month->format('Y-m'), $sheet->project->code, $sheet->id, now()->format('YmdHis'));
+        $path = sprintf('attendance-submitted/%s/%s-%s-%s.pdf', $sheet->month->format('Y-m'), \App\Support\Codes::fileSafe($sheet->project->code), $sheet->id, now()->format('YmdHis'));
         Storage::disk('local')->put($path, $this->certificatePdf($sheet->fresh()));
         $sheet->forceFill(['submitted_pdf_path' => $path])->save();
     }

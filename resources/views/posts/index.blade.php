@@ -5,15 +5,15 @@
       <select id="f-agency" name="agency" class="form-select"><option value="">All agencies</option>@foreach($agencies as $a)<option value="{{ $a->id }}" @selected($agencyId === $a->id)>{{ $a->name }}</option>@endforeach</select></div>
     <div><label class="form-label small text-secondary mb-1" for="f-client">Client</label>
       <select id="f-client" name="client" class="form-select"><option value="">All clients</option>@foreach($clients as $c)<option value="{{ $c->id }}" data-agency="{{ $c->agency_id }}" @selected($clientId === $c->id)>{{ $c->name }}</option>@endforeach</select></div>
-    <div><label class="form-label small text-secondary mb-1" for="f-contract">GeM contract</label>
+    <div><label class="form-label small text-secondary mb-1" for="f-contract">Work order</label>
       <select id="f-contract" name="contract" class="form-select"><option value="">All contracts</option>@foreach($pickContracts as $k)<option value="{{ $k->id }}" data-agency="{{ $k->agency_id }}" data-client="{{ $k->client_id }}" @selected(request('contract') == $k->id)>{{ $k->bid_no }}</option>@endforeach</select></div>
     <div><label class="form-label small text-secondary mb-1" for="f-project">Project</label>
       <select id="f-project" name="project" class="form-select"><option value="">All projects</option>@foreach($pickProjects as $pp)<option value="{{ $pp->id }}" data-contract="{{ $pp->gem_contract_id }}" @selected(request('project') == $pp->id)>{{ $pp->name }}{{ $pp->pi_name ? ' · '.$pp->pi_name : '' }}</option>@endforeach</select></div>
     <button class="btn btn-outline-secondary">Show</button>
-    <span class="small text-secondary ms-md-2">Each post sits under a project, and each project under a GeM contract. Use <b>Add post</b> to enter one; you can create the contract and project in the same window.</span>
+    <span class="small text-secondary ms-md-2">Each post sits under a project, and each project under a work order. Use <b>Add post</b> to enter one; you can create the contract and project in the same window.</span>
   </form>
   <div class="z-card"><div class="table-responsive"><table class="table table-hover">
-    <thead><tr><th>Agency</th><th>Client</th><th>GeM contract</th><th>Project</th><th>Designation</th><th class="num">Sanctioned</th><th class="num">Filled</th><th class="num">Rate</th><th></th></tr></thead>
+    <thead><tr><th>Agency</th><th>Client</th><th>Work order</th><th>Project</th><th>Designation</th><th class="num">Sanctioned</th><th class="num">Filled</th><th class="num">Rate</th><th></th></tr></thead>
     <tbody>
     @php($agencyBlock = null) @php($group = null)
     @forelse($posts as $p)

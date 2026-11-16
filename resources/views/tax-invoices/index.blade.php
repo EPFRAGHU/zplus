@@ -25,7 +25,7 @@
         @php($clientBlock = $t->client_id)
         @php($inClient = $taxInvoices->where('client_id', $t->client_id))
         <x-client-block :client="$t->client" colspan="8" :meta="$inClient->count().' '.\Illuminate\Support\Str::plural('tax invoice', $inClient->count()).' · '.inr($inClient->sum(fn ($x) => (float) $x->rounded_total))">
-          @can('billing')<a class="btn btn-sm btn-outline-primary" href="{{ route('tax-invoices.create', ['client' => $t->client_id]) }}"><i class="bi bi-plus-lg"></i> Tax invoice for this client</a>@endcan
+          @can('billing')<a class="btn btn-sm btn-outline-primary" href="{{ route('tax-invoices.create', array_filter(['contract' => $t->gem_contract_id])) }}"><i class="bi bi-plus-lg"></i> Tax invoice for this client</a>@endcan
         </x-client-block>
       @endif
       <tr>

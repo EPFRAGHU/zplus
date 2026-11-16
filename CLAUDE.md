@@ -20,14 +20,16 @@ Owner/operator of the manpower business behind **M/S Z Plus Surakhya Seva** and 
 | **GeM** | Government e-Marketplace; each contract = GeM bid + contract no. |
 | **Project** | A PI's programme under a contract, e.g. **MPH** (MPH Academic Programme) |
 | **Post** | Sanctioned designation + rate under a project |
-| **Sub-bill** | Monthly bill per project (`ICMR/MPH/01/2026`), model `Invoice` |
-| **Tax invoice** | Combines a client's sub-bills for a month (`ICMR/TI/01/2026`) |
-| **Service charge** | 3.85% on the total **excluding GST**; then GST 18% (CGST 9 + SGST 9, or IGST) |
+| **Work order** | UI name for GeM contract (`gem_contracts`), Online/Offline; page shows projects → sub-bills → tax invoice |
+| **Sub-bill** | Monthly bill per project (`SW/001/26-27(HTA)`; older: `ICMR/MPH/01/2026`), model `Invoice` |
+| **Tax invoice** | Combines a **work order's** sub-bills for a month (`SW/001/26-27`, same serial; `App\Services\Billing\BillNumbers`) |
+| **PI Allotment** | `project_incharges` master (agency-scoped) linked to projects; Employee IDs SW-1001 / ZP-1001 |
+| **Service charge** | 3.85% **includes GST**: charged as (total × 3.85%) ÷ 1.18 = 3.26% on the total excluding GST (v2.4.0, flag on work order + stored per bill; older bills: plain 3.85%); then GST 18% (CGST 9 + SGST 9, or IGST) |
 | **EPF / ESIC switches** | Per employee (`pf_applicable`, `esic_applicable`). On → bill adds employer EPF 13% (wages capped ₹15,000) / ESIC 3.25%; salary sheet deducts 12% / 0.75% |
 | **Salary payout sheet** | Bank transfer sheet per locked month; net = earned − EPF − ESIC for staff switched on |
 | **PI portal** | `/pi`, role `pi` linked to projects (`project_user`). Draft → Submitted (PDF stored) → operator corrections recorded in `attendance_changes` → Approved/locked → sub-bill auto-made |
 | **Activity log** | `/activity`, Super Admin only (`users.is_super_admin`, gate `view-activity`). Models with trait `LogsActivity` log add/edit/delete/status; `LogAccess` middleware logs views/downloads; `App\Support\Activity\Activity::log()` for anything else. Secrets masked. Entries immutable |
-| **Agency logins** | `users.agency_id` (null = both agencies). Trait `ScopedToAgency` (global `AgencyScope`) on Agency, Client, GemContract, Project, Post, Employee, EmployeeDocument, AttendanceSheet, Invoice, TaxInvoice; `GuardAgencyInput` middleware 404s other-agency ids in forms; `AgencyContext::unscoped()` for cross-agency uniqueness checks. New agency-owned models/inputs must be added to both. Validate ids with `new ExistsInMyAgency(Model::class)`, never `exists:`; DB triggers (migration `harden_agency_isolation`) refuse cross-agency links. Every new write route must be added to `tests/Feature/CrossAgencyWriteTest.php` |
+| **Agency logins** | `users.agency_id` (null = both agencies). Trait `ScopedToAgency` (global `AgencyScope`) on Agency, Client, GemContract, Project, Post, Employee, EmployeeDocument, AttendanceSheet, Invoice, TaxInvoice, ProjectIncharge; `GuardAgencyInput` middleware 404s other-agency ids in forms; `AgencyContext::unscoped()` for cross-agency uniqueness checks. New agency-owned models/inputs must be added to both. Validate ids with `new ExistsInMyAgency(Model::class)`, never `exists:`; DB triggers (migration `harden_agency_isolation`) refuse cross-agency links. Every new write route must be added to `tests/Feature/CrossAgencyWriteTest.php` |
 | **Data Upload** | Setup → Data Upload: Excel templates per master, upload → check → save (`app/Services/MasterImport`) |
 | **Letterhead layout** | `classic` (ZPS, centred + footer) or `banner` (SWH, logo/registrations/pink address box) |
 → Full list: memory/glossary.md

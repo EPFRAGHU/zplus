@@ -71,7 +71,7 @@ final class AgencySheet extends MasterSheet
         $v['pan'] = $v['pan'] ? strtoupper($v['pan']) : null;
         $v['bank_ifsc'] = Ifsc::normalize($v['bank_ifsc']);
         $errors = $this->validate($v, [
-            'code' => ['nullable', 'alpha_num', 'max:10'],
+            'code' => ['nullable', \App\Support\Codes::PATTERN, 'max:10'],
             'name' => ['nullable', 'max:255'],
             'email' => ['nullable', 'email'],
             'gstin' => ['nullable', 'regex:/^\d{2}[A-Z]{5}\d{4}[A-Z][A-Z\d]Z[A-Z\d]$/'],

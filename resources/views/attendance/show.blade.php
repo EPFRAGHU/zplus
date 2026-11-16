@@ -5,6 +5,7 @@
     @if($locked)
       @can('view-bank-details')
         <a class="btn btn-outline-secondary" href="{{ route('attendance.payouts', $sheet) }}" target="_blank"><i class="bi bi-cash-stack me-1"></i>Salary payout sheet</a>
+        <a class="btn btn-outline-secondary" href="{{ route('attendance.bank-letter', $sheet) }}" target="_blank"><i class="bi bi-bank me-1"></i>Bank letter</a>
       @endcan
     @endif
     @if($sheet->certificate_path)<a class="btn btn-outline-secondary" href="{{ route('attendance.scan', $sheet) }}" target="_blank"><i class="bi bi-file-earmark-check me-1"></i>Signed scan</a>@endif

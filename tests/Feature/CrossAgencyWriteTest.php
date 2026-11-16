@@ -26,9 +26,11 @@ class CrossAgencyWriteTest extends TestCase
     use RefreshDatabase;
 
     private const TABLES = ['agencies', 'clients', 'gem_contracts', 'projects', 'posts', 'employees', 'employee_documents',
-        'attendance_sheets', 'attendance_entries', 'invoices', 'invoice_lines', 'tax_invoices', 'users', 'project_user'];
+        'attendance_sheets', 'attendance_entries', 'invoices', 'invoice_lines', 'tax_invoices', 'users', 'project_user', 'project_incharges'];
 
     private User $owner;
+
+    private array $mine = [];
 
     protected function setUp(): void
     {
@@ -58,12 +60,14 @@ class CrossAgencyWriteTest extends TestCase
         $second = $service->open($project, CarbonImmutable::parse('2026-08-01'));
         $service->lock($second, $this->owner, null);
         $invoice2 = app(InvoiceGenerator::class)->generate($second->fresh(), $this->owner);
-        $tax = app(TaxInvoiceBuilder::class)->create($client, CarbonImmutable::parse('2026-08-01'), [$invoice2->id], $this->owner);
+        $tax = app(TaxInvoiceBuilder::class)->create($contract, CarbonImmutable::parse('2026-08-01'), [$invoice2->id], $this->owner);
         $admin = User::factory()->create(['role' => 'admin', 'name' => "{$code} Admin", 'agency_id' => $agency->id]);
         $pi = User::factory()->create(['role' => 'pi', 'name' => "{$code} PI", 'agency_id' => $agency->id]);
         $pi->projects()->attach($project->id);
+        $incharge = \App\Models\ProjectIncharge::query()->create(['agency_id' => $agency->id, 'name' => "Dr. {$code}", 'user_id' => $pi->id]);
+        $project->update(['project_incharge_id' => $incharge->id]);
 
-        return compact('agency', 'client', 'contract', 'project', 'post', 'employee', 'document', 'open', 'locked', 'invoice', 'tax', 'admin', 'pi');
+        return compact('agency', 'client', 'contract', 'project', 'post', 'employee', 'document', 'open', 'locked', 'invoice', 'tax', 'admin', 'pi', 'incharge');
     }
 
     private function fingerprint(): string
@@ -102,9 +106,14 @@ class CrossAgencyWriteTest extends TestCase
             'make a bill from their month' => fn () => $this->post('/invoices', ['attendance_sheet_id' => $o['open']->id]),
             'approve their bill' => fn () => $this->post("/invoices/{$o['invoice']->id}/status", ['status' => 'approved']),
             'delete their bill' => fn () => $this->delete("/invoices/{$o['invoice']->id}"),
-            'make a tax invoice from their bill' => fn () => $this->post('/tax-invoices', ['client_id' => $o['client']->id, 'month' => '2026-09', 'sub_bills' => [$o['invoice']->id]]),
+            'make a tax invoice from their bill' => fn () => $this->post('/tax-invoices', ['gem_contract_id' => $o['contract']->id, 'month' => '2026-09', 'sub_bills' => [$o['invoice']->id], 'invoice_date' => '2026-10-05']),
+            'tax invoice of their bill under my work order' => fn () => $this->post('/tax-invoices', ['month' => '2026-09', 'sub_bills' => [$o['invoice']->id], 'invoice_date' => '2026-10-05']),
             'change their tax invoice status' => fn () => $this->post("/tax-invoices/{$o['tax']->id}/status", ['status' => 'submitted']),
             'delete their tax invoice' => fn () => $this->delete("/tax-invoices/{$o['tax']->id}"),
+            'add a PI In-charge under their agency' => fn () => $this->post('/incharges', ['agency_id' => $o['agency']->id, 'name' => 'X', 'status' => 'active']),
+            'edit their PI In-charge' => fn () => $this->put("/incharges/{$o['incharge']->id}", ['agency_id' => $o['agency']->id, 'name' => 'Hacked', 'status' => 'active']),
+            'allot their project to my new PI' => fn () => $this->post('/incharges', ['name' => 'Mine', 'status' => 'active', 'projects' => [$o['project']->id]]),
+            'set their PI on my project' => fn () => $this->put("/projects/{$this->mine['project']->id}", ['name' => 'Mine', 'code' => 'MINE', 'project_incharge_id' => $o['incharge']->id]),
             'add a login for their agency' => fn () => $this->post('/users', ['name' => 'X', 'email' => 'x@example.com', 'role' => 'supervisor', 'active' => '1', 'password' => 'Temp1234', 'agency_id' => $o['agency']->id]),
             'add a PI for their project' => fn () => $this->post('/users', ['name' => 'Y', 'email' => 'y@example.com', 'role' => 'pi', 'active' => '1', 'password' => 'Temp1234', 'projects' => [$o['project']->id]]),
             'edit their admin login' => fn () => $this->put("/users/{$o['admin']->id}", ['name' => 'Hacked', 'email' => $o['admin']->email, 'role' => 'admin', 'active' => '0']),
@@ -118,6 +127,7 @@ class CrossAgencyWriteTest extends TestCase
         $results = [];
 
         foreach ([[$zps, $swh, 'Z Plus → SWACHHA'], [$swh, $zps, 'SWACHHA → Z Plus']] as [$me, $other, $direction]) {
+            $this->mine = $me;
             foreach ($this->attacks($other) as $what => $attack) {
                 $this->actingAs($me['admin']);
                 $before = $this->fingerprint();
@@ -142,5 +152,19 @@ class CrossAgencyWriteTest extends TestCase
         $this->assertSame('Renamed', $zps['project']->fresh()->name);
         $this->post('/clients', ['name' => 'Own client', 'short_code' => 'OWN', 'state_code' => '21', 'payment_term_days' => 30, 'status' => 'active'])->assertSessionHasNoErrors();
         $this->assertSame($zps['agency']->id, Client::query()->where('short_code', 'OWN')->value('agency_id'));
+    }
+
+    /** New pages with staff and bank data: the other agency's records are "not found". */
+    public function test_neither_agency_can_read_the_others_staff_payments_or_bank_letter(): void
+    {
+        $zps = $this->agency('ZPS', 'M/S Z Plus Surakhya Seva');
+        $swh = $this->agency('SWH', 'SWACHHA');
+        $this->actingAs($zps['admin']);
+        $this->get("/attendance/{$swh['locked']->id}/bank-letter")->assertNotFound();
+        $this->get('/staff?employee='.$swh['employee']->id)->assertOk()->assertDontSee('Staff SWH')->assertDontSee('Dr. SWH');
+        $this->get('/incharges')->assertOk()->assertDontSee('Dr. SWH')->assertSee('Dr. ZPS');
+        $this->get("/incharges/{$swh['incharge']->id}/edit")->assertNotFound();
+        $this->get("/contracts/{$swh['contract']->id}")->assertNotFound();
+        $this->get("/attendance/{$zps['locked']->id}/bank-letter")->assertOk()->assertHeader('content-type', 'application/pdf');
     }
 }

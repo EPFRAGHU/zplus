@@ -1,14 +1,14 @@
-<x-layouts.app title="GeM Contracts" crumb="Masters / <span class='text-danger'>GeM Contracts</span>">
+<x-layouts.app title="Work Orders" crumb="Masters / <span class='text-danger'>Work Orders</span>">
   <x-slot:actions>
     @can('import')<a class="btn btn-outline-secondary" href="{{ route('import.create') }}"><i class="bi bi-file-earmark-arrow-up me-1"></i>Import from Excel</a>@endcan
-    @can('manage-masters')<a class="btn btn-primary" href="{{ route('contracts.create') }}"><i class="bi bi-plus-lg me-1"></i>Add contract</a>@endcan
+    @can('manage-masters')<a class="btn btn-primary" href="{{ route('contracts.create') }}"><i class="bi bi-plus-lg me-1"></i>Add work order</a>@endcan
   </x-slot:actions>
   @php
     $all = $contracts->flatMap(fn ($c) => $c->projects->flatMap->posts);
     $sanctioned = $all->sum('sanctioned_qty'); $filled = $all->sum('active_employees_count');
   @endphp
   <div class="row row-cols-2 row-cols-md-4 g-3 mb-3">
-    <x-kpi label="Contracts" :value="$contracts->count()" />
+    <x-kpi label="Work orders" :value="$contracts->count()" />
     <x-kpi label="Projects" :value="$contracts->sum(fn ($c) => $c->projects->count())" color="#1f63c4" />
     <x-kpi label="Posts sanctioned" :value="$sanctioned" color="#1d1a1c" />
     <x-kpi label="Posts filled" :value="$filled" :meta="max(0, $sanctioned - $filled).' vacant'" color="#1f8a4c" />
@@ -45,7 +45,9 @@
     @php($posts = $c->projects->flatMap->posts) @php($s = $posts->sum('sanctioned_qty')) @php($f = $posts->sum('active_employees_count'))
     <div class="z-card mb-2">
       <div class="z-card-h">
-        <div><a class="fw-bold text-decoration-none" href="{{ route('contracts.show', $c) }}">{{ $c->bid_no }}</a><div class="mono text-secondary">{{ $c->contract_no }}</div></div>
+        <div><a class="fw-bold text-decoration-none mono" href="{{ route('contracts.show', $c) }}">{{ $c->contract_no }}</a>
+          <span class="badge {{ $c->contract_type === 'offline' ? 'text-bg-secondary' : 'text-bg-info' }} ms-1">{{ $c->typeLabel() }}</span>
+          <div class="mono text-secondary small">{{ $c->bid_no ? 'Bid '.$c->bid_no : '' }} · {{ $c->projects->pluck('code')->implode(', ') ?: 'no projects yet' }}</div></div>
         <div class="small">
           <div><span class="text-secondary">Agency:</span> <span class="fw-semibold">{{ $c->agency->name }}</span> ({{ $c->agency->code }})</div>
           <div><span class="text-secondary">Client:</span> <span class="fw-semibold">{{ $c->client->name }}</span></div>

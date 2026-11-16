@@ -47,6 +47,6 @@ class MonthStorageTest extends TestCase
         $this->actingAs($admin)->post('/invoices', ['attendance_sheet_id' => $sheet->id]);
 
         $this->assertSame('2026-10-01', Invoice::query()->toBase()->value('month'));
-        $this->get('/invoices?month=2026-10')->assertSee('ICMR/MPH/01/2026');
+        $this->get('/invoices?month=2026-10')->assertSee('ZP/001/26-27(MPH)');
     }
 }

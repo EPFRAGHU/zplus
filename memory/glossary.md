@@ -7,6 +7,10 @@
 | SWH, SWACHHA | SWACHHA (agency code SWH) |
 | PI | Project In-charge (NOT Principal Investigator): signs the monthly attendance certificate; role `pi` in the app |
 | Operator | App role `supervisor`: marks/checks/locks attendance |
+| Work order | UI name for a GeM contract (`gem_contracts`); Online (GeM) or Offline |
+| PI Allotment | Project In-charge master (`project_incharges`) mapped to projects |
+| SW/001/26-27 | Tax invoice no. of a work order for a month; its sub-bills add (PROJECT), e.g. SW/001/26-27(HTA); ZP for Z Plus; FY Apr–Mar |
+| SW-1001 | Employee ID series per agency (ZP-1001 for Z Plus) |
 | ICMR, NIHR, RMRCBB | ICMR-NIHR (RMRCBB), Bhubaneswar, client (short code ICMR, letter code NIHR) |
 | GOI | Government of India |
 

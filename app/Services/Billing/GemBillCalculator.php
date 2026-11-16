@@ -8,8 +8,10 @@ use App\Support\Statutory;
 /**
  * GeM manpower bill.
  *
- * Confirmed rule: service charge is levied on the total amount excluding GST,
- * and GST is then charged on (total + service charge).
+ * Service charge is levied on the total amount excluding GST, and GST is then charged on (total + service charge).
+ * When the contract's service charge % INCLUDES GST (owner's rule from November 2026, the default), the service charge is
+ *   (total x service charge %) / (1 + GST %), e.g. 3.85% / 1.18 = 3.26% of the total;
+ * otherwise it is total x service charge % (bills made before that change).
  *   monthly posts: amount = rate x paid days / days in month, rounded to whole rupees per person
  *   daily posts:   amount = rate x paid days
  * Employer EPF and ESIC are added per person, only for staff with EPF / ESIC switched on (set on the employee):
@@ -23,6 +25,7 @@ final class GemBillCalculator
         private readonly bool $interState = false,
         private readonly string $epfPercent = '0',
         private readonly string $esicPercent = '0',
+        private readonly bool $serviceChargeIncludesGst = false,
     ) {}
 
     /** @param BillLine[] $lines */
@@ -60,7 +63,9 @@ final class GemBillCalculator
         }
 
         $subtotal = $wages + $epf + $esic;
-        $service = Money::percent($subtotal, $this->serviceChargePercent);
+        $service = $this->serviceChargeIncludesGst
+            ? Money::mulDiv($subtotal, Money::scaled($this->serviceChargePercent, 4), 100 * 10_000 + Money::scaled($this->gstPercent, 4))
+            : Money::percent($subtotal, $this->serviceChargePercent);
         $taxable = $subtotal + $service;
 
         if ($this->interState) {

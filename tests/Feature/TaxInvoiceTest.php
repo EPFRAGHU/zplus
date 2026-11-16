@@ -21,12 +21,14 @@ class TaxInvoiceTest extends TestCase
 {
     use RefreshDatabase;
 
-    /** October: the MPH sub-bill (₹89,311 before GST) plus a second project under the same client. */
+    /** October: the MPH sub-bill (₹89,311 before GST) plus a second project under the same work order.
+     *  Uses the pre-November rule (service charge NOT including GST) so the figures match the October ICMR invoice. */
     private function twoSubBills(): array
     {
         $this->seed(DemoSeeder::class);
         $user = User::factory()->create(['role' => 'accounts']);
         $mph = Project::query()->where('code', 'MPH')->firstOrFail();
+        $mph->contract->update(['service_charge_includes_gst' => false]);
         $snake = $mph->contract->projects()->create(['name' => 'Snakebite', 'code' => 'SNAKE']);
         $post = $snake->posts()->create(['designation' => 'PTS-III', 'sanctioned_qty' => 1, 'rate' => 33600]);
         Employee::query()->create(['emp_code' => 'EMP-9001', 'name' => 'Field Staff', 'post_id' => $post->id,
@@ -40,19 +42,19 @@ class TaxInvoiceTest extends TestCase
             $bills[] = app(InvoiceGenerator::class)->generate($sheet->fresh(), $user);
         }
 
-        return [$mph->contract->client, $bills, $user];
+        return [$mph->contract->fresh(), $bills, $user];
     }
 
     public function test_tax_invoice_combines_the_months_sub_bills(): void
     {
-        [$client, $bills, $user] = $this->twoSubBills();
+        [$client, $bills, $user] = $this->twoSubBills();   // $client: the work order
         $builder = app(TaxInvoiceBuilder::class);
 
         $this->assertCount(2, $builder->pending($client, CarbonImmutable::parse('2026-10-01')));
         $tax = $builder->create($client, CarbonImmutable::parse('2026-10-01'), collect($bills)->pluck('id')->all(), $user);
 
         // MPH 89,311.00 + Snakebite 33,600 x 1.0385 = 34,893.60 -> 1,24,204.60 before GST
-        $this->assertSame('ICMR/TI/01/2026', $tax->number);
+        $this->assertSame('ZP/001/26-27', $tax->number);   // the serial its sub-bills ZP/001/26-27(MPH) and (SNAKE) carry
         $this->assertSame('124204.60', $tax->taxable);
         $this->assertSame('11178.41', $tax->cgst);         // 8,037.99 + 3,140.42: GST worked out per sub-bill line, as on the sheet
         $this->assertSame('146561.42', $tax->total);
@@ -63,7 +65,7 @@ class TaxInvoiceTest extends TestCase
 
     public function test_single_project_tax_invoice_matches_the_october_icmr_invoice(): void
     {
-        [$client, $bills, $user] = $this->twoSubBills();
+        [$client, $bills, $user] = $this->twoSubBills();   // $client: the work order
         $tax = app(TaxInvoiceBuilder::class)->create($client, CarbonImmutable::parse('2026-10-01'), [$bills[0]->id], $user, 'ICMR/MPH/01/26', '2026-11-01');
 
         $this->assertSame('ICMR/MPH/01/26', $tax->number);
@@ -74,9 +76,9 @@ class TaxInvoiceTest extends TestCase
         $this->assertSame('Rupees One Lakh Five Thousand Three Hundred Eighty Seven Only', $tax->amountInWords());
     }
 
-    public function test_sub_bill_can_only_be_in_one_tax_invoice_of_its_own_client_and_month(): void
+    public function test_sub_bill_can_only_be_in_one_tax_invoice_of_its_own_work_order_and_month(): void
     {
-        [$client, $bills, $user] = $this->twoSubBills();
+        [$client, $bills, $user] = $this->twoSubBills();   // $client: the work order
         $builder = app(TaxInvoiceBuilder::class);
         $builder->create($client, CarbonImmutable::parse('2026-10-01'), [$bills[0]->id], $user);
 
@@ -85,9 +87,9 @@ class TaxInvoiceTest extends TestCase
         $builder->create($client, CarbonImmutable::parse('2026-10-01'), [$bills[0]->id], $user);
     }
 
-    public function test_wrong_month_and_wrong_client_are_refused(): void
+    public function test_wrong_month_and_wrong_work_order_are_refused(): void
     {
-        [$client, $bills, $user] = $this->twoSubBills();
+        [$client, $bills, $user] = $this->twoSubBills();   // $client: the work order
         $builder = app(TaxInvoiceBuilder::class);
         try {
             $builder->create($client, CarbonImmutable::parse('2026-11-01'), [$bills[0]->id], $user);
@@ -95,14 +97,14 @@ class TaxInvoiceTest extends TestCase
         } catch (RuntimeException $e) {
             $this->assertStringContainsString('different month', $e->getMessage());
         }
-        $other = Client::query()->where('id', '!=', $client->id)->firstOrFail();
-        $this->expectExceptionMessage('different client');
+        $other = \App\Models\GemContract::query()->create(['agency_id' => $client->agency_id, 'client_id' => $client->client_id, 'bid_no' => 'B2', 'contract_no' => 'GEMC-OTHER']);
+        $this->expectExceptionMessage('different work order');
         $builder->create($other, CarbonImmutable::parse('2026-10-01'), [$bills[0]->id], $user);
     }
 
     public function test_deleting_a_draft_tax_invoice_releases_its_sub_bills(): void
     {
-        [$client, $bills, $user] = $this->twoSubBills();
+        [$client, $bills, $user] = $this->twoSubBills();   // $client: the work order
         $builder = app(TaxInvoiceBuilder::class);
         $tax = $builder->create($client, CarbonImmutable::parse('2026-10-01'), collect($bills)->pluck('id')->all(), $user);
 
@@ -113,16 +115,16 @@ class TaxInvoiceTest extends TestCase
 
     public function test_tax_invoice_screens_pdf_and_payment(): void
     {
-        [$client, $bills, $user] = $this->twoSubBills();
+        [$client, $bills, $user] = $this->twoSubBills();   // $client: the work order
 
         $this->actingAs($user)->get('/invoices')->assertOk()->assertSee('Make tax invoice');
-        $this->get('/tax-invoices/create?client='.$client->id.'&month=2026-10')->assertOk()
-            ->assertSee($bills[0]->invoice_no)->assertSee($bills[1]->invoice_no)->assertSee('ICMR/TI/01/2026');
-        $this->post('/tax-invoices', ['client_id' => $client->id, 'month' => '2026-10', 'sub_bills' => [$bills[0]->id, $bills[1]->id],
-            'number' => 'ICMR/TI/01/2026', 'invoice_date' => '2026-11-03'])->assertRedirect();
+        $this->get('/tax-invoices/create?contract='.$client->id.'&month=2026-10')->assertOk()
+            ->assertSee($bills[0]->invoice_no)->assertSee($bills[1]->invoice_no)->assertSee('ZP/001/26-27');
+        $this->post('/tax-invoices', ['gem_contract_id' => $client->id, 'month' => '2026-10', 'sub_bills' => [$bills[0]->id, $bills[1]->id],
+            'number' => '', 'invoice_date' => '2026-11-03'])->assertRedirect();
 
         $tax = TaxInvoice::query()->firstOrFail();
-        $this->get('/tax-invoices')->assertOk()->assertSee('ICMR/TI/01/2026')->assertSee('client-block', false);
+        $this->get('/tax-invoices')->assertOk()->assertSee('ZP/001/26-27')->assertSee('client-block', false);
         $this->get("/tax-invoices/{$tax->id}")->assertOk()->assertSee('₹1,46,561.00')->assertSee('Bank details are missing');
         $this->get("/tax-invoices/{$tax->id}/pdf")->assertOk()->assertHeader('content-type', 'application/pdf');
 
@@ -151,6 +153,6 @@ class TaxInvoiceTest extends TestCase
         $this->actingAs(User::factory()->create(['role' => 'supervisor']));
         $this->get('/tax-invoices')->assertOk();
         $this->get('/tax-invoices/create')->assertForbidden();
-        $this->post('/tax-invoices', ['client_id' => $client->id, 'month' => '2026-10', 'sub_bills' => [$bills[0]->id], 'invoice_date' => '2026-11-03'])->assertForbidden();
+        $this->post('/tax-invoices', ['gem_contract_id' => $client->id, 'month' => '2026-10', 'sub_bills' => [$bills[0]->id], 'invoice_date' => '2026-11-03'])->assertForbidden();
     }
 }

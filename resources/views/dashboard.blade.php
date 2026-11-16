@@ -26,7 +26,7 @@
     @endunless
     <div><label class="form-label small text-secondary mb-1" for="f-client">Client</label>
       <select id="f-client" name="client" class="form-select"><option value="">All clients</option>@foreach($clients as $c)<option value="{{ $c->id }}" data-agency="{{ $c->agency_id }}" @selected($clientId === $c->id)>{{ $c->name }}</option>@endforeach</select></div>
-    <div><label class="form-label small text-secondary mb-1" for="f-contract">GeM contract</label>
+    <div><label class="form-label small text-secondary mb-1" for="f-contract">Work order</label>
       <select id="f-contract" name="contract" class="form-select"><option value="">All contracts</option>@foreach($contractOptions as $k)<option value="{{ $k->id }}" data-agency="{{ $k->agency_id }}" data-client="{{ $k->client_id }}" @selected($contractId === $k->id)>{{ $k->bid_no }}</option>@endforeach</select></div>
     <div><label class="form-label small text-secondary mb-1" for="f-project">Project</label>
       <select id="f-project" name="project" class="form-select"><option value="">All projects</option>@foreach($projectOptions as $pp)<option value="{{ $pp->id }}" data-agency="{{ $pp->contract->agency_id }}" data-client="{{ $pp->contract->client_id }}" data-contract="{{ $pp->gem_contract_id }}" @selected($projectId === $pp->id)>{{ $pp->label() }}</option>@endforeach</select></div>
@@ -38,7 +38,7 @@
   </form>
   <div class="row row-cols-2 row-cols-md-3 row-cols-xl-6 g-3 mb-3">
     <x-kpi label="Clients" :value="$stats['clients']" />
-    <x-kpi label="Active GeM contracts" :value="$stats['contracts']" color="#1f63c4" />
+    <x-kpi label="Active work orders" :value="$stats['contracts']" color="#1f63c4" />
     <x-kpi label="Employees deployed" :value="$stats['employees']" color="#1f8a4c" />
     <x-kpi label="Posts vacant" :value="$stats['vacant']" :meta="'of '.$stats['sanctioned'].' sanctioned'" color="#b26b00" />
     <x-kpi label="Billed this year" :value="inr($stats['billedThisYear'])" color="#1d1a1c" />
@@ -121,9 +121,9 @@
     </div>
     <div class="col-12">
       <div class="z-card">
-        <div class="z-card-h"><h2>By GeM contract and project</h2><span class="small text-secondary">{{ $projectRows->count() }} {{ \Illuminate\Support\Str::plural('project', $projectRows->count()) }} · {{ $lastMonth->format('F') }} status · billed in {{ now()->year }}</span></div>
+        <div class="z-card-h"><h2>By work order and project</h2><span class="small text-secondary">{{ $projectRows->count() }} {{ \Illuminate\Support\Str::plural('project', $projectRows->count()) }} · {{ $lastMonth->format('F') }} status · billed in {{ now()->year }}</span></div>
         <div class="table-responsive" style="max-height:420px"><table class="table table-hover table-sm">
-          <thead class="sticky-top"><tr><th>Agency</th><th>Client</th><th>GeM contract</th><th>Project</th><th class="num">Staff / sanctioned</th><th>{{ $lastMonth->format('M') }} attendance</th><th class="num">Billed {{ now()->year }}</th><th></th></tr></thead>
+          <thead class="sticky-top"><tr><th>Agency</th><th>Client</th><th>Work order</th><th>Project</th><th class="num">Staff / sanctioned</th><th>{{ $lastMonth->format('M') }} attendance</th><th class="num">Billed {{ now()->year }}</th><th></th></tr></thead>
           <tbody>
           @php($blk = false)
           @forelse($projectRows as $r)
@@ -157,7 +157,7 @@
       <div class="z-card">
         <div class="z-card-h"><h2>Recent bills</h2><a class="ms-auto small" href="{{ route('invoices.index', $q) }}">View all</a></div>
         <div class="table-responsive"><table class="table table-hover">
-          <thead><tr><th>Bill no.</th><th>Agency</th><th>Client</th><th>GeM contract</th><th>Project</th><th>Month</th><th class="num">Amount</th><th>Status</th></tr></thead>
+          <thead><tr><th>Bill no.</th><th>Agency</th><th>Client</th><th>Work order</th><th>Project</th><th>Month</th><th class="num">Amount</th><th>Status</th></tr></thead>
           <tbody>
           @php($blk = false)
           @forelse ($recent as $i)

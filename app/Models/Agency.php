@@ -9,7 +9,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Support\Facades\Storage;
 
-#[Fillable(['name', 'code', 'tagline', 'registrations', 'address', 'email', 'website', 'letterhead_emails', 'phone', 'phones', 'logo_path', 'letterhead_style', 'gstin', 'pan', 'signatory_name', 'signatory_title', 'bank_name', 'bank_account_no', 'bank_ifsc', 'bank_branch'])]
+#[Fillable(['name', 'code', 'number_prefix', 'tagline', 'registrations', 'address', 'email', 'website', 'letterhead_emails', 'phone', 'phones', 'logo_path', 'letterhead_style', 'gstin', 'pan', 'signatory_name', 'signatory_title', 'bank_name', 'bank_account_no', 'bank_ifsc', 'bank_branch'])]
 class Agency extends Model
 {
     use LogsActivity, ScopedToAgency;
@@ -60,5 +60,11 @@ class Agency extends Model
     public function contracts(): HasMany
     {
         return $this->hasMany(GemContract::class);
+    }
+
+    /** Prefix of bill, tax invoice and employee numbers: SW/001/26-27, SW-1001. */
+    public function numberPrefix(): string
+    {
+        return strtoupper($this->number_prefix ?: substr(preg_replace('/[^A-Za-z]/', '', (string) $this->code), 0, 2) ?: 'AG');
     }
 }

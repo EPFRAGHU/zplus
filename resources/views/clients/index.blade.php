@@ -5,7 +5,7 @@
     <select class="form-select w-auto" name="agency" aria-label="Agency"><option value="">All agencies</option>@foreach($agencies as $a)<option value="{{ $a->id }}" @selected(request('agency') == $a->id)>{{ $a->name }}</option>@endforeach</select>
     <button class="btn btn-outline-secondary"><i class="bi bi-search"></i></button></form>
   <div class="z-card"><div class="table-responsive"><table class="table table-hover">
-    <thead><tr><th>GeM contract</th><th>Contract no.</th><th>Billing</th><th class="num">Projects</th><th class="num">Posts filled / sanctioned</th><th>Status</th><th></th></tr></thead>
+    <thead><tr><th>Work order</th><th>Contract no.</th><th>Billing</th><th class="num">Projects</th><th class="num">Posts filled / sanctioned</th><th>Status</th><th></th></tr></thead>
     <tbody>
     @php($block = false)
     @forelse ($clients as $c)

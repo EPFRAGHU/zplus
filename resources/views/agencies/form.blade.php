@@ -4,6 +4,7 @@
     <div class="row g-3">
       <x-field name="name" label="Agency name" :value="$agency->name" required />
       <x-field name="code" label="Short code" :value="$agency->code" required col="col-md-2" hint="Used in letter numbers, e.g. SWH" />
+      <x-field name="number_prefix" label="Bill / Emp ID prefix" :value="$agency->number_prefix" col="col-md-2" class="mono" maxlength="6" hint="SW → SW/001/26-27, SW-1001" />
       <x-field name="gstin" label="GSTIN" :value="$agency->gstin" col="col-md-2" class="mono" />
       <x-field name="pan" label="PAN" :value="$agency->pan" col="col-md-2" class="mono" />
       <x-textarea name="address" label="Address" :value="$agency->address" />

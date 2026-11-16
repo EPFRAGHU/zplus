@@ -11,14 +11,14 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasManyThrough;
 
-#[Fillable(['agency_id', 'client_id', 'bid_no', 'contract_no', 'contract_date', 'billing_type', 'sac_code', 'service_charge_percent', 'gst_percent', 'epf_percent', 'esic_percent', 'inter_state', 'status'])]
+#[Fillable(['agency_id', 'client_id', 'contract_type', 'bid_no', 'contract_no', 'contract_date', 'billing_type', 'sac_code', 'service_charge_percent', 'service_charge_includes_gst', 'gst_percent', 'epf_percent', 'esic_percent', 'inter_state', 'status'])]
 class GemContract extends Model
 {
     use LogsActivity, ScopedToAgency;
 
     protected function casts(): array
     {
-        return ['contract_date' => 'date', 'inter_state' => 'boolean'];
+        return ['contract_date' => 'date', 'inter_state' => 'boolean', 'service_charge_includes_gst' => 'boolean'];
     }
 
     public function agency(): BelongsTo
@@ -41,6 +41,18 @@ class GemContract extends Model
         return $this->hasManyThrough(Post::class, Project::class);
     }
 
+    public const TYPES = ['online' => 'Online (GeM)', 'offline' => 'Offline'];
+
+    public function typeLabel(): string
+    {
+        return self::TYPES[$this->contract_type] ?? 'Online (GeM)';
+    }
+
+    public function taxInvoices(): HasMany
+    {
+        return $this->hasMany(TaxInvoice::class);
+    }
+
     public function isDaily(): bool
     {
         return $this->billing_type === 'daily';
@@ -54,6 +66,7 @@ class GemContract extends Model
             interState: (bool) $this->inter_state,
             epfPercent: self::dec($this->epf_percent),
             esicPercent: self::dec($this->esic_percent),
+            serviceChargeIncludesGst: (bool) ($this->service_charge_includes_gst ?? true),
         );
     }
 

@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Agency;
 use App\Models\Client;
+use App\Models\GemContract;
 use App\Models\TaxInvoice;
 use App\Services\Billing\TaxInvoiceBuilder;
 use Barryvdh\DomPDF\Facade\Pdf;
@@ -44,14 +45,15 @@ class TaxInvoiceController extends Controller
     public function create(Request $request): View
     {
         Gate::authorize('billing');
-        $client = $request->integer('client') ? Client::query()->with('agency')->find($request->integer('client')) : null;
+        $contract = $request->integer('contract') ? GemContract::query()->with('agency', 'client')->find($request->integer('contract')) : null;
         $month = $this->month($request->input('month'));
 
         return view('tax-invoices.create', [
-            'clients' => Client::query()->with('agency')->orderBy('name')->get(),
-            'client' => $client, 'month' => $month,
-            'pending' => $client ? $this->builder->pending($client, $month) : collect(),
-            'suggested' => $client ? $this->builder->suggestNumber($client, $month) : null,
+            'contracts' => GemContract::query()->with('agency', 'client', 'projects')->get()
+                ->sortBy(fn ($k) => $k->agency->name.'|'.$k->client->name.'|'.$k->contract_no)->values(),
+            'contract' => $contract, 'month' => $month,
+            'pending' => $contract ? $this->builder->pending($contract, $month) : collect(),
+            'suggested' => $contract ? $this->builder->suggestNumber($contract, $month) : null,
         ]);
     }
 
@@ -59,7 +61,7 @@ class TaxInvoiceController extends Controller
     {
         Gate::authorize('billing');
         $data = $request->validate([
-            'client_id' => ['required', new \App\Rules\ExistsInMyAgency(\App\Models\Client::class)],
+            'gem_contract_id' => ['required', new \App\Rules\ExistsInMyAgency(GemContract::class)],
             'month' => ['required', 'date_format:Y-m'],
             'sub_bills' => ['required', 'array', 'min:1'],
             'sub_bills.*' => ['integer', new \App\Rules\ExistsInMyAgency(\App\Models\Invoice::class)],
@@ -68,7 +70,7 @@ class TaxInvoiceController extends Controller
         ], ['sub_bills.required' => 'Tick at least one sub-bill to include.']);
 
         try {
-            $tax = $this->builder->create(Client::query()->findOrFail($data['client_id']), $this->month($data['month']),
+            $tax = $this->builder->create(GemContract::query()->findOrFail($data['gem_contract_id']), $this->month($data['month']),
                 $data['sub_bills'], $request->user(), $data['number'] ?? null, $data['invoice_date']);
         } catch (RuntimeException $e) {
             return back()->withInput()->withErrors(['sub_bills' => $e->getMessage()]);
@@ -79,7 +81,7 @@ class TaxInvoiceController extends Controller
 
     public function show(TaxInvoice $taxInvoice): View
     {
-        $taxInvoice->load('agency', 'client', 'subBills.project', 'subBills.contract');
+        $taxInvoice->load('agency', 'client', 'contract', 'subBills.project', 'subBills.contract');
 
         return view('tax-invoices.show', ['tax' => $taxInvoice]);
     }
@@ -114,7 +116,7 @@ class TaxInvoiceController extends Controller
 
     public function pdf(TaxInvoice $taxInvoice): Response
     {
-        $taxInvoice->load('agency', 'client', 'subBills.project', 'subBills.contract');
+        $taxInvoice->load('agency', 'client', 'contract', 'subBills.project', 'subBills.contract');
 
         return Pdf::loadView('pdf.tax-invoice', ['tax' => $taxInvoice, 'agency' => $taxInvoice->agency, 'client' => $taxInvoice->client])
             ->setPaper('a4')->stream('tax-invoice-'.str_replace('/', '-', $taxInvoice->number).'.pdf');

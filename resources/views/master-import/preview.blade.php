@@ -1,7 +1,7 @@
 @php($c = $analysis['counts'])
 @php($toSave = $c['new'] + $c['update'])
 @php($badge = ['new' => ['New', 'success'], 'update' => ['Update', 'info'], 'unchanged' => ['No change', 'secondary'], 'error' => ['Error', 'danger']])
-@php($headers = collect($sheet->columns())->mapWithKeys(fn ($col) => [$col->key => $col->header])->all() + ['agency_id' => 'Agency', 'client_id' => 'Client', 'gem_contract_id' => 'GeM contract', 'project_id' => 'Project', 'post_id' => 'Post'])
+@php($headers = collect($sheet->columns())->mapWithKeys(fn ($col) => [$col->key => $col->header])->all() + ['agency_id' => 'Agency', 'client_id' => 'Client', 'gem_contract_id' => 'Work order', 'project_id' => 'Project', 'post_id' => 'Post'])
 <x-layouts.app :title="'Check: '.$sheet->title()" :crumb="'Setup / <a href=\''.route('master-import.index').'\'>Data Upload</a>'">
   <div class="z-card p-3 mb-3">
     <div class="d-flex flex-wrap gap-3 align-items-center">

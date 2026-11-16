@@ -58,7 +58,7 @@ final class ProjectSheet extends MasterSheet
     {
         $no = strtoupper((string) $v['contract_no']);
         $code = strtoupper((string) $v['code']);
-        $errors = $this->validate($v, ['code' => ['nullable', 'alpha_num', 'max:12'], 'name' => ['nullable', 'max:255'], 'title' => ['nullable', 'max:2000']]);
+        $errors = $this->validate($v, ['code' => ['nullable', \App\Support\Codes::PATTERN, 'max:12'], 'name' => ['nullable', 'max:255'], 'title' => ['nullable', 'max:2000']]);
         $contract = $this->contracts[$no] ?? null;
         if ($no && ! $contract) {
             $errors[] = "GeM contract {$no} is not in the app. Upload the GeM contracts first.";

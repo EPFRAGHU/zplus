@@ -105,7 +105,7 @@ class QuickPostTest extends TestCase
 
         $this->actingAs(User::factory()->create(['role' => 'admin']))->get('/posts')->assertOk()
             ->assertSee('id="f-contract"', false)->assertSee('id="f-project"', false)
-            ->assertSee('<th>GeM contract</th><th>Project</th>', false)->assertSee('PI: Dr. Other')
+            ->assertSee('<th>Work order</th><th>Project</th>', false)->assertSee('PI: Dr. Other')
             ->assertSee('GEM/2026/B/7972720</a>', false);
         $this->get('/posts?project='.$other->id)->assertSee('Field Worker')->assertDontSee('Academic Programme Manager</td>', false);
         $this->get('/posts?contract='.$contract->id)->assertSee('Field Worker')->assertSee('Academic Programme Manager');

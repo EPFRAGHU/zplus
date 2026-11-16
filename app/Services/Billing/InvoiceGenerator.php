@@ -3,7 +3,6 @@
 namespace App\Services\Billing;
 
 use App\Models\AttendanceSheet;
-use App\Models\DocumentSequence;
 use App\Models\Invoice;
 use App\Models\User;
 use Illuminate\Support\Facades\DB;
@@ -20,7 +19,7 @@ final class InvoiceGenerator
             throw new RuntimeException('A bill already exists for this attendance sheet.');
         }
 
-        $sheet->loadMissing('entries.employee.post', 'project.contract.client');
+        $sheet->loadMissing('entries.employee.post', 'project.contract.client', 'project.contract.agency');
         $project = $sheet->project;
         $contract = $project->contract;
         $daysInMonth = $sheet->month->daysInMonth;
@@ -37,13 +36,15 @@ final class InvoiceGenerator
         $totals = $contract->isDaily() ? $calc->daily($lines) : $calc->monthly($lines);
 
         return DB::transaction(function () use ($sheet, $project, $contract, $totals, $user, $daysInMonth) {
-            $year = $sheet->month->year;
-            $prefix = $contract->client->short_code.'/'.$project->code;
-            $seq = DocumentSequence::next("invoice:{$contract->agency_id}:{$prefix}:{$year}");   // separate series per agency
+            // SW/001/26-27(HTA): the work order's serial for the month, shared with its other sub-bills and its tax invoice.
+            $number = app(BillNumbers::class)->subBillNumber($contract, $project, $sheet->month);
+            for ($n = 2; Invoice::query()->where('agency_id', $contract->agency_id)->where('invoice_no', $number)->exists(); $n++) {
+                $number = app(BillNumbers::class)->subBillNumber($contract, $project, $sheet->month).'-'.$n;   // two projects with the same code
+            }
 
             $invoice = Invoice::query()->create([
                 'agency_id' => $contract->agency_id,
-                'invoice_no' => sprintf('%s/%02d/%d', $prefix, $seq, $year),
+                'invoice_no' => $number,
                 'gem_contract_id' => $contract->id,
                 'project_id' => $project->id,
                 'attendance_sheet_id' => $sheet->id,
@@ -51,6 +52,7 @@ final class InvoiceGenerator
                 'invoice_date' => now()->toDateString(),
                 'billing_type' => $contract->billing_type,
                 'service_charge_percent' => $contract->service_charge_percent,
+                'service_charge_includes_gst' => (bool) ($contract->service_charge_includes_gst ?? true),
                 'gst_percent' => $contract->gst_percent,
                 'wages' => $totals->wages, 'epf' => $totals->epf, 'esic' => $totals->esic,
                 'subtotal' => $totals->subtotal, 'service_charge' => $totals->serviceCharge,

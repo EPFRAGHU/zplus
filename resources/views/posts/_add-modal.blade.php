@@ -16,16 +16,16 @@
             <select class="form-select" id="qa-client" name="client_id" required><option value="">Choose client</option>@foreach($clients as $c)<option value="{{ $c->id }}" data-agency="{{ $c->agency_id }}">{{ $c->name }}</option>@endforeach</select></div>
 
           <div class="col-12"><hr class="my-1"><div class="d-flex gap-3 align-items-center flex-wrap">
-            <span class="small fw-semibold">GeM contract</span>
+            <span class="small fw-semibold">Work order</span>
             <div class="form-check form-check-inline m-0"><input class="form-check-input" type="radio" name="contract_mode" id="qa-cm-existing" value="existing" checked><label class="form-check-label small" for="qa-cm-existing">Existing contract</label></div>
             <div class="form-check form-check-inline m-0"><input class="form-check-input" type="radio" name="contract_mode" id="qa-cm-new" value="new"><label class="form-check-label small" for="qa-cm-new">New contract</label></div>
           </div></div>
-          <div class="col-12" id="qa-contract-existing"><select class="form-select" id="qa-contract" name="gem_contract_id" aria-label="GeM contract"><option value="">Choose contract</option>
+          <div class="col-12" id="qa-contract-existing"><select class="form-select" id="qa-contract" name="gem_contract_id" aria-label="Work order"><option value="">Choose contract</option>
             @foreach($pickContracts as $k)<option value="{{ $k->id }}" data-client="{{ $k->client_id }}">{{ $k->bid_no }} · {{ $k->contract_no }}</option>@endforeach</select>
-            <div class="form-text" id="qa-no-contracts" hidden>This client has no GeM contract yet. Enter it under "New contract".</div></div>
+            <div class="form-text" id="qa-no-contracts" hidden>This client has no work order yet. Enter it under "New contract".</div></div>
           <div class="col-12" id="qa-contract-new" hidden><div class="row g-2">
             <div class="col-md-4"><input class="form-control mono" name="bid_no" id="qa-bid" placeholder="GeM bid no., e.g. GEM/2026/B/7972720" aria-label="GeM bid number"></div>
-            <div class="col-md-4"><input class="form-control mono" name="contract_no" id="qa-cno" placeholder="Contract no., e.g. GEMC-5116…" aria-label="GeM contract number"></div>
+            <div class="col-md-4"><input class="form-control mono" name="contract_no" id="qa-cno" placeholder="Contract no., e.g. GEMC-5116…" aria-label="work order number"></div>
             <div class="col-md-4"><select class="form-select" name="billing_type" aria-label="Billing type"><option value="monthly">Monthly rate</option><option value="daily">Daily rate + EPF/ESIC</option></select></div>
             <div class="col-12 form-text mt-0">Service charge 3.85% and GST 18% are set by default; change them later on the contract page.</div>
           </div></div>

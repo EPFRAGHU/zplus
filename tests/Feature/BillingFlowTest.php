@@ -47,11 +47,11 @@ class BillingFlowTest extends TestCase
         $attendance->lock($sheet, $user, null);
         $invoice = app(InvoiceGenerator::class)->generate($sheet->fresh(), $user);
 
-        $this->assertSame('ICMR/MPH/01/2026', $invoice->invoice_no);
+        $this->assertSame('ZP/001/26-27(MPH)', $invoice->invoice_no);
         $this->assertSame('86000.00', $invoice->wages);
-        $this->assertSame('3311.00', $invoice->service_charge);
-        $this->assertSame('105387.00', $invoice->rounded_total);
-        $this->assertSame('Rupees One Lakh Five Thousand Three Hundred Eighty Seven Only', $invoice->amountInWords());
+        $this->assertSame('2805.93', $invoice->service_charge);
+        $this->assertSame('104791.00', $invoice->rounded_total);
+        $this->assertSame('Rupees One Lakh Four Thousand Seven Hundred Ninety One Only', $invoice->amountInWords());
         $this->assertCount(2, $invoice->lines);
     }
 
@@ -70,7 +70,7 @@ class BillingFlowTest extends TestCase
         $first = app(InvoiceGenerator::class)->generate($sheet->fresh(), $user);
         // APA: 31000 / 30 * 29 = 29966.67, rounded to 29967 as on the sub-bill; APM: 55000
         $this->assertSame('84967.00', $first->wages);
-        $this->assertSame('ICMR/MPH/01/2026', $first->invoice_no);
+        $this->assertSame('ZP/001/26-27(MPH)', $first->invoice_no);
     }
 
     public function test_bill_needs_locked_attendance_and_only_once(): void

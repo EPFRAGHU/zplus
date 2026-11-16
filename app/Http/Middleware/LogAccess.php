@@ -15,6 +15,8 @@ class LogAccess
     private const ROUTES = [
         'employees.show' => ['viewed', 'Employee details'],
         'attendance.payouts' => ['downloaded', 'Salary payout sheet (bank details)'],
+        'attendance.bank-letter' => ['downloaded', 'Bank forwarding letter (bank details)'],
+        'staff.index' => ['viewed', 'Employee Management (details, payments)'],
         'attendance.certificate' => ['downloaded', 'Attendance certificate'],
         'attendance.scan' => ['downloaded', 'Signed attendance certificate'],
         'attendance.submitted-pdf' => ['downloaded', 'Attendance PDF as submitted by PI'],

@@ -6,7 +6,7 @@
       <select id="f-agency" class="form-select" name="agency"><option value="">All agencies</option>@foreach($agencies as $a)<option value="{{ $a->id }}" @selected($agencyId === $a->id)>{{ $a->name }}</option>@endforeach</select></div>
     <div class="col-md-4"><label class="form-label small text-secondary mb-1" for="f-client">Client</label>
       <select id="f-client" class="form-select" name="client"><option value="">All clients</option>@foreach($clients as $c)<option value="{{ $c->id }}" data-agency="{{ $c->agency_id }}" @selected($clientId === $c->id)>{{ $c->name }}</option>@endforeach</select></div>
-    <div class="col-md-2"><label class="form-label small text-secondary mb-1" for="f-contract">GeM contract</label>
+    <div class="col-md-2"><label class="form-label small text-secondary mb-1" for="f-contract">Work order</label>
       <select id="f-contract" class="form-select" name="contract"><option value="">All contracts</option>@foreach($contracts as $k)<option value="{{ $k->id }}" data-agency="{{ $k->agency_id }}" data-client="{{ $k->client_id }}" @selected(request('contract') == $k->id)>{{ $k->bid_no }}</option>@endforeach</select></div>
     <div class="col-md-3"><label class="form-label small text-secondary mb-1" for="f-project">Project</label>
       <select id="f-project" class="form-select" name="project"><option value="">All projects</option>@foreach($projects as $p)<option value="{{ $p->id }}" data-agency="{{ $p->contract->agency_id }}" data-client="{{ $p->contract->client_id }}" data-contract="{{ $p->gem_contract_id }}" @selected(request('project') == $p->id)>{{ $p->label() }}</option>@endforeach</select></div>
@@ -16,7 +16,7 @@
     <div class="col-md-2 d-flex gap-2"><button class="btn btn-outline-secondary flex-fill">Show</button>@if(request()->query())<a class="btn btn-link px-1" href="{{ route('employees.index') }}">Clear</a>@endif</div>
   </form>
   <div class="z-card"><div class="table-responsive"><table class="table table-hover">
-    <thead><tr><th>Employee</th><th>Agency</th><th>Client</th><th>GeM contract</th><th>Project</th><th>Post</th><th class="num">Rate</th><th>EPF / ESIC</th><th>Bank</th><th>Status</th></tr></thead>
+    <thead><tr><th>Employee</th><th>Agency</th><th>Client</th><th>Work order</th><th>Project</th><th>Post</th><th class="num">Rate</th><th>EPF / ESIC</th><th>Bank</th><th>Status</th></tr></thead>
     <tbody>
     @php($block = false)
     @forelse ($employees as $e)

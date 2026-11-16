@@ -78,7 +78,7 @@ class PiPortalController extends Controller
     public function pdf(Request $request, AttendanceSheet $sheet): Response
     {
         $this->ownSheet($request, $sheet);
-        $name = "attendance-{$sheet->project->code}-{$sheet->month->format('Y-m')}.pdf";
+        $name = "attendance-".\App\Support\Codes::fileSafe($sheet->project->code)."-{$sheet->month->format('Y-m')}.pdf";
         if ($sheet->submitted_pdf_path && Storage::disk('local')->exists($sheet->submitted_pdf_path)) {
             return Storage::disk('local')->response($sheet->submitted_pdf_path, $name);
         }

@@ -140,7 +140,7 @@ class LetterheadTest extends TestCase
         $sheet = $service->open(Project::query()->where('code', 'MPH')->firstOrFail(), CarbonImmutable::parse('2026-10-01'));
         $service->lock($sheet, $admin, null);
         $invoice = app(InvoiceGenerator::class)->generate($sheet->fresh(), $admin);
-        $tax = app(\App\Services\Billing\TaxInvoiceBuilder::class)->create($contract->fresh()->client, CarbonImmutable::parse('2026-10-01'), [$invoice->id], $admin);
+        $tax = app(\App\Services\Billing\TaxInvoiceBuilder::class)->create($contract->fresh(), CarbonImmutable::parse('2026-10-01'), [$invoice->id], $admin);
 
         $tax->load('agency', 'client', 'subBills.project', 'subBills.contract');
         $html = view('pdf.tax-invoice', ['tax' => $tax, 'agency' => $tax->agency, 'client' => $tax->client])->render();

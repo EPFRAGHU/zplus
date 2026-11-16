@@ -59,7 +59,7 @@ class StatutorySwitchTest extends TestCase
     {
         $invoice = app(InvoiceGenerator::class)->generate($this->lockedSheet(), $this->admin);
         $this->assertSame('0.00', $invoice->epf);
-        $this->assertSame('105387.00', $invoice->rounded_total);
+        $this->assertSame('104791.00', $invoice->rounded_total);
     }
 
     public function test_epf_switched_on_adds_employer_epf_to_sub_bill_and_tax_invoice_and_deducts_on_salary_sheet(): void
@@ -80,7 +80,7 @@ class StatutorySwitchTest extends TestCase
         $this->assertStringNotContainsString('Employer ESIC', $html);
         $this->actingAs($this->admin)->get("/invoices/{$invoice->id}")->assertOk()->assertSee('Employer EPF');
 
-        $tax = app(TaxInvoiceBuilder::class)->create($invoice->contract->client, CarbonImmutable::parse('2026-10-01'), [$invoice->id], $this->admin);
+        $tax = app(TaxInvoiceBuilder::class)->create($invoice->contract, CarbonImmutable::parse('2026-10-01'), [$invoice->id], $this->admin);
         $tax->load('agency', 'client', 'subBills.project', 'subBills.contract');
         $html = view('pdf.tax-invoice', ['tax' => $tax, 'agency' => $tax->agency, 'client' => $tax->client])->render();
         $this->assertStringContainsString('Add: Employer EPF', $html);

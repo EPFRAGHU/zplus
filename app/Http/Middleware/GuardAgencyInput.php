@@ -18,6 +18,7 @@ class GuardAgencyInput
         'project_id' => \App\Models\Project::class, 'post_id' => \App\Models\Post::class, 'attendance_sheet_id' => \App\Models\AttendanceSheet::class,
         'employee_id' => \App\Models\Employee::class, 'invoice_id' => \App\Models\Invoice::class, 'invoice_ids' => \App\Models\Invoice::class,
         'sub_bills' => \App\Models\Invoice::class, 'projects' => \App\Models\Project::class,
+        'project_incharge_id' => \App\Models\ProjectIncharge::class,
     ];
 
     public function handle(Request $request, Closure $next): Response

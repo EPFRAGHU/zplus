@@ -1,7 +1,7 @@
 # ZPlus Manpower app
 
 **Repo:** epfraghu/zplus, branch `claude/manpower-app-foundation`
-**Status:** Live. Version **2.3.2** pushed (04 Nov 2026, 7:10 AM IST; owner must Redeploy in Coolify – live was v2.3.1). 136 tests passing. Project started **01 Nov 2026, 04:01 PM IST**.
+**Status:** Live. Version **2.4.0** pushed (16 Nov 2026, 9:40 PM IST; owner must Redeploy in Coolify). 148 tests passing. Project started **01 Nov 2026, 04:01 PM IST**.
 **Live URL:** https://zplus.epf-dashboard.online (admin: the owner's Gmail; password was shown in chat once, owner told to change it via tinker)
 
 ## Stack
@@ -46,6 +46,19 @@ Size (non-blank lines): ~6,000 app code (PHP 3,010, Blade 2,004, migrations 704)
 - Letterheads: Z Plus classic (with footer); SWACHHA banner on sub-bill, covering letter, tax invoice, appointment letter (fits one page), attendance certificate, salary payout sheet
 - Version display and release notes
 - **Month picker (v2.2.3)** – `<x-month-picker>` (year arrows + 12 month buttons, submits YYYY-MM) on Attendance, Sub-bills and Tax invoices month fields, for all logins (PIs use month buttons instead). Built because the owner's Firefox has no native month calendar.
+- **Owner's November changes (v2.4.0)** – migration `2026_11_16_000100_work_orders_pi_master_and_numbering` is ADDITIVE ONLY (owner: "database not altered" = add only, keep data):
+  - Work Orders = `gem_contracts` (UI renamed; route names still `contracts.*`); `contract_type` online/offline (offline needs no bid; `bid_no` stored '').
+  - Service charge incl. GST: `gem_contracts.service_charge_includes_gst` (default true) → `(subtotal × sc%) ÷ (1 + GST%)`; stored per bill in `invoices.service_charge_includes_gst` (old bills false, keep amounts). `Invoice::serviceChargeLabel()`. Matches SWACHHA CCRH Oct: ₹55,564.
+  - Numbers (`App\Services\Billing\BillNumbers`): agency `number_prefix` (SW, ZP; editable on Agency form). Serial per agency per FY (Apr–Mar, "26-27"), taken once per work order + month (DocumentSequence keys `bill-serial:{agency}:{fy}` and `bill-serial-of:{contract}:{Y-m}`). Sub-bill `SW/001/26-27(HTA)`, tax invoice `SW/001/26-27`. Old bills keep old numbers.
+  - Tax invoice is per WORK ORDER per month (`tax_invoices.gem_contract_id`); `TaxInvoiceBuilder::create(GemContract …)`. PDF shows contract no., bid, projects.
+  - Employee IDs `Employee::nextCode($agency)` → SW-1001…/ZP-1001…; existing EMP- codes kept; blank on create = auto.
+  - PI Allotment: `project_incharges` (agency-scoped, `ScopedToAgency`), `projects.project_incharge_id`; `App\Support\PiAllotment` syncs `pi_name`; linking a PI login / syncing its portal projects only for `manage-users` (Admin). Migration created one PI per distinct existing pi_name.
+  - Work order page (`contracts.show?month=`): projects → sub-bills (Add sub-bill) → tax invoice (Add tax invoice, one click).
+  - Bank forwarding letter `attendance.bank-letter` (view-bank-details): SBI (IFSC SBIN…) Emp ID/name/amount; NEFT name/bank/account/IFSC/amount; missing bank listed.
+  - Employee Management `staff.index`: dropdown + all list; profile, KYC, month-wise attendance + payments (SalaryPayoutSheet), bank masked unless view-bank-details.
+  - `config/india.php` + `App\Support\IndianStates`: 36 states/UTs, GST codes, 725 districts (datalist suggestions).
+  - Codes accept "/" and "-" (`App\Support\Codes`), letter/bill code max 16 (MySQL columns widened); file names use `Codes::fileSafe`.
+  - SQLite rebuilds a table when an FK column is added and DROPS ITS TRIGGERS: the migration re-creates `tax_invoices_agency_*`. Remember this for future migrations.
 - **Security review fixes (v2.3.2)** – owner asked for a senior security review against their checklist. No Critical/High. Fixed: per-account sign-in lock (5 wrong passwords per e-mail → 15 min, any IP; `RateLimiter` key `login:<email>`, cleared on success) on top of per-IP `throttle:6,1`; `throttle:6,1` on change password; global `SecurityHeaders` middleware (nosniff, X-Frame-Options SAMEORIGIN, Referrer-Policy, Permissions-Policy, HSTS only over HTTPS; no CSP because views use inline scripts); `StaleImports::purge()` deletes unsaved uploaded Excel files older than a day. Not changed: Docker images unpinned (offered). Tests: `SecurityHardeningTest`.
 - **User Roles Guide PDF** – `docs/guides/User-Roles-Guide-v2.pdf` (2 pages A4, for Z Plus and SWACHHA admins): four roles table, monthly flow PI → Operator → Accounts → Admin, how to add a login, good practice. Renamed to -v2 after the PI wording fix because the owner kept opening the first copy. Source HTML was in the session scratchpad only – regenerate from the PDF text if it needs editing (render with Playwright `page.pdf`, A4, printBackground).
 - **Cross-agency write proof (v2.3.1)** – `tests/Feature/CrossAgencyWriteTest.php` fires every write route of one agency's Admin and PI at the other agency's records (both directions) and asserts a DB fingerprint of all agency tables is unchanged. **Add any new write route to its attack list.**
@@ -71,7 +84,7 @@ Size (non-blank lines): ~6,000 app code (PHP 3,010, Blade 2,004, migrations 704)
 
 ## Owner to-do on the live app (as of 04 Nov 2026)
 - [ ] Coolify: add `SESSION_EXPIRE_ON_CLOSE=true` and `SESSION_LIFETIME=60`, then **Redeploy** (v2.3.x; db container restarts once for the trigger flag; everyone signs in again)
-- [ ] Redeploy for **v2.3.2** (security fixes) before sending the roles guide (it mentions the 15-minute lock)
+- [ ] Redeploy for **v2.4.0** (includes v2.3.2 security fixes); take a Coolify DB backup first. After redeploy: Agencies → check prefix SW / ZP; PI Allotment → add mobile/e-mail, check the auto-created PIs; Work Orders → set Online/Offline
 - [ ] After redeploy, check triggers in the app container: `php artisan tinker --execute="echo count(DB::select('SHOW TRIGGERS'));"` → above 0 (NOT the laravel.log grep: production logs go to stderr, see Coolify Logs for "Could not create trigger")
 - [ ] Send `User-Roles-Guide-v2.pdf` to the Z Plus and SWACHHA admins
 - [ ] Users: set zplussurakhyaseva@gmail.com "Works for" = Z Plus (was "Both" after v2.2.0); add hr.swachha@gmail.com as Admin for SWACHHA
@@ -82,7 +95,7 @@ Size (non-blank lines): ~6,000 app code (PHP 3,010, Blade 2,004, migrations 704)
 
 ## Open questions for the user
 - Employer EPF on bills uses the ₹15,000 wage ceiling (same as the deduction) – confirm with their GeM practice
-- Service charge: sub-bill sheet formula uses 3.26% but words and tax invoice use 3.85% (app uses 3.85%)
+- RESOLVED 16 Nov: service charge 3.85% includes GST → charged as ÷1.18 = 3.26% (v2.4.0, both agencies, new bills only)
 - Which agency bills MPH (sheet header says SWACHHA but carries Z Plus GSTIN/signature)
 - Correct Z Plus mobile numbers
 - Agency bank details still to be entered under Agencies → Edit

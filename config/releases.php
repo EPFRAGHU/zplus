@@ -12,6 +12,18 @@ return [
     'timezone' => 'Asia/Kolkata',      // release times are Indian Standard Time
 
     'releases' => [
+        ['version' => '2.4.0', 'date' => '2026-11-16 21:40', 'title' => 'Work orders, new bill numbers, PI Allotment, bank letter, Employee Management', 'type' => 'feature', 'notes' => [
+            '"GeM Contracts" are now "Work Orders", Online (GeM) or Offline; their details are entered once and used for every project, sub-bill and tax invoice',
+            'Work order page: projects, then the month\'s sub-bills (Add sub-bill), then the tax invoice (Add tax invoice) in one place',
+            'New numbers: sub-bills SW/001/26-27(HTA), (CCRH), (MPH) and their tax invoice SW/001/26-27 (Z Plus: ZP/…); one tax invoice per work order per month; series restarts every April. Bills made earlier keep their numbers',
+            'Service charge 3.85% now includes GST: charged as (amount × 3.85%) ÷ 1.18 = 3.26% on new bills; bills made earlier keep their amounts',
+            'Employee IDs given automatically per agency: SW-1001, ZP-1001 …; existing IDs unchanged',
+            'PI Allotment: each Project In-charge (name, designation, mobile, e-mail) entered once and mapped to projects under any work order; projects, certificates and PI logins use it',
+            'Bank forwarding letter per project and month: SBI accounts (Emp ID, name, amount) and other banks by NEFT (account no., IFSC, amount)',
+            'Employee Management: all employees in one list; pick one to see profile, KYC, month-wise attendance and month-wise bank payments',
+            'Client form: all states and UTs with GST code, and their districts',
+            'Bill, letter and project codes accept "/" and "-"; letter code up to 16 characters',
+        ]],
         ['version' => '2.3.2', 'date' => '2026-11-04 07:10', 'title' => 'Security review fixes', 'type' => 'fix', 'notes' => [
             '5 wrong passwords for one account lock it for 15 minutes, from any computer (each IP was already limited)',
             'Change password is limited to 6 tries a minute',

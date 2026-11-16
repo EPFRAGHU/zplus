@@ -66,6 +66,8 @@ Route::middleware(['auth', 'active', 'role:admin,accounts,supervisor', \App\Http
     Route::get('agencies/{agency}/logo', [AgencyController::class, 'logo'])->name('agencies.logo');
     Route::resource('clients', ClientController::class)->except(['show', 'destroy']);
     Route::resource('contracts', GemContractController::class)->except(['destroy']);
+    Route::resource('incharges', \App\Http\Controllers\ProjectInchargeController::class)->except(['show', 'destroy']);
+    Route::get('staff', [\App\Http\Controllers\StaffController::class, 'index'])->name('staff.index');
     Route::post('contracts/{contract}/projects', [ProjectController::class, 'store'])->name('projects.store');
     Route::put('projects/{project}', [ProjectController::class, 'update'])->name('projects.update');
     Route::get('posts', [PostController::class, 'index'])->name('posts.index');
@@ -89,6 +91,7 @@ Route::middleware(['auth', 'active', 'role:admin,accounts,supervisor', \App\Http
     Route::post('attendance/{sheet}/lock', [AttendanceController::class, 'lock'])->name('attendance.lock');
     Route::post('attendance/{sheet}/unlock', [AttendanceController::class, 'unlock'])->name('attendance.unlock');
     Route::get('attendance/{sheet}/salary-payouts', [AttendanceController::class, 'payouts'])->name('attendance.payouts');
+    Route::get('attendance/{sheet}/bank-letter', [AttendanceController::class, 'bankLetter'])->name('attendance.bank-letter');
     Route::get('attendance/{sheet}/certificate', [AttendanceController::class, 'certificate'])->name('attendance.certificate');
     Route::get('attendance/{sheet}/scan', [AttendanceController::class, 'scan'])->name('attendance.scan');
     Route::get('attendance/{sheet}/submitted-pdf', [AttendanceController::class, 'submittedPdf'])->name('attendance.submitted-pdf');

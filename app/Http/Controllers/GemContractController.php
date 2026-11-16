@@ -37,7 +37,7 @@ class GemContractController extends Controller
         Gate::authorize('manage-masters');
 
         return view('contracts.form', $this->formData(new GemContract([
-            'billing_type' => 'monthly', 'sac_code' => '998514', 'service_charge_percent' => '3.85', 'gst_percent' => '18', 'epf_percent' => '13', 'esic_percent' => '3.25',
+            'contract_type' => 'online', 'service_charge_includes_gst' => true, 'billing_type' => 'monthly', 'sac_code' => '998514', 'service_charge_percent' => '3.85', 'gst_percent' => '18', 'epf_percent' => '13', 'esic_percent' => '3.25',
             // "Add contract for this client" pre-fills the agency and client.
             'agency_id' => $request->integer('agency') ?: null, 'client_id' => $request->integer('client') ?: null,
         ])));
@@ -48,14 +48,28 @@ class GemContractController extends Controller
         Gate::authorize('manage-masters');
         $contract = GemContract::query()->create($this->validated($request));
 
-        return redirect()->route('contracts.show', $contract)->with('status', 'Contract added. Now add its projects and posts.');
+        return redirect()->route('contracts.show', $contract)->with('status', 'Work order added. Now add its projects and posts.');
     }
 
-    public function show(GemContract $contract): View
+    /** Work order page: its projects, then the month's sub-bills (one per project), then the month's tax invoice. */
+    public function show(Request $request, GemContract $contract): View
     {
-        $contract->load(['agency', 'client', 'projects.posts' => fn ($q) => $q->with('activeEmployees')]);
+        $contract->load(['agency', 'client', 'projects.incharge', 'projects.posts' => fn ($q) => $q->with('activeEmployees')]);
+        $month = $request->input('month') && preg_match('/^\d{4}-\d{2}$/', $request->input('month'))
+            ? \Carbon\CarbonImmutable::createFromFormat('!Y-m', $request->input('month'))
+            : \Carbon\CarbonImmutable::now()->subMonthNoOverflow()->startOfMonth();
+        $sheets = \App\Models\AttendanceSheet::query()->with('invoice.taxInvoice')
+            ->whereIn('project_id', $contract->projects->pluck('id'))->where('month', $month->toDateString())->get()->keyBy('project_id');
+        $subBills = Invoice::query()->with('project', 'taxInvoice')->where('gem_contract_id', $contract->id)
+            ->where('month', $month->toDateString())->orderBy('invoice_no')->get();
 
-        return view('contracts.show', compact('contract'));
+        return view('contracts.show', [
+            'contract' => $contract, 'month' => $month, 'sheets' => $sheets, 'subBills' => $subBills,
+            'taxInvoices' => $contract->taxInvoices()->where('month', $month->toDateString())->get(),
+            'pending' => $subBills->whereNull('tax_invoice_id'),
+            'nextTaxNumber' => app(\App\Services\Billing\TaxInvoiceBuilder::class)->suggestNumber($contract, $month),
+            'incharges' => \App\Models\ProjectIncharge::query()->where('agency_id', $contract->agency_id)->where('status', 'active')->orderBy('name')->get(),
+        ]);
     }
 
     public function edit(GemContract $contract): View
@@ -70,7 +84,7 @@ class GemContractController extends Controller
         Gate::authorize('manage-masters');
         $contract->update($this->validated($request, $contract));
 
-        return redirect()->route('contracts.show', $contract)->with('status', 'Contract saved.');
+        return redirect()->route('contracts.show', $contract)->with('status', 'Work order saved.');
     }
 
     private function formData(GemContract $contract): array
@@ -85,7 +99,8 @@ class GemContractController extends Controller
         $data = $request->validate([
             'agency_id' => ['required', new \App\Rules\ExistsInMyAgency(\App\Models\Agency::class)],
             'client_id' => ['required', new \App\Rules\ExistsInMyAgency(\App\Models\Client::class)],
-            'bid_no' => ['required', 'string', 'max:40'],
+            'contract_type' => ['nullable', Rule::in(array_keys(GemContract::TYPES))],
+            'bid_no' => [Rule::requiredIf(fn () => $request->input('contract_type', 'online') !== 'offline'), 'nullable', 'string', 'max:40'],
             'contract_no' => ['required', 'string', 'max:40', Rule::unique('gem_contracts')->ignore($contract)],
             'contract_date' => ['nullable', 'date'],
             'billing_type' => ['required', Rule::in(['monthly', 'daily'])],
@@ -98,8 +113,12 @@ class GemContractController extends Controller
         ], [
             'agency_id.required' => 'Choose the agency that raises bills on this contract.',
             'client_id.required' => 'Choose the client this contract is with.',
+            'bid_no.required' => 'Enter the GeM bid number of this online contract.',
         ]);
         $data['inter_state'] = $request->boolean('inter_state');
+        $data['contract_type'] = $data['contract_type'] ?? null ?: 'online';
+        $data['service_charge_includes_gst'] = $request->has('service_charge_includes_gst') ? $request->boolean('service_charge_includes_gst') : true;
+        $data['bid_no'] = $data['bid_no'] ?? '';   // offline work orders have no GeM bid
         $data['sac_code'] = $data['sac_code'] ?? null ?: '998514';
 
         $client = Client::query()->findOrFail($data['client_id']);

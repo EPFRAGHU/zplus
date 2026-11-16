@@ -75,9 +75,9 @@ class WebFlowTest extends TestCase
             ->assertSessionHasNoErrors()->assertRedirect('/invoices/1');
         $this->assertTrue($sheet->fresh()->isLocked());
         $invoice = Invoice::query()->firstOrFail();
-        $this->assertSame('ICMR/MPH/01/2026', $invoice->invoice_no);
-        $this->assertSame('105387.00', $invoice->rounded_total);
-        $this->get('/invoices/1')->assertOk()->assertSee('₹1,05,387.00')->assertSee('One Lakh Five Thousand Three Hundred Eighty Seven');
+        $this->assertSame('ZP/001/26-27(MPH)', $invoice->invoice_no);
+        $this->assertSame('104791.00', $invoice->rounded_total);
+        $this->get('/invoices/1')->assertOk()->assertSee('₹1,04,791.00')->assertSee('One Lakh Four Thousand Seven Hundred Ninety One');
         $this->get('/invoices/1/pdf')->assertOk()->assertHeader('content-type', 'application/pdf');
         $this->get('/invoices/1/covering-letter')->assertOk()->assertHeader('content-type', 'application/pdf');
 
@@ -178,9 +178,9 @@ class WebFlowTest extends TestCase
         $this->actingAs($admin)->get('/invoices')->assertOk()->assertSee('Ready to bill')->assertSee('ZPS')->assertSee('ICMR-NIHR (RMRCBB), Bhubaneswar');
         $this->post('/invoices', ['attendance_sheet_id' => $sheet->id]);
 
-        $this->get('/invoices')->assertSee('id="f-agency"', false)->assertSee('id="f-client"', false)->assertSee('ICMR/MPH/01/2026');
-        $this->get('/invoices?agency='.$swh->id)->assertDontSee('ICMR/MPH/01/2026');
-        $this->get('/invoices?agency='.$zps->id)->assertSee('ICMR/MPH/01/2026');
+        $this->get('/invoices')->assertSee('id="f-agency"', false)->assertSee('id="f-client"', false)->assertSee('ZP/001/26-27(MPH)');
+        $this->get('/invoices?agency='.$swh->id)->assertDontSee('ZP/001/26-27(MPH)');
+        $this->get('/invoices?agency='.$zps->id)->assertSee('ZP/001/26-27(MPH)');
         $this->get('/invoices/1')->assertSee('Agency:')->assertSee('M/S Z Plus Surakhya Seva')->assertSee('Client:');
     }
 
@@ -196,11 +196,11 @@ class WebFlowTest extends TestCase
 
         $all = $this->actingAs($admin)->get('/')->assertOk()
             ->assertSee('id="f-agency"', false)->assertSee('id="f-client"', false)
-            ->assertSee('By agency and client')->assertSee('ZPS')->assertSee('SWH')->assertSee('₹1,05,387');
+            ->assertSee('By agency and client')->assertSee('ZPS')->assertSee('SWH')->assertSee('₹1,04,791');
 
         // SWACHHA has no staff or bills in the demo data, so its view shows zero billed.
-        $this->get('/?agency='.$swh->id)->assertOk()->assertSee('Showing SWACHHA')->assertDontSee('ICMR/MPH/');
-        $this->get('/?agency='.$zps->id)->assertOk()->assertSee('ICMR/MPH/')->assertSee('₹1,05,387');
+        $this->get('/?agency='.$swh->id)->assertOk()->assertSee('Showing SWACHHA')->assertDontSee('ZP/001/26-27(MPH)');
+        $this->get('/?agency='.$zps->id)->assertOk()->assertSee('ZP/001/26-27(MPH)')->assertSee('₹1,04,791');
     }
 
     public function test_bill_pdf_names_the_agency_and_client(): void
@@ -262,7 +262,7 @@ class WebFlowTest extends TestCase
         $other = $contract->projects()->create(['name' => 'Second Project', 'code' => 'SECOND']);
 
         $this->actingAs($admin)->get('/attendance?month=2026-10')->assertOk()
-            ->assertSee('<th>GeM contract</th><th>Project</th><th>PI</th>', false)
+            ->assertSee('<th>Work order</th><th>Project</th><th>PI</th>', false)
             ->assertSee('id="f-contract"', false)->assertSee('id="f-project"', false)
             ->assertSee('Second Project')->assertSee('GEM/2026/B/7972720</a>', false);
         $this->get('/attendance?month=2026-10&contract='.$contract->id)->assertSee('Second Project');
@@ -295,11 +295,11 @@ class WebFlowTest extends TestCase
         $other = $mph->contract->projects()->create(['name' => 'Second Project', 'code' => 'SECOND']);
 
         $this->actingAs($admin)->get('/invoices')->assertOk()
-            ->assertSee('<th>GeM contract</th><th>Project</th>', false)
+            ->assertSee('<th>Work order</th><th>Project</th>', false)
             ->assertSee('GEM/2026/B/7972720</a>', false)->assertSee('PI: Dr. S. Kanungo')
             ->assertSee('id="f-contract"', false)->assertSee('id="f-project"', false);
-        $this->get('/invoices?contract='.$mph->gem_contract_id)->assertSee('ICMR/MPH/01/2026');
-        $this->get('/invoices?project='.$other->id)->assertDontSee('ICMR/MPH/01/2026</a>', false);
+        $this->get('/invoices?contract='.$mph->gem_contract_id)->assertSee('ZP/001/26-27(MPH)');
+        $this->get('/invoices?project='.$other->id)->assertDontSee('ZP/001/26-27(MPH)</a>', false);
     }
 
     public function test_dashboard_shows_and_filters_by_contract_and_project(): void
@@ -315,10 +315,10 @@ class WebFlowTest extends TestCase
 
         $this->actingAs($admin)->get('/')->assertOk()
             ->assertSee('id="f-contract"', false)->assertSee('id="f-project"', false)
-            ->assertSee('By GeM contract and project')->assertSee('Second Project')->assertSee('Billed</span>', false);
+            ->assertSee('By work order and project')->assertSee('Second Project')->assertSee('Billed</span>', false);
         // Narrowed to the other project: nothing billed, MPH not in the project table.
         $this->get('/?project='.$other->id)->assertOk()->assertSee('₹0')->assertDontSee('PI: Dr. S. Kanungo');
-        $this->get('/?contract='.$mph->gem_contract_id)->assertOk()->assertSee('₹1,05,387');
+        $this->get('/?contract='.$mph->gem_contract_id)->assertOk()->assertSee('₹1,04,791');
     }
 
     public function test_attendance_is_split_into_agency_blocks(): void
@@ -367,8 +367,8 @@ class WebFlowTest extends TestCase
         $this->assertNotFalse($zps);
         $this->assertNotFalse($swh);
         $this->assertLessThan($swh, $zps);                                   // agencies in name order
-        $this->assertStringContainsString('1 bill · ₹36,763 billed · ₹0 awaiting payment', $html);
-        $this->assertGreaterThan($swh, strpos($html, '>ICMR/PSWH/01/2026</a>'));   // SWACHHA's bill under its heading
+        $this->assertStringContainsString('1 bill · ₹36,555 billed · ₹0 awaiting payment', $html);
+        $this->assertGreaterThan($swh, strpos($html, '>SW/001/26-27(PSWH)</a>'));   // SWACHHA's bill under its heading
     }
 
     public function test_dashboard_tables_use_agency_blocks(): void
@@ -384,7 +384,7 @@ class WebFlowTest extends TestCase
         // Z Plus heading appears once per table (clients, projects, recent bills); SWACHHA in the clients table.
         $this->assertSame(3, substr_count($html, '<b class="fs-6">M/S Z Plus Surakhya Seva</b>'));
         $this->assertGreaterThanOrEqual(1, substr_count($html, '<b class="fs-6">SWACHHA</b>'));
-        $this->assertStringContainsString('1 client · 1 contract · 2 staff · ₹1,05,387 billed', $html);
+        $this->assertStringContainsString('1 client · 1 contract · 2 staff · ₹1,04,791 billed', $html);
         $this->assertStringContainsString('1 project · 2 / 2 staff · 1 locked · 1 billed for', $html);
     }
 
@@ -404,6 +404,6 @@ class WebFlowTest extends TestCase
             $this->assertDoesNotMatchRegularExpression('/@(else|endif|endforeach|endcan)\b/', strip_tags($html), "Stray template code on {$url}");
         }
         $this->get('/employees')->assertSee('2 employees · 2 placed on posts');
-        $this->get('/invoices')->assertSee('1 bill · ₹1,05,387 billed · ₹0 awaiting payment');
+        $this->get('/invoices')->assertSee('1 bill · ₹1,04,791 billed · ₹0 awaiting payment');
     }
 }

@@ -13,7 +13,9 @@ class ProjectController extends Controller
     public function store(Request $request, GemContract $contract): RedirectResponse
     {
         Gate::authorize('manage-masters');
-        $contract->projects()->create($this->validated($request));
+        $data = $this->validated($request);
+        \App\Support\PiAllotment::assertSameAgency($data['project_incharge_id'] ?? null, $contract);
+        $contract->projects()->create($data);
 
         return back()->with('status', 'Project added.');
     }
@@ -21,7 +23,9 @@ class ProjectController extends Controller
     public function update(Request $request, Project $project): RedirectResponse
     {
         Gate::authorize('manage-masters');
-        $project->update($this->validated($request));
+        $data = $this->validated($request);
+        \App\Support\PiAllotment::assertSameAgency($data['project_incharge_id'] ?? null, $project->contract);
+        $project->update($data);
 
         return back()->with('status', 'Project saved.');
     }
@@ -30,13 +34,15 @@ class ProjectController extends Controller
     {
         $data = $request->validate([
             'name' => ['required', 'string', 'max:255'],
-            'code' => ['required', 'alpha_num', 'max:12'],
+            'code' => ['required', \App\Support\Codes::PATTERN, 'max:12'],
             'title' => ['nullable', 'string', 'max:2000'],
+            'project_incharge_id' => ['nullable', new \App\Rules\ExistsInMyAgency(\App\Models\ProjectIncharge::class)],
             'pi_name' => ['nullable', 'string', 'max:255'],
             'pi_designation' => ['nullable', 'string', 'max:255'],
             'location' => ['nullable', 'string', 'max:255'],
         ]);
         $data['code'] = strtoupper($data['code']);
+        $data = \App\Support\PiAllotment::syncNames($data);
         $data['saturday_off'] = $request->boolean('saturday_off');
 
         return $data;

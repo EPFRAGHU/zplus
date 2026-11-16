@@ -13,7 +13,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
 /** One client's tax invoice for a month, combining that month's sub-bills (one per project). */
-#[Fillable(['agency_id', 'client_id', 'number', 'month', 'invoice_date', 'place_of_supply', 'taxable', 'cgst', 'sgst', 'igst',
+#[Fillable(['agency_id', 'client_id', 'gem_contract_id', 'number', 'month', 'invoice_date', 'place_of_supply', 'taxable', 'cgst', 'sgst', 'igst',
     'total', 'rounded_total', 'status', 'created_by'])]
 class TaxInvoice extends Model
 {
@@ -45,6 +45,12 @@ class TaxInvoice extends Model
     public function client(): BelongsTo
     {
         return $this->belongsTo(Client::class);
+    }
+
+    /** Work order (GeM contract) of this tax invoice; empty on tax invoices made before work-order billing. */
+    public function contract(): BelongsTo
+    {
+        return $this->belongsTo(GemContract::class, 'gem_contract_id');
     }
 
     /** The sub-bills combined in this tax invoice. */

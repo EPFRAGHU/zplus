@@ -105,8 +105,8 @@ class MasterImportTest extends TestCase
         ])->assertSee('2 new');
         $this->post('/data-upload/employees/save')->assertSessionHas('status', 'Employees: 2 added, 0 updated.');
         $one = Employee::query()->where('name', 'Test Person One')->firstOrFail();
-        $this->assertSame('EMP-1001', $one->emp_code);
-        $this->assertSame('EMP-1002', Employee::query()->where('name', 'Test Person Two')->value('emp_code'));
+        $this->assertSame('ZP-1001', $one->emp_code);
+        $this->assertSame('ZP-1002', Employee::query()->where('name', 'Test Person Two')->value('emp_code'));
         $this->assertSame($client->id, $one->client_id);
         $this->assertSame('Academic Programme Manager', $one->post->designation);
         $this->assertSame('0012345678901', $one->account_number);

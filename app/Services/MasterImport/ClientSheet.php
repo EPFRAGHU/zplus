@@ -66,10 +66,10 @@ final class ClientSheet extends MasterSheet
         $code = strtoupper((string) $v['short_code']);
         $v['gstin'] = $v['gstin'] ? strtoupper($v['gstin']) : null;
         $errors = $this->validate($v, [
-            'short_code' => ['nullable', 'alpha_num', 'max:12'],
-            'letter_code' => ['nullable', 'alpha_num', 'max:12'],
+            'short_code' => ['nullable', \App\Support\Codes::PATTERN, 'max:16'],
+            'letter_code' => ['nullable', \App\Support\Codes::PATTERN, 'max:16'],
             'email' => ['nullable', 'email'],
-            'state_code' => ['nullable', 'digits:2'],
+            'state_code' => ['nullable', \App\Support\IndianStates::rule()],
             'gstin' => ['nullable', 'regex:/^\d{2}[A-Z]{5}\d{4}[A-Z][A-Z\d]Z[A-Z\d]$/'],
             'payment_term_days' => ['nullable', 'integer', 'min:0', 'max:365'],
         ], ['gstin.regex' => 'GSTIN must have 15 characters.']);

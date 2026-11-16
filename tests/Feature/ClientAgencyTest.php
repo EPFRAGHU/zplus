@@ -117,7 +117,7 @@ class ClientAgencyTest extends TestCase
             $numbers[] = app(InvoiceGenerator::class)->generate($sheet->fresh(), $user)->invoice_no;
         }
 
-        $this->assertSame(['ICMR/SICKLECELL/01/2026', 'ICMR/SICKLECELL/01/2026'], $numbers);
+        $this->assertSame(['SW/001/26-27(SICKLECELL)', 'ZP/001/26-27(SICKLECELL)'], $numbers);
     }
 
     public function test_contracts_page_shows_and_filters_by_agency_and_client(): void
@@ -156,7 +156,7 @@ class ClientAgencyTest extends TestCase
     {
         $this->seed(DemoSeeder::class);
         $html = $this->actingAs(User::factory()->create(['role' => 'admin']))->get('/clients')->assertOk()
-            ->assertSee('<th>GeM contract</th><th>Contract no.</th>', false)->getContent();
+            ->assertSee('<th>Work order</th><th>Contract no.</th>', false)->getContent();
 
         $this->assertSame(2, substr_count($html, 'client-block'));
         $this->assertStringContainsString('Bill code ICMR · 1 contract · 2 employees', $html);   // Z Plus's ICMR block
