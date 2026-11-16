@@ -1,7 +1,7 @@
 # ZPlus Manpower app
 
 **Repo:** epfraghu/zplus, branch `claude/manpower-app-foundation`
-**Status:** Live. Version **2.6.0** pushed (2026-11-16 22:15 IST). Coolify AUTO-DEPLOYS on every push to the branch (seen 16 Nov: v2.4.0 went live by itself) – pushing = going live. 149 tests passing. Project started **01 Nov 2026, 04:01 PM IST**.
+**Status:** Live. Version **2.6.1** pushed (2026-11-16 22:15 IST). Coolify AUTO-DEPLOYS on every push to the branch (seen 16 Nov: v2.4.0 went live by itself) – pushing = going live. 149 tests passing. Project started **01 Nov 2026, 04:01 PM IST**.
 **Live URL:** https://zplus.epf-dashboard.online (admin: the owner's Gmail; password was shown in chat once, owner told to change it via tinker)
 
 ## Stack
@@ -119,6 +119,7 @@ What moves: code (GitHub or a copy), MySQL dump, uploaded files (`zplus-storage`
 - Cashfree Payouts (account verification, salary batches, webhooks), SMS (DLT) and WhatsApp messages, payslips per employee. Still to ask: does each agency have its own Cashfree account?
 
 ## Lessons
+- Blade: a `@php … @endphp` block in a view that also uses inline `@php(...)` broke compilation ("unexpected endif"); build helper data (e.g. sort links) in the controller instead
 - **Every push redeploys (Coolify auto-deploy) and RECREATES the db container** (new name, a few seconds down). On 16 Nov a memory-only push killed the owner's mysqldump mid-way ("Lost connection … 2013"). Don't push while the owner is backing up / recalculating; ask first. A backup is good only with exit code 0 and last line `-- Dump completed on …` (≈170 KB, ~21 tables with INSERTs).
 - **PI = Project In-charge**, never "Principal Investigator" – owner corrected this
 - Production `LOG_CHANNEL=stderr`: there is no storage/logs/laravel.log on the live app; use Coolify Logs

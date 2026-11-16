@@ -373,4 +373,22 @@ class OwnerChangesTest extends TestCase
             $this->assertStringContainsString($text, $html);
         }
     }
+
+    public function test_employee_management_list_sorts_a_to_z_and_z_to_a(): void
+    {
+        $agency = Agency::query()->create(['name' => 'SWACHHA', 'code' => 'SWH', 'number_prefix' => 'SW']);
+        foreach ([['SW-1010', 'Anil'], ['SW-1002', 'Zara'], ['SW-999', 'Mohan']] as [$code, $name]) {
+            Employee::query()->create(['emp_code' => $code, 'name' => $name, 'agency_id' => $agency->id, 'status' => 'active']);
+        }
+        $order = function (string $query, array $names) {
+            $html = $this->get('/staff?'.$query)->assertOk()->getContent();
+            $pos = array_map(fn ($n) => strpos($html, '>'.$n.'</a></td>'), $names);
+            $this->assertSame($pos, collect($pos)->sort()->values()->all(), "order for {$query}");
+        };
+        $order('sort=emp_code&dir=asc', ['Mohan', 'Zara', 'Anil']);   // SW-999, SW-1002, SW-1010 (natural order)
+        $order('sort=emp_code&dir=desc', ['Anil', 'Zara', 'Mohan']);
+        $order('sort=name&dir=asc', ['Anil', 'Mohan', 'Zara']);
+        $order('sort=name&dir=desc', ['Zara', 'Mohan', 'Anil']);
+        $this->get('/staff?sort=name&dir=asc')->assertSee('Sorted A→Z. Click for Z→A');
+    }
 }

@@ -12,6 +12,10 @@ return [
     'timezone' => 'Asia/Kolkata',      // release times are Indian Standard Time
 
     'releases' => [
+        ['version' => '2.6.1', 'date' => '2026-11-16 23:28', 'title' => 'Sort the Employee Management list', 'type' => 'fix', 'notes' => [
+            'Employee Management: click Emp ID, Name or Post · project to sort A→Z; click again for Z→A (arrow shows the order)',
+            'Employee IDs sort by number: SW-999, SW-1002, SW-1010',
+        ]],
         ['version' => '2.6.0', 'date' => '2026-11-16 23:14', 'title' => 'Sub-bills in the agencies\' own format; Project In-charge module', 'type' => 'feature', 'notes' => [
             'Sub-bill PDF laid out like the SWACHHA sub-bills: text header (BILL, agency, address, mobile, EPF, ESIC, GST, PAN, CL&RA licence), SL No / Month / Date, one row per person with quantity, working days, rate per day and per month, Total Monthly Wages with total days, service charge @ 3.26% (excluding GST @ 18%), 18% GST, Grand Total, Round Up, amount in words, "Kindly Attention … (P.I)" and the signature box',
             'Tax invoice: the DES column shows the post only (e.g. PRS-II), as on the agencies\' tax invoice',
