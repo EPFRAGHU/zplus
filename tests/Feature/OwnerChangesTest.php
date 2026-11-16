@@ -288,4 +288,35 @@ class OwnerChangesTest extends TestCase
         // 10 persons, 310 working days. (The Excel sheet showed 248: its total formula =SUM(F13:F19) leaves out the PTS-I and PTS-II rows.)
         $this->assertMatchesRegularExpression('/<td class="c">10<\/td><td class="c">310<\/td>/', $html);
     }
+
+    public function test_old_approved_bills_can_be_recalculated_with_the_current_rules(): void
+    {
+        [$agency, , $contract] = $this->swachha();
+        $contract->update(['service_charge_includes_gst' => false]);   // as bills were made before 16 Nov 2026
+        $bills = $this->billMonth($contract->load('projects'), '2026-10-01');
+        $old = $bills['HTA'];
+        $old->forceFill(['invoice_no' => 'SW26271/HTA/01/2026', 'status' => 'approved'])->save();
+        $this->assertSame('3095.40', $old->service_charge);                       // 80,400 x 3.85%
+        $tax = app(TaxInvoiceBuilder::class)->create($contract, CarbonImmutable::parse('2026-10-01'), [$old->id], $this->admin);
+        $submitted = $bills['CCRH'];
+        $submitted->forceFill(['status' => 'submitted'])->save();
+        $contract->update(['service_charge_includes_gst' => true]);
+
+        $this->get('/invoices')->assertSee('made with the old rules')->assertSee('SW26271/HTA/01/2026');
+        $this->post('/invoices-recalculate-outdated')->assertSessionHasNoErrors();
+
+        $old->refresh();
+        $this->assertSame('2623.22', $old->service_charge);                       // 80,400 x 3.85 / 118
+        $this->assertTrue($old->service_charge_includes_gst);
+        $this->assertSame('approved', $old->status);                              // status kept
+        $this->assertSame('SW/001/26-27(HTA)', $old->invoice_no);                 // new-style number
+        $this->assertSame('97967.00', $old->rounded_total);                     // (80,400 + 2,623.22) x 1.18 = 97,967.40
+        $this->assertSame('97967.00', $tax->fresh()->rounded_total);              // its draft tax invoice follows
+        $this->assertFalse($submitted->fresh()->service_charge_includes_gst);    // submitted bills are not touched
+        $this->assertSame(1, \App\Models\ActivityLog::query()->where('note', 'like', 'Recalculated with current rules%')->count());
+
+        $this->post("/invoices/{$submitted->id}/recalculate")->assertSessionHasErrors('invoice');
+        $this->actingAs(User::factory()->create(['role' => 'supervisor', 'agency_id' => $agency->id]));
+        $this->post("/invoices/{$old->id}/recalculate")->assertForbidden();
+    }
 }

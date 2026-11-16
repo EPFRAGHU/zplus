@@ -12,6 +12,12 @@ return [
     'timezone' => 'Asia/Kolkata',      // release times are Indian Standard Time
 
     'releases' => [
+        ['version' => '2.5.1', 'date' => '2026-11-16 22:25', 'title' => 'Recalculate bills made before the new rules', 'type' => 'fix', 'notes' => [
+            'Draft and approved bills made before 16 Nov 2026 can be worked out again with the current rules: service charge incl. GST (÷ 1.18), no rounding, new SW/001/26-27(CODE) number',
+            'Sub-bills page lists those bills with a "Recalculate all" button; each bill also has "Recalculate with current rules"',
+            'The bill keeps its status and attendance; a draft tax invoice holding it is updated too; submitted and paid bills are never changed',
+            'Every recalculation is recorded in the Activity log (old and new total)',
+        ]],
         ['version' => '2.5.0', 'date' => '2026-11-16 22:15', 'title' => 'Tax invoice in the agencies\' own format; no rounding of bill figures', 'type' => 'feature', 'notes' => [
             'Tax invoice PDF laid out like the SWACHHA tax invoice: agency header (GSTIN, PAN, EPF and ESIC numbers, mobile, e-mail), invoice no. SW/001/26-27, GeM contract no. and date, FROM / TO, bank details',
             'Particulars: every post of every project under the work order (project in brackets), number of manpower, total working days, per-day wage and amount; then EPF 12%, EDLI 0.5%, PF admin 0.5%, ESI 3.25%, sub total, service charge, total, CGST / SGST, grand total, rounding off and amount in words',

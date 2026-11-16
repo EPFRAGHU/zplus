@@ -1,5 +1,16 @@
 <x-layouts.app title="Sub-bills" crumb="Billing / <span class='text-danger'>Sub-bills</span>">
   <div class="alert alert-light border small">One sub-bill per project per month. Combine a client's sub-bills into one GST <a href="{{ route('tax-invoices.index') }}">tax invoice</a> with <b>Make tax invoice</b> on the client's block.</div>
+  @can('billing')
+  @php($outdated = \App\Services\Billing\InvoiceGenerator::outdated()->get(['id', 'invoice_no']))
+  @if($outdated->isNotEmpty())
+  <div class="alert alert-warning d-flex flex-wrap gap-2 align-items-center">
+    <div><b>{{ $outdated->count() }} {{ \Illuminate\Support\Str::plural('bill', $outdated->count()) }} made with the old rules</b> (service charge 3.85% on the amount, old bill number):
+      <span class="mono small">{{ $outdated->pluck('invoice_no')->implode(', ') }}</span>. Draft and approved bills can be worked out again; submitted and paid bills are not changed.</div>
+    <form method="post" action="{{ route('invoices.recalculate-outdated') }}" class="ms-auto" onsubmit="return confirm('Recalculate these bills with the current rules? Their status stays the same; every change is recorded in the Activity log.')">@csrf
+      <button class="btn btn-sm btn-warning"><i class="bi bi-arrow-repeat me-1"></i>Recalculate all</button></form>
+  </div>
+  @endif
+  @endcan
   @if($ready->isNotEmpty())
   <div class="z-card mb-3">
     <div class="z-card-h"><h2>Ready to bill</h2><span class="small text-secondary">Locked attendance without a bill</span></div>

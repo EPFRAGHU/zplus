@@ -105,6 +105,7 @@ class CrossAgencyWriteTest extends TestCase
             'unlock their month' => fn () => $this->post("/attendance/{$o['locked']->id}/unlock"),
             'make a bill from their month' => fn () => $this->post('/invoices', ['attendance_sheet_id' => $o['open']->id]),
             'approve their bill' => fn () => $this->post("/invoices/{$o['invoice']->id}/status", ['status' => 'approved']),
+            'recalculate their bill' => fn () => $this->post("/invoices/{$o['invoice']->id}/recalculate"),
             'delete their bill' => fn () => $this->delete("/invoices/{$o['invoice']->id}"),
             'make a tax invoice from their bill' => fn () => $this->post('/tax-invoices', ['gem_contract_id' => $o['contract']->id, 'month' => '2026-09', 'sub_bills' => [$o['invoice']->id], 'invoice_date' => '2026-10-05']),
             'tax invoice of their bill under my work order' => fn () => $this->post('/tax-invoices', ['month' => '2026-09', 'sub_bills' => [$o['invoice']->id], 'invoice_date' => '2026-10-05']),

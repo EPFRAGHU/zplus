@@ -45,6 +45,13 @@
             <button class="btn btn-primary">{{ $next[1] }}</button>
           </form>
         @endif
+        @if(in_array($invoice->status, ['draft', 'approved'], true) && (! $invoice->taxInvoice || $invoice->taxInvoice->status === 'draft'))
+          @can('billing')<form method="post" action="{{ route('invoices.recalculate', $invoice) }}" class="d-grid mt-2"
+            onsubmit="return confirm('Work this bill out again with the current rules (service charge incl. GST ÷ 1.18, no rounding, new bill number)? Its status stays the same and the change is recorded.')">@csrf
+            <button class="btn btn-outline-primary btn-sm"><i class="bi bi-arrow-repeat me-1"></i>Recalculate with current rules</button></form>
+          @unless($invoice->service_charge_includes_gst)<div class="small text-warning-emphasis mt-1">Made before 16 Nov 2026 with the old service charge (3.85% on the amount).</div>@endunless
+          @endcan
+        @endif
         @if($invoice->status === 'draft')
           @can('billing')<form method="post" action="{{ route('invoices.destroy', $invoice) }}" class="d-grid mt-2" onsubmit="return confirm('Delete this draft bill? Its number will not be reused.')">@csrf @method('delete')<button class="btn btn-outline-danger btn-sm">Delete draft</button></form>@endcan
         @endif

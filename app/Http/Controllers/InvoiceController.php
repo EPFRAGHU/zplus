@@ -80,6 +80,41 @@ class InvoiceController extends Controller
         return redirect()->route('invoices.show', $invoice)->with('status', "Bill {$invoice->invoice_no} created as a draft.");
     }
 
+    /** Works one draft or approved bill out again with today's rules (and its draft tax invoice, if any). */
+    public function recalculate(Request $request, Invoice $invoice, InvoiceGenerator $generator): RedirectResponse
+    {
+        Gate::authorize('billing');
+        try {
+            [$old, $new] = $generator->recalculate($invoice, $request->user());
+        } catch (RuntimeException $e) {
+            return back()->withErrors(['invoice' => $e->getMessage()]);
+        }
+        \App\Support\Activity\Activity::log('updated', $invoice, [], "Recalculated with current rules: ₹{$old} → ₹{$new}", section: 'Sub-bills');
+
+        return redirect()->route('invoices.show', $invoice)->with('status', "Bill {$invoice->fresh()->invoice_no} recalculated: ₹".number_format((float) $old, 2).' → ₹'.number_format((float) $new, 2).'.');
+    }
+
+    /** Recalculates every open bill (draft / approved) made under the old rules, in the user's own agency. */
+    public function recalculateOutdated(Request $request, InvoiceGenerator $generator): RedirectResponse
+    {
+        Gate::authorize('billing');
+        $done = $skipped = [];
+        foreach (InvoiceGenerator::outdated()->get() as $invoice) {
+            try {
+                [$old, $new] = $generator->recalculate($invoice, $request->user());
+                \App\Support\Activity\Activity::log('updated', $invoice, [], "Recalculated with current rules: ₹{$old} → ₹{$new}", section: 'Sub-bills');
+                $done[] = $invoice->fresh()->invoice_no;
+            } catch (RuntimeException $e) {
+                $skipped[] = $e->getMessage();
+            }
+        }
+        $msg = count($done).' '.\Illuminate\Support\Str::plural('bill', count($done)).' recalculated with the current rules'.($done ? ': '.implode(', ', $done) : '').'.';
+
+        $response = back()->with('status', $msg);
+
+        return $skipped ? $response->withErrors(['invoice' => implode(' ', $skipped)]) : $response;
+    }
+
     public function show(Invoice $invoice): View
     {
         $invoice->load('lines', 'project', 'contract.agency', 'contract.client', 'sheet', 'taxInvoice');
