@@ -123,13 +123,15 @@ class EmployeeController extends Controller
         ])->setPaper('a4')->stream("appointment-".\App\Support\Codes::fileSafe($employee->emp_code).".pdf");
     }
 
-    /** Switch EPF and ESIC on or off from the employees list. */
+    /** Switch EPF, ESIC and TDS on or off from the employees list. */
     public function statutory(Request $request, Employee $employee): RedirectResponse
     {
         Gate::authorize('manage-masters');
-        $employee->update(['pf_applicable' => $request->boolean('pf_applicable'), 'esic_applicable' => $request->boolean('esic_applicable')]);
+        $employee->update(['pf_applicable' => $request->boolean('pf_applicable'), 'esic_applicable' => $request->boolean('esic_applicable'),
+            'tds_applicable' => $request->boolean('tds_applicable')]);
 
-        return back()->with('status', "{$employee->name}: EPF ".($employee->pf_applicable ? 'on' : 'off').', ESIC '.($employee->esic_applicable ? 'on' : 'off').'.');
+        return back()->with('status', "{$employee->name}: EPF ".($employee->pf_applicable ? 'on' : 'off').', ESIC '.($employee->esic_applicable ? 'on' : 'off')
+            .', TDS '.($employee->tds_applicable ? 'on' : 'off').'.');
     }
 
     private function formData(): array
@@ -199,6 +201,11 @@ class EmployeeController extends Controller
         $data['ifsc'] = Ifsc::normalize($data['ifsc'] ?? null);
         $data['pf_applicable'] = $request->boolean('pf_applicable');
         $data['esic_applicable'] = $request->boolean('esic_applicable');
+        if ($request->has('statutory_form')) {
+            $data['tds_applicable'] = $request->boolean('tds_applicable');   // the employee form always shows the TDS switch
+        } elseif (! $employee) {
+            $data['tds_applicable'] = true;                                   // new staff: TDS on unless switched off
+        }
 
         // Sensitive numbers are never sent back to the browser; a blank field keeps what is stored.
         foreach (['account_number', 'aadhaar'] as $secret) {

@@ -38,7 +38,7 @@
           <dt class="col-sm-4 text-secondary fw-normal">PAN</dt><dd class="col-sm-8 mono">{{ $employee->pan ?? '—' }}</dd>
           <dt class="col-sm-4 text-secondary fw-normal">Aadhaar</dt><dd class="col-sm-8 mono">{{ $employee->aadhaar_last4 ? 'XXXX XXXX '.$employee->aadhaar_last4 : '—' }}</dd>
           <dt class="col-sm-4 text-secondary fw-normal">UAN · ESIC IP</dt><dd class="col-sm-8 mono">{{ $employee->uan ?? '—' }} · {{ $employee->esic_ip ?? '—' }}</dd>
-          <dt class="col-sm-4 text-secondary fw-normal">EPF · ESIC</dt><dd class="col-sm-8">{{ $employee->pf_applicable ? 'EPF on' : 'EPF off' }} · {{ $employee->esic_applicable ? 'ESIC on' : 'ESIC off' }}</dd>
+          <dt class="col-sm-4 text-secondary fw-normal">EPF · ESIC · TDS</dt><dd class="col-sm-8">{{ $employee->pf_applicable ? 'EPF on' : 'EPF off' }} · {{ $employee->esic_applicable ? 'ESIC on' : 'ESIC off' }} · {{ $employee->tds_applicable ? 'TDS on' : 'TDS off' }}</dd>
         </dl>
         <div class="small"><b>Documents:</b>
           @forelse($employee->documents as $d)<span class="badge text-bg-light border me-1">{{ \App\Models\Employee::DOCUMENT_TYPES[$d->type] ?? $d->type }}</span>@empty<span class="text-secondary">none uploaded</span>@endforelse</div>
@@ -82,7 +82,7 @@
   <div class="z-card">
     <div class="z-card-h"><h2>All employees</h2><span class="small text-secondary">{{ $employees->count() }} in total</span></div>
     <div class="table-responsive"><table class="table table-hover">
-      <thead><tr><th><a class="text-reset text-decoration-none text-nowrap" href="{{ $sortLinks['emp_code']['url'] }}" title="{{ $sortLinks['emp_code']['title'] }}">Emp ID <i class="bi {{ $sortLinks['emp_code']['icon'] }}"></i></a></th><th><a class="text-reset text-decoration-none text-nowrap" href="{{ $sortLinks['name']['url'] }}" title="{{ $sortLinks['name']['title'] }}">Name <i class="bi {{ $sortLinks['name']['icon'] }}"></i></a></th><th>Agency</th><th><a class="text-reset text-decoration-none text-nowrap" href="{{ $sortLinks['pi']['url'] }}" title="{{ $sortLinks['pi']['title'] }}">Project In-charge <i class="bi {{ $sortLinks['pi']['icon'] }}"></i></a></th><th><a class="text-reset text-decoration-none text-nowrap" href="{{ $sortLinks['post']['url'] }}" title="{{ $sortLinks['post']['title'] }}">Post · project <i class="bi {{ $sortLinks['post']['icon'] }}"></i></a></th><th>Mobile</th><th>Bank</th><th>EPF / ESIC</th><th>Status</th></tr></thead>
+      <thead><tr><th><a class="text-reset text-decoration-none text-nowrap" href="{{ $sortLinks['emp_code']['url'] }}" title="{{ $sortLinks['emp_code']['title'] }}">Emp ID <i class="bi {{ $sortLinks['emp_code']['icon'] }}"></i></a></th><th><a class="text-reset text-decoration-none text-nowrap" href="{{ $sortLinks['name']['url'] }}" title="{{ $sortLinks['name']['title'] }}">Name <i class="bi {{ $sortLinks['name']['icon'] }}"></i></a></th><th>Agency</th><th><a class="text-reset text-decoration-none text-nowrap" href="{{ $sortLinks['pi']['url'] }}" title="{{ $sortLinks['pi']['title'] }}">Project In-charge <i class="bi {{ $sortLinks['pi']['icon'] }}"></i></a></th><th><a class="text-reset text-decoration-none text-nowrap" href="{{ $sortLinks['post']['url'] }}" title="{{ $sortLinks['post']['title'] }}">Post · project <i class="bi {{ $sortLinks['post']['icon'] }}"></i></a></th><th>Mobile</th><th>Bank</th><th>EPF / ESIC / TDS</th><th>Status</th></tr></thead>
       <tbody>
       @foreach($employees as $e)
         <tr @class(['table-active' => $employee?->id === $e->id])>
@@ -93,7 +93,7 @@
           <td class="small">{{ $e->post ? $e->post->designation.' · '.$e->post->project->code : '—' }}</td>
           <td class="small">{{ $e->mobile ?? '—' }}</td>
           <td class="small">{{ $e->bank_name ?? '—' }} <span class="mono">{{ $e->maskedAccount() }}</span></td>
-          <td class="small">{{ $e->pf_applicable ? 'EPF' : '—' }} / {{ $e->esic_applicable ? 'ESIC' : '—' }}</td>
+          <td class="small">{{ $e->pf_applicable ? 'EPF' : '—' }} / {{ $e->esic_applicable ? 'ESIC' : '—' }} / {{ $e->tds_applicable ? 'TDS' : '—' }}</td>
           <td><x-status :value="$e->status" /></td>
         </tr>
       @endforeach

@@ -71,6 +71,7 @@ final class EmployeeSheet extends MasterSheet
             new Column('esic_ip', 'ESIC IP no.', help: '10 to 17 digits', width: 18, asText: true),
             new Column('pf_applicable', 'EPF', type: 'bool', help: 'Yes = deduct EPF and bill employer EPF. Blank on new staff = No.', example: 'Yes', width: 7),
             new Column('esic_applicable', 'ESIC', type: 'bool', help: 'Yes = deduct ESIC and bill employer ESIC. Blank on new staff = No.', example: 'No', width: 7),
+            new Column('tds_applicable', 'TDS', type: 'bool', help: 'Yes = deduct TDS 2% from salary. Blank on new staff = Yes.', example: 'Yes', width: 7),
         ];
     }
 
@@ -82,7 +83,7 @@ final class EmployeeSheet extends MasterSheet
             'contract_no' => GemContract::query()->orderBy('contract_no')->pluck('contract_no')->all(),
             'designation' => Post::query()->orderBy('designation')->distinct()->pluck('designation')->all(),
             'gender' => ['Male', 'Female', 'Other'], 'status' => array_values(Employee::STATUSES),
-            'pf_applicable' => ['Yes', 'No'], 'esic_applicable' => ['Yes', 'No'],
+            'pf_applicable' => ['Yes', 'No'], 'esic_applicable' => ['Yes', 'No'], 'tds_applicable' => ['Yes', 'No'],
         ];
     }
 
@@ -166,7 +167,7 @@ final class EmployeeSheet extends MasterSheet
             'exit_date' => $v['exit_date'], 'status' => $v['status'], 'rate_override' => $v['rate_override'], 'bank_name' => $v['bank_name'],
             'account_holder' => $v['account_holder'], 'account_number' => $v['account_number'], 'ifsc' => $v['ifsc'], 'upi_id' => $v['upi_id'],
             'pan' => $v['pan'], 'aadhaar' => $v['aadhaar'], 'uan' => $v['uan'], 'esic_ip' => $v['esic_ip'],
-            'pf_applicable' => $v['pf_applicable'], 'esic_applicable' => $v['esic_applicable'],
+            'pf_applicable' => $v['pf_applicable'], 'esic_applicable' => $v['esic_applicable'], 'tds_applicable' => $v['tds_applicable'],
         ];
         $key = $existing ? 'id:'.$existing->id : ($code ? "code:{$code}" : "row:{$row}");
         $label = trim(($existing?->emp_code ?? $code ?? 'New').' · '.($v['name'] ?? '').($post ? " · {$post->designation}" : ''));
@@ -176,7 +177,7 @@ final class EmployeeSheet extends MasterSheet
 
     protected function newModel(): Model
     {
-        return new Employee(['status' => 'active', 'pf_applicable' => false, 'esic_applicable' => false]);
+        return new Employee(['status' => 'active', 'pf_applicable' => false, 'esic_applicable' => false, 'tds_applicable' => true]);
     }
 
     public function save(RowResult $r): Model
@@ -198,7 +199,7 @@ final class EmployeeSheet extends MasterSheet
                 'joining_date' => self::dmy($e->joining_date), 'exit_date' => self::dmy($e->exit_date), 'status' => Employee::STATUSES[$e->status] ?? $e->status,
                 'rate_override' => $e->rate_override !== null ? (float) $e->rate_override : null, 'bank_name' => $e->bank_name,
                 'account_holder' => $e->account_holder, 'ifsc' => $e->ifsc, 'upi_id' => $e->upi_id, 'pan' => $e->pan, 'uan' => $e->uan,
-                'esic_ip' => $e->esic_ip, 'pf_applicable' => self::yesNo($e->pf_applicable), 'esic_applicable' => self::yesNo($e->esic_applicable)];
+                'esic_ip' => $e->esic_ip, 'pf_applicable' => self::yesNo($e->pf_applicable), 'esic_applicable' => self::yesNo($e->esic_applicable), 'tds_applicable' => self::yesNo($e->tds_applicable)];
         }
     }
 }

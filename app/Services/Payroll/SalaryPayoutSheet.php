@@ -16,7 +16,7 @@ use Illuminate\Support\Collection;
  * for daily posts, rounded to whole rupees). Employee deductions apply only when switched on for the employee:
  *   EPF 12%    on earned wages up to the Rs 15,000 ceiling, rounded to the nearest rupee
  *   ESIC 0.75% on earned wages, rounded up to the next rupee
- * and for everyone (owner, 17 Nov 2026):
+ * and, when TDS is switched on for the employee (on by default; owner, 17 Nov 2026):
  *   TDS 2%     on earned wages, rounded to the nearest rupee
  * Net pay = earned − EPF − ESIC − TDS.
  */
@@ -44,18 +44,18 @@ final class SalaryPayoutSheet
 
             return [
                 'entry' => $line->ref, 'employee' => $employee, 'paid_days' => $line->paidDays, 'rate' => $line->rate,
-                'earned' => $earned, ...$this->deductions($earned, (bool) $employee->pf_applicable, (bool) $employee->esic_applicable),
+                'earned' => $earned, ...$this->deductions($earned, (bool) $employee->pf_applicable, (bool) $employee->esic_applicable, (bool) ($employee->tds_applicable ?? true)),
             ];
         });
     }
 
     /** @return array{epf: int, esic: int, tds: int, net: int} in paise */
-    public function deductions(int $earned, bool $epfOn, bool $esicOn): array
+    public function deductions(int $earned, bool $epfOn, bool $esicOn, bool $tdsOn = true): array
     {
         $epf = $epfOn ? $this->roundNearest(Money::percent(Statutory::epfBase($earned), Statutory::EMPLOYEE_EPF_PERCENT)) : 0;
         $esic = $esicOn ? $this->roundUp(Money::percent($earned, Statutory::EMPLOYEE_ESIC_PERCENT)) : 0;
 
-        $tds = $this->roundNearest(Money::percent($earned, Statutory::TDS_PERCENT));
+        $tds = $tdsOn ? $this->roundNearest(Money::percent($earned, Statutory::TDS_PERCENT)) : 0;
 
         return ['epf' => $epf, 'esic' => $esic, 'tds' => $tds, 'net' => $earned - $epf - $esic - $tds];
     }

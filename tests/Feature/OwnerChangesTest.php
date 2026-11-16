@@ -498,4 +498,29 @@ class OwnerChangesTest extends TestCase
         $this->get("/bank-letters?agency={$agency->id}&month=2026-10")->assertOk()->assertDontSee('SW-1001');
         $this->get("/bank-letters/pdf?agency={$agency->id}&month=2026-10")->assertSessionHasErrors('agency');
     }
+
+    public function test_tds_can_be_switched_off_per_employee(): void
+    {
+        [$agency, , $contract, $people] = $this->swachha();
+        $service = app(AttendanceService::class);
+        $sheet = $service->open(Project::query()->where('code', 'HTA')->firstOrFail(), CarbonImmutable::parse('2026-10-01'));
+        $service->lock($sheet, $this->admin, null);
+        $hta = $people['HTA'];
+        $this->assertTrue($hta->fresh()->tds_applicable);                     // on by default
+        $net = fn () => app(\App\Services\Payroll\SalaryPayoutSheet::class)->lines($sheet->fresh())->first(fn ($l) => $l['employee']->id === $hta->id);
+        $this->assertSame([160800, 7879200], [$net()['tds'], $net()['net']]);   // 80,400 − 1,608 TDS
+
+        // Switch off from the Employees list (the list form sends all three switches).
+        $this->patch("/employees/{$hta->id}/statutory", [])->assertRedirect();
+        $this->assertFalse($hta->fresh()->tds_applicable);
+        $this->assertSame([0, 8040000], [$net()['tds'], $net()['net']]);
+        $this->get('/employees')->assertSee('TDS');
+
+        // Switch on again from the employee form; a new employee starts with TDS on.
+        $this->patch("/employees/{$hta->id}/statutory", ['tds_applicable' => '1']);
+        $this->assertTrue($hta->fresh()->tds_applicable);
+        $this->post('/employees', ['agency_id' => $agency->id, 'name' => 'New Joiner', 'status' => 'active'])->assertSessionHasNoErrors();
+        $this->assertTrue(Employee::query()->where('name', 'New Joiner')->value('tds_applicable'));
+        $this->get('/employees/create')->assertSee('name="tds_applicable"', false);
+    }
 }

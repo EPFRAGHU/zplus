@@ -12,7 +12,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 
 #[Fillable(['emp_code', 'agency_id', 'client_id', 'post_id', 'name', 'father_name', 'dob', 'gender', 'mobile', 'whatsapp', 'email', 'address',
     'qualification', 'joining_date', 'exit_date', 'status', 'rate_override', 'bank_name', 'account_holder',
-    'account_number', 'ifsc', 'upi_id', 'pan', 'aadhaar', 'uan', 'esic_ip', 'pf_applicable', 'esic_applicable'])]
+    'account_number', 'ifsc', 'upi_id', 'pan', 'aadhaar', 'uan', 'esic_ip', 'pf_applicable', 'esic_applicable', 'tds_applicable'])]
 #[Hidden(['account_number', 'aadhaar'])]
 class Employee extends Model
 {
@@ -31,7 +31,7 @@ class Employee extends Model
         return [
             'dob' => 'date', 'joining_date' => 'date', 'exit_date' => 'date', 'bank_verified_at' => 'datetime',
             'account_number' => 'encrypted', 'aadhaar' => 'encrypted',
-            'pf_applicable' => 'boolean', 'esic_applicable' => 'boolean', 'rate_override' => 'decimal:2',
+            'pf_applicable' => 'boolean', 'esic_applicable' => 'boolean', 'tds_applicable' => 'boolean', 'rate_override' => 'decimal:2',
         ];
     }
 

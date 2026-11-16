@@ -57,7 +57,7 @@
         <td class="text-nowrap">
           @can('manage-masters')
             <form method="post" action="{{ route('employees.statutory', $e) }}" class="d-inline-flex gap-2">@csrf @method('PATCH')
-              @foreach(['pf_applicable' => 'EPF', 'esic_applicable' => 'ESIC'] as $field => $label)
+              @foreach(['pf_applicable' => 'EPF', 'esic_applicable' => 'ESIC', 'tds_applicable' => 'TDS'] as $field => $label)
                 <div class="form-check form-switch mb-0" title="{{ $label }} {{ $e->{$field} ? 'on' : 'off' }}: click to switch {{ $e->{$field} ? 'off' : 'on' }}">
                   <input class="form-check-input" type="checkbox" role="switch" id="s-{{ $field }}-{{ $e->id }}" name="{{ $field }}" value="1" @checked($e->{$field}) onchange="this.form.submit()">
                   <label class="form-check-label small" for="s-{{ $field }}-{{ $e->id }}">{{ $label }}</label>
@@ -68,6 +68,7 @@
           @else
             <span class="badge text-bg-{{ $e->pf_applicable ? 'success' : 'light border' }}">EPF {{ $e->pf_applicable ? 'on' : 'off' }}</span>
             <span class="badge text-bg-{{ $e->esic_applicable ? 'success' : 'light border' }}">ESIC {{ $e->esic_applicable ? 'on' : 'off' }}</span>
+            <span class="badge text-bg-{{ $e->tds_applicable ? 'success' : 'light border' }}">TDS {{ $e->tds_applicable ? 'on' : 'off' }}</span>
           @endcan
         </td>
         <td>@if($e->account_last4 && $e->ifsc)<span class="mono">{{ $e->maskedAccount() }}</span> <span class="badge text-bg-{{ $e->bank_verified_at ? 'success' : 'light border' }}">{{ $e->bank_verified_at ? 'Verified' : 'Not verified' }}</span>

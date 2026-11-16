@@ -12,6 +12,11 @@ return [
     'timezone' => 'Asia/Kolkata',      // release times are Indian Standard Time
 
     'releases' => [
+        ['version' => '2.9.2', 'date' => '2026-11-17 05:20', 'title' => 'TDS on/off per employee', 'type' => 'fix', 'notes' => [
+            'TDS switch per employee, like EPF and ESIC: on the Employees list (EPF / ESIC / TDS switches) and in the employee form (KYC & statutory tab)',
+            'On for everyone already in the app and for new employees, so nothing changes until a person is switched off; switched off = no TDS on the salary sheet, bank letter and Employee Management',
+            'Data Upload: new "TDS" Yes/No column in the employee template (blank on new staff = Yes)',
+        ]],
         ['version' => '2.9.0', 'date' => '2026-11-17 00:10', 'title' => 'TDS 2% on salaries', 'type' => 'feature', 'notes' => [
             'Salary payout sheet: TDS 2% of the earned amount (rounded to the rupee) is deducted from every employee; Net pay = earned − EPF 12% − ESIC 0.75% − TDS 2%',
             'The bank letters (per project and the Bank Letter module) and Employee Management use the same net pay, so the amounts sent to the bank are after TDS',
