@@ -146,3 +146,13 @@ What moves: code (GitHub or a copy), MySQL dump, uploaded files (`zplus-storage`
 - In this cloud sandbox, Docker builds can't reach Debian mirrors (proxy 403); test images by injecting the proxy CA only in a scratch Dockerfile. Don't `pkill -f` a pattern that matches the running shell command.
 - **GeM contract tools (v2.13.0, 2026-11-17)**: gem_contracts `start_date`, `end_date`, `contract_value` (+ `expiry()`, `daysLeft()`, partial `contracts/_expiry`); import posts from GeM contract PDF (`App\Services\Contracts\GemContractPdf`, smalot/pdfparser; splits posts at "Designation :" after "Type of Function"; verifies (m×1.18 + m×sc%)×months×qty against the printed total – all 5 real contracts matched); `ContractImportController` (upload → session → check page → store, manage-masters, skips same designation+rate, refuses other contract no.); `monthly_papers` table + `MonthlyPaperController` (billing; salary_proof needs view-bank-details; remove = reset-month/Admin) and `App\Services\Billing\BillPack` ZIP; shared `App\Services\Billing\DocumentFiles` (signed-or-generated PDFs, used by AgencyMailer too); dashboard `_reminders` (wages 7th / EPF-ESIC 15th per active work order with attendance last month, ending ≤30 days, posts over sanctioned). Open question to owner: contracts have PF/ESI = 0 in rate – should employer EPF 13%/ESIC 3.25% still be added on bills?
 
+- **Maker–checker approval (decided 17 Nov 2026 evening, NOT built yet – waiting for owner's "proceed")**:
+  - **Checker:** Super Admin only: raghu.epf@gmail.com, plus a second owner e-mail the owner will give later, who also becomes Super Admin.
+  - **Needs approval:**
+    - monthly attendance, before a sub-bill can be made
+    - sub-bills and tax invoices, before submit / e-mail / bill pack
+    - staff and pay changes: new employee, rate, bank details, EPF/ESIC/TDS switches
+    - salary payout sheet and bank letter, before download
+  - **Strict four-eyes:** the maker can never approve their own entry.
+  - **Start:** from October 2026. Older months stay exactly as they are.
+  - **Return:** the checker sends it back with a reason, the maker corrects and sends again. Every step is logged.
