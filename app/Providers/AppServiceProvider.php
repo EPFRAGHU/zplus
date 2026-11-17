@@ -22,7 +22,8 @@ class AppServiceProvider extends ServiceProvider
         Gate::define('approve-invoice', fn (User $u) => $u->hasRole('admin', 'accounts'));
         Gate::define('unlock-attendance', fn (User $u) => $u->hasRole('admin'));
         Gate::define('reset-month', fn (User $u) => $u->hasRole('admin'));
-        Gate::define('delete-project', fn (User $u) => $u->hasRole('admin'));   // only empty projects (no attendance, bills or staff)   // delete a project's month: bill + attendance
+        // Only the Super Admin (the owner) may delete a project, and only an empty one (no attendance, bills or staff). Owner, 17 Nov 2026.
+        Gate::define('delete-project', fn (User $u) => $u->isSuperAdmin());   // delete a project's month: bill + attendance
         Gate::define('import', fn (User $u) => $u->hasRole('admin'));   // Data Upload (each agency's own data)
         Gate::define('gem-import', fn (User $u) => $u->hasRole('admin') && $u->worksForBothAgencies());   // GeM workbook covers both agencies
         Gate::define('add-agency', fn (User $u) => $u->hasRole('admin', 'accounts') && $u->worksForBothAgencies());

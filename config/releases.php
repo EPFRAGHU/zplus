@@ -12,6 +12,9 @@ return [
     'timezone' => 'Asia/Kolkata',      // release times are Indian Standard Time
 
     'releases' => [
+        ['version' => '2.9.4', 'date' => '2026-11-17 05:45', 'title' => 'Only the Super Admin can delete a project', 'type' => 'fix', 'notes' => [
+            '"Delete project" and "Delete this empty project" are shown to and allowed for the Super Admin only; other Admins, Accounts and Operators no longer see them',
+        ]],
         ['version' => '2.9.3', 'date' => '2026-11-17 05:33', 'title' => 'Delete an empty example project', 'type' => 'fix', 'notes' => [
             'Admin: "Delete project" on the work order page and "Delete this empty project" on the Attendance list, for projects entered by mistake or as an example',
             'Only when the project has no attendance, no sub-bills and no employees; its empty posts are removed with it; recorded in the Activity log',

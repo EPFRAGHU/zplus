@@ -524,8 +524,9 @@ class OwnerChangesTest extends TestCase
         $this->get('/employees/create')->assertSee('name="tds_applicable"', false);
     }
 
-    public function test_admin_can_delete_an_empty_example_project_only(): void
+    public function test_only_the_super_admin_can_delete_an_empty_example_project(): void
     {
+        $this->admin->forceFill(['is_super_admin' => true])->save();
         [$agency, , $contract] = $this->swachha();
         $a = $contract->projects()->create(['name' => 'A', 'code' => 'A']);
         $a->posts()->create(['designation' => 'Empty post', 'sanctioned_qty' => 1, 'rate' => 1000]);
@@ -536,8 +537,11 @@ class OwnerChangesTest extends TestCase
         // Not for projects with staff (HTA) or attendance; not for Accounts / Operator.
         $hta = Project::query()->where('code', 'HTA')->firstOrFail();
         $this->delete("/projects/{$hta->id}")->assertSessionHasErrors('project');
-        $this->actingAs(User::factory()->create(['role' => 'accounts', 'agency_id' => $agency->id]));
-        $this->delete("/projects/{$a->id}")->assertForbidden();
+        foreach (['accounts', 'supervisor', 'admin'] as $role) {   // an ordinary Admin cannot either
+            $this->actingAs(User::factory()->create(['role' => $role, 'agency_id' => $agency->id]));
+            $this->delete("/projects/{$a->id}")->assertForbidden();
+            $this->get('/attendance?month=2026-10')->assertDontSee('Delete this empty project');
+        }
 
         $this->actingAs($this->admin);
         $this->delete("/projects/{$a->id}")->assertRedirect()->assertSessionHasNoErrors();
