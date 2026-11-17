@@ -34,6 +34,7 @@ Owner/operator of the manpower business behind **M/S Z Plus Surakhya Seva** and 
 | **Reset / recalculate** | "Reset this month" (Admin, type RESET; not paid) deletes a project's month; "Recalculate" brings old bills/tax invoices to current rules and numbers (not paid) |
 | **Bank Letter** | Menu (Admin/Accounts): agency + month → all employees of locked months, SBI/NEFT, on agency letterhead (`App\Services\Payroll\BankLetter`) |
 | **DSC signing** | DSC token can't sign on the server; owner signs on own PC (Adobe Reader / JSignPdf, WINDOWS-MY keystore). App: month ZIP (`month-documents.zip`, `App\Services\Billing\MonthDocuments`) and uploaded signed copies (`signed_documents`, `SignedDocument::latestFor`, routes `*.signed`, `signed-documents.show`) |
+| **E-mail to client** | Box on sub-bill / tax invoice pages (Admin/Accounts): sends PDFs (signed copy if uploaded) from the agency Gmail; app password ONLY in Coolify env `AGENCY_MAIL_SWH_/ZPS_USERNAME/PASSWORD` (blank = off); log in `sent_emails` + Activity (`App\Services\Mail\AgencyMailer`, v2.12.0) |
 | **Data Upload** | Setup → Data Upload: Excel templates per master, upload → check → save (`app/Services/MasterImport`) |
 | **Letterhead layout** | `classic` (ZPS, centred + footer) or `banner` (SWH, logo/registrations/pink address box) |
 → Full list: memory/glossary.md

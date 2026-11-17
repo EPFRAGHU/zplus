@@ -61,5 +61,11 @@
   </div>
   @can('billing')
   @include('partials.signed-copy', ['signed' => \App\Models\SignedDocument::latestFor('sub_bill', invoiceId: $invoice->id), 'action' => route('invoices.signed', $invoice), 'changedAt' => $invoice->updated_at])
+  @php($agencyName = $invoice->contract->agency->name)
+  @include('partials.email-client', ['action' => route('invoices.email', $invoice), 'agency' => $invoice->contract->agency,
+    'to' => $invoice->contract->client->email, 'preview' => app(\App\Services\Mail\AgencyMailer::class)->previewForInvoice($invoice),
+    'history' => \App\Models\SentEmail::historyFor(invoiceId: $invoice->id),
+    'subject' => 'Bill No. '.$invoice->invoice_no.' for '.$invoice->month->format('F Y').' – '.($invoice->project->title ?: $invoice->project->name),
+    'body' => "Dear Sir / Madam,\n\nPlease find attached our bill no. {$invoice->invoice_no} dated {$invoice->invoice_date->format('d.m.Y')} for the manpower supplied under {$invoice->project->name} for the month of {$invoice->month->format('F Y')} (".($invoice->contract->contract_type === 'offline' ? 'work order' : 'GeM contract')." no. {$invoice->contract->contract_no}), with its covering letter.\n\nKindly arrange the payment at the earliest.\n\nThanking you,\nYours faithfully,\nFor {$agencyName}"])
   @endcan
 </x-layouts.app>

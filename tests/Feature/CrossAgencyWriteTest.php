@@ -26,7 +26,7 @@ class CrossAgencyWriteTest extends TestCase
     use RefreshDatabase;
 
     private const TABLES = ['agencies', 'clients', 'gem_contracts', 'projects', 'posts', 'employees', 'employee_documents',
-        'attendance_sheets', 'attendance_entries', 'invoices', 'invoice_lines', 'tax_invoices', 'users', 'project_user', 'project_incharges', 'signed_documents'];
+        'attendance_sheets', 'attendance_entries', 'invoices', 'invoice_lines', 'tax_invoices', 'users', 'project_user', 'project_incharges', 'signed_documents', 'sent_emails'];
 
     private User $owner;
 
@@ -115,6 +115,8 @@ class CrossAgencyWriteTest extends TestCase
             'recalculate their bill' => fn () => $this->post("/invoices/{$o['invoice']->id}/recalculate"),
             'upload signed copy to their bill' => fn () => $this->post("/invoices/{$o['invoice']->id}/signed", ['signed' => $pdf()]),
             'upload signed copy to their tax invoice' => fn () => $this->post("/tax-invoices/{$o['tax']->id}/signed", ['signed' => $pdf()]),
+            'e-mail their bill' => fn () => $this->post("/invoices/{$o['invoice']->id}/email", ['to' => 'x@y.in', 'subject' => 's', 'message' => 'm']),
+            'e-mail their tax invoice' => fn () => $this->post("/tax-invoices/{$o['tax']->id}/email", ['to' => 'x@y.in', 'subject' => 's', 'message' => 'm']),
             'upload signed bank letter for their agency' => fn () => $this->post('/bank-letters/signed', ['agency' => $o['agency']->id, 'month' => '2026-09', 'signed' => $pdf()]),
             'delete their bill' => fn () => $this->delete("/invoices/{$o['invoice']->id}"),
             'make a tax invoice from their bill' => fn () => $this->post('/tax-invoices', ['gem_contract_id' => $o['contract']->id, 'month' => '2026-09', 'sub_bills' => [$o['invoice']->id], 'invoice_date' => '2026-10-05']),

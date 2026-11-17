@@ -25,6 +25,12 @@ services:
       CACHE_STORE: database
       QUEUE_CONNECTION: sync
       FILESYSTEM_DISK: local
+      # "E-mail to client": each agency's Gmail address + Gmail APP PASSWORD (16 letters, not the normal password).
+      # Fill these only in Coolify -> Environment Variables; never in the code. Blank = sending is switched off.
+      AGENCY_MAIL_SWH_USERNAME: ${AGENCY_MAIL_SWH_USERNAME:-}
+      AGENCY_MAIL_SWH_PASSWORD: ${AGENCY_MAIL_SWH_PASSWORD:-}
+      AGENCY_MAIL_ZPS_USERNAME: ${AGENCY_MAIL_ZPS_USERNAME:-}
+      AGENCY_MAIL_ZPS_PASSWORD: ${AGENCY_MAIL_ZPS_PASSWORD:-}
     expose:
       - "80"
     volumes:

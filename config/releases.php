@@ -12,6 +12,13 @@ return [
     'timezone' => 'Asia/Kolkata',      // release times are Indian Standard Time
 
     'releases' => [
+        ['version' => '2.12.0', 'date' => '2026-11-17 08:21', 'title' => 'E-mail to client', 'type' => 'feature', 'notes' => [
+            '"E-mail to client" box on every sub-bill (sends the sub-bill + covering letter) and tax invoice (sends the tax invoice + all its sub-bills), from the agency\'s own Gmail',
+            'The DSC-signed copy is attached when it was uploaded after the last change; otherwise the PDF is made fresh and marked "not signed"',
+            'To (client\'s e-mail from the Clients page), CC, subject and message are filled in and can be changed; every e-mail (sent or failed) is listed on the page and in the Activity log',
+            'Switched off until each agency\'s Gmail address and Gmail app password are added on the server (Coolify → Environment Variables: AGENCY_MAIL_SWH_USERNAME / _PASSWORD, AGENCY_MAIL_ZPS_USERNAME / _PASSWORD); the password is never stored in the app or shown',
+            'Admin / Accounts only; no change to any bill, amount or number',
+        ]],
         ['version' => '2.11.0', 'date' => '2026-11-17 07:01', 'title' => 'Month ZIP and DSC-signed copies', 'type' => 'feature', 'notes' => [
             'Download all PDFs of a month as one ZIP per agency (sub-bills, covering letters, tax invoices and the bank letter) from the Sub-bills page (choose month and agency) or the Bank Letter page – to sign them together with the DSC token (Adobe Reader / JSignPdf)',
             '"Signed copy (DSC)" box on every sub-bill, tax invoice and monthly bank letter: upload the signed PDF; the app keeps it, shows "Signed ✓" and warns if the bill changed after signing',

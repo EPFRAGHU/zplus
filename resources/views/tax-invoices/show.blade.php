@@ -55,5 +55,10 @@
   </div>
   @can('billing')
   @include('partials.signed-copy', ['signed' => \App\Models\SignedDocument::latestFor('tax_invoice', taxInvoiceId: $tax->id), 'action' => route('tax-invoices.signed', $tax), 'changedAt' => $tax->updated_at])
+  @include('partials.email-client', ['action' => route('tax-invoices.email', $tax), 'agency' => $tax->agency,
+    'to' => $tax->client->email, 'preview' => app(\App\Services\Mail\AgencyMailer::class)->previewForTaxInvoice($tax),
+    'history' => \App\Models\SentEmail::historyFor(taxInvoiceId: $tax->id),
+    'subject' => 'Tax Invoice No. '.$tax->number.' for '.$tax->month->format('F Y').' – '.$tax->agency->name,
+    'body' => "Dear Sir / Madam,\n\nPlease find attached our tax invoice no. {$tax->number} dated {$tax->invoice_date->format('d.m.Y')} for the manpower supplied in the month of {$tax->month->format('F Y')}".($tax->contract ? ' ('.($tax->contract->contract_type === 'offline' ? 'work order' : 'GeM contract')." no. {$tax->contract->contract_no})" : '').", together with the project-wise sub-bills.\n\nKindly arrange the payment at the earliest.\n\nThanking you,\nYours faithfully,\nFor {$tax->agency->name}"])
   @endcan
 </x-layouts.app>

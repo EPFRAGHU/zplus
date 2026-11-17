@@ -111,6 +111,8 @@ Route::middleware(['auth', 'active', 'role:admin,accounts,supervisor', \App\Http
     Route::post('invoices/{invoice}/signed', [\App\Http\Controllers\SignedDocumentController::class, 'storeForInvoice'])->name('invoices.signed');
     Route::post('tax-invoices/{taxInvoice}/signed', [\App\Http\Controllers\SignedDocumentController::class, 'storeForTaxInvoice'])->name('tax-invoices.signed');
     Route::post('bank-letters/signed', [\App\Http\Controllers\SignedDocumentController::class, 'storeForBankLetter'])->name('bank-letters.signed');
+    Route::post('invoices/{invoice}/email', [\App\Http\Controllers\AgencyEmailController::class, 'invoice'])->middleware('throttle:10,1')->name('invoices.email');
+    Route::post('tax-invoices/{taxInvoice}/email', [\App\Http\Controllers\AgencyEmailController::class, 'taxInvoice'])->middleware('throttle:10,1')->name('tax-invoices.email');
     Route::get('signed-documents/{signedDocument}', [\App\Http\Controllers\SignedDocumentController::class, 'show'])->name('signed-documents.show');
     Route::get('attendance/{sheet}/certificate', [AttendanceController::class, 'certificate'])->name('attendance.certificate');
     Route::get('attendance/{sheet}/scan', [AttendanceController::class, 'scan'])->name('attendance.scan');
