@@ -3,6 +3,7 @@
   <x-slot:actions>
     @if($employee->post)<a class="btn btn-outline-secondary" href="{{ route('employees.appointment-letter', $employee) }}" target="_blank"><i class="bi bi-file-earmark-pdf me-1"></i>Appointment letter</a>@endif
     <a class="btn btn-primary" href="{{ route('employees.edit', $employee) }}"><i class="bi bi-pencil me-1"></i>Edit</a>
+    @can('show-delete')<x-delete-button :action="route('employees.destroy', $employee)" :small="false" label="Delete employee" :blocked="\App\Support\SafeDelete::employee($employee)" :confirm="'Delete '.$employee->emp_code.' '.$employee->name.'? Only for a record entered by mistake.'" />@endcan
   </x-slot:actions>
   @endcan
   <div class="row g-3">

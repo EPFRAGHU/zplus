@@ -98,4 +98,18 @@ class ClientController extends Controller
             'gstin.regex' => 'Enter a 15-character GSTIN, e.g. 21AAAGO1234F1Z5.',
         ]);
     }
+
+    /** Super Admin: deletes a client only when nothing depends on it (owner, 17 Nov 2026). */
+    public function destroy(Client $client): RedirectResponse
+    {
+        \Illuminate\Support\Facades\Gate::authorize('delete-records');
+        if ($why = \App\Support\SafeDelete::client($client)) {
+            return back()->withErrors(['delete' => $why]);
+        }
+        $label = $client->name.' ('.$client->short_code.')';
+        $client->delete();
+        \App\Support\Activity\Activity::log('deleted', null, [], "Client deleted: {$label}", section: 'Masters', label: $label);
+
+        return redirect()->route('clients.index')->with('status', "Client {$label} deleted.");
+    }
 }

@@ -156,6 +156,23 @@ class InvoiceController extends Controller
     public function destroy(Invoice $invoice): RedirectResponse
     {
         Gate::authorize('billing');
+        // Super Admin (owner, 17 Nov 2026): any bill that is not paid; it is taken out of its tax invoice first.
+        if (Gate::allows('delete-records') && $invoice->status !== 'draft') {
+            if ($invoice->status === 'paid') {
+                return back()->withErrors(['invoice' => 'Paid bills cannot be deleted.']);
+            }
+            try {
+                $released = app(\App\Services\Billing\TaxInvoiceBuilder::class)->release($invoice);
+            } catch (RuntimeException $e) {
+                return back()->withErrors(['invoice' => $e->getMessage()]);
+            }
+            $note = "Sub-bill deleted: {$invoice->invoice_no} (₹{$invoice->rounded_total}, {$invoice->status})".($released ? "; {$released}" : '');
+            $invoice->lines()->delete();
+            $invoice->delete();
+            \App\Support\Activity\Activity::log('deleted', null, [], $note, section: 'Sub-bills', label: $invoice->invoice_no);
+
+            return redirect()->route('invoices.index')->with('status', $note.'. The attendance month stays locked; make the bill again or reset the month.');
+        }
         if ($invoice->status !== 'draft') {
             return back()->withErrors(['invoice' => 'Only draft bills can be deleted.']);
         }
@@ -164,7 +181,7 @@ class InvoiceController extends Controller
         }
         $invoice->delete();
 
-        return redirect()->route('invoices.index')->with('status', 'Draft bill deleted. Its number will not be reused.');
+        return redirect()->route('invoices.index')->with('status', 'Draft bill deleted. The same number is used when the bill is made again.');
     }
 
     public function pdf(Invoice $invoice): Response

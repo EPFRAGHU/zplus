@@ -84,6 +84,11 @@ class CrossAgencyWriteTest extends TestCase
         return [
             'edit their agency' => fn () => $this->put("/agencies/{$o['agency']->id}", ['name' => 'Hacked', 'code' => $o['agency']->code]),
             'add client under their agency' => fn () => $this->post('/clients', ['agency_id' => $o['agency']->id, 'name' => 'X', 'short_code' => 'XX', 'state_code' => '21', 'payment_term_days' => 30, 'status' => 'active']),
+            'delete their client' => fn () => $this->delete("/clients/{$o['client']->id}"),
+            'delete their work order' => fn () => $this->delete("/contracts/{$o['contract']->id}"),
+            'delete their employee' => fn () => $this->delete("/employees/{$o['employee']->id}"),
+            'delete their PI In-charge' => fn () => $this->delete("/incharges/{$o['incharge']->id}"),
+            'delete their agency' => fn () => $this->delete("/agencies/{$o['agency']->id}"),
             'edit their client' => fn () => $this->put("/clients/{$o['client']->id}", ['agency_id' => $o['agency']->id, 'name' => 'Hacked', 'short_code' => 'ICMR', 'state_code' => '21', 'payment_term_days' => 30, 'status' => 'active']),
             'add contract for their client' => fn () => $this->post('/contracts', ['agency_id' => $o['agency']->id, 'client_id' => $o['client']->id, 'bid_no' => 'B', 'contract_no' => 'NEW-1', 'billing_type' => 'monthly', 'service_charge_percent' => 3.85, 'gst_percent' => 18, 'epf_percent' => 13, 'esic_percent' => 3.25, 'status' => 'active']),
             'edit their contract' => fn () => $this->put("/contracts/{$o['contract']->id}", ['agency_id' => $o['agency']->id, 'client_id' => $o['client']->id, 'bid_no' => 'Hacked', 'contract_no' => $o['contract']->contract_no, 'billing_type' => 'monthly', 'service_charge_percent' => 3.85, 'gst_percent' => 18, 'epf_percent' => 13, 'esic_percent' => 3.25, 'status' => 'active']),

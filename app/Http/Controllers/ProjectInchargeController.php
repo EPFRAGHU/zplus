@@ -141,4 +141,18 @@ class ProjectInchargeController extends Controller
             $incharge->user->projects()->syncWithoutDetaching($ids->all());
         }
     }
+
+    /** Super Admin: deletes a Project In-charge only when nothing depends on it (owner, 17 Nov 2026). */
+    public function destroy(ProjectIncharge $incharge): RedirectResponse
+    {
+        \Illuminate\Support\Facades\Gate::authorize('delete-records');
+        if ($why = \App\Support\SafeDelete::incharge($incharge)) {
+            return back()->withErrors(['delete' => $why]);
+        }
+        $label = $incharge->name;
+        $incharge->delete();
+        \App\Support\Activity\Activity::log('deleted', null, [], "Project In-charge deleted: {$label}", section: 'Masters', label: $label);
+
+        return redirect()->route('incharges.index')->with('status', "Project In-charge {$label} deleted.");
+    }
 }

@@ -30,6 +30,7 @@
           <a class="btn btn-sm btn-outline-primary" href="{{ route('contracts.create', ['agency' => $c->agency_id, 'client' => $c->id]) }}"><i class="bi bi-plus-lg"></i> Contract</a>
           <a class="btn btn-sm btn-outline-secondary" href="{{ route('clients.create', ['copy' => $c->id]) }}" title="Add this client again under the other agency" aria-label="Add {{ $c->name }} for the other agency"><i class="bi bi-copy"></i></a>
           <a class="btn btn-sm btn-outline-secondary" href="{{ route('clients.edit', $c) }}">Edit</a>
+          @can('show-delete')<x-delete-button :action="route('clients.destroy', $c)" :blocked="\App\Support\SafeDelete::client($c)" :confirm="'Delete client '.$c->name.'? It has no work orders, staff or tax invoices.'" />@endcan
         @endcan
       </x-client-block>
       @forelse($c->contracts as $k)

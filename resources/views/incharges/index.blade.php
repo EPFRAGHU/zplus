@@ -21,7 +21,8 @@
         <h2 class="mb-0"><i class="bi bi-person-badge me-1"></i>{{ $i->name }}@if($i->designation)<span class="fw-normal text-secondary">, {{ $i->designation }}</span>@endif</h2>
         <span class="small text-secondary">@if($i->mobile)<i class="bi bi-telephone"></i> {{ $i->mobile }}@endif @if($i->email) · <i class="bi bi-envelope"></i> {{ $i->email }}@endif @if($i->user) · PI login: {{ $i->user->email }}@endif</span>
         <span class="ms-auto d-flex gap-2 align-items-center"><x-status :value="$i->status" />
-          @can('manage-masters')<a class="btn btn-sm btn-outline-secondary" href="{{ route('incharges.edit', $i) }}">Edit / allot projects</a>@endcan</span>
+          @can('manage-masters')<a class="btn btn-sm btn-outline-secondary" href="{{ route('incharges.edit', $i) }}">Edit / allot projects</a>@endcan
+          @can('show-delete')<x-delete-button :action="route('incharges.destroy', $i)" :blocked="\App\Support\SafeDelete::incharge($i)" :confirm="'Delete Project In-charge '.$i->name.'?'" />@endcan</span>
       </div>
       @forelse($i->projects as $p)
         @php($staff = $p->posts->flatMap->activeEmployees)

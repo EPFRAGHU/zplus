@@ -111,4 +111,21 @@ class AgencyController extends Controller
 
         return Storage::disk('local')->response($agency->logo_path);
     }
+
+    /** Super Admin: deletes this agency only when nothing depends on it (owner, 17 Nov 2026). */
+    public function destroy(Agency $agency): RedirectResponse
+    {
+        \Illuminate\Support\Facades\Gate::authorize('delete-records');
+        if ($why = \App\Support\SafeDelete::agency($agency)) {
+            return back()->withErrors(['delete' => $why]);
+        }
+        $label = $agency->name.' ('.$agency->code.')';
+        if ($agency->logo_path) {
+            \Illuminate\Support\Facades\Storage::disk('local')->delete($agency->logo_path);
+        }
+        $agency->delete();
+        \App\Support\Activity\Activity::log('deleted', null, [], "Agency deleted: {$label}", section: 'Masters', label: $label);
+
+        return redirect()->route('agencies.index')->with('status', "Agency {$label} deleted.");
+    }
 }

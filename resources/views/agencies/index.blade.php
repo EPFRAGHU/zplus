@@ -11,6 +11,7 @@
           <div class="ms-auto d-flex gap-2">
             <a class="btn btn-sm btn-outline-primary" href="{{ route('clients.create', ['agency' => $a->id]) }}"><i class="bi bi-plus-lg"></i> Add client</a>
             <a class="btn btn-sm btn-outline-secondary" href="{{ route('agencies.edit', $a) }}">Edit</a>
+            @can('show-delete')<x-delete-button :action="route('agencies.destroy', $a)" :blocked="\App\Support\SafeDelete::agency($a)" :confirm="'Delete agency '.$a->name.'? It has no clients, staff, bills or logins.'" />@endcan
           </div>
         @endcan
       </div>

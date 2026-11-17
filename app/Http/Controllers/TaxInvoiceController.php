@@ -120,12 +120,12 @@ class TaxInvoiceController extends Controller
     {
         Gate::authorize('billing');
         try {
-            $this->builder->delete($taxInvoice);
+            $this->builder->delete($taxInvoice, Gate::allows('delete-records'));
         } catch (RuntimeException $e) {
             return back()->withErrors(['tax' => $e->getMessage()]);
         }
 
-        return redirect()->route('tax-invoices.index')->with('status', 'Draft tax invoice deleted. Its sub-bills can be invoiced again.');
+        return redirect()->route('tax-invoices.index')->with('status', 'Tax invoice deleted. Its sub-bills can be invoiced again.');
     }
 
     public function pdf(TaxInvoice $taxInvoice): Response

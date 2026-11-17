@@ -12,6 +12,13 @@ return [
     'timezone' => 'Asia/Kolkata',      // release times are Indian Standard Time
 
     'releases' => [
+        ['version' => '2.10.0', 'date' => '2026-11-17 05:59', 'title' => 'Super Admin delete options', 'type' => 'feature', 'notes' => [
+            'Super Admin only: a "Show delete options" switch in the sidebar; Delete buttons appear only while it is on',
+            'Delete agencies, clients, work orders, Project In-charges, projects and employees – only when nothing depends on them; otherwise the button is disabled and says what to remove or move first',
+            'Employees with attendance, bills or letters are kept (set them Inactive); only records entered by mistake can be deleted',
+            'Sub-bills and tax invoices: the Super Admin can delete any that is not paid (a sub-bill leaves its tax invoice, which is worked out again or deleted when empty)',
+            'Every delete is recorded in the Activity log; other Admins, Accounts and Operators are unchanged',
+        ]],
         ['version' => '2.9.4', 'date' => '2026-11-17 05:45', 'title' => 'Only the Super Admin can delete a project', 'type' => 'fix', 'notes' => [
             '"Delete project" and "Delete this empty project" are shown to and allowed for the Super Admin only; other Admins, Accounts and Operators no longer see them',
         ]],

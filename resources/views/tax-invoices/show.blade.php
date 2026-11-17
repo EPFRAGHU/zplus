@@ -1,6 +1,7 @@
 @php($next = ['draft' => ['submitted', 'Mark submitted to client'], 'submitted' => ['paid', 'Mark paid']][$tax->status] ?? null)
 <x-layouts.app :title="'Tax invoice '.$tax->number" :crumb="'Billing / <a href=\''.route('tax-invoices.index').'\'>Tax Invoices</a>'">
-  <x-slot:actions><a class="btn btn-outline-secondary" href="{{ route('tax-invoices.pdf', $tax) }}" target="_blank"><i class="bi bi-file-earmark-pdf me-1"></i>Tax invoice PDF</a></x-slot:actions>
+  <x-slot:actions><a class="btn btn-outline-secondary" href="{{ route('tax-invoices.pdf', $tax) }}" target="_blank"><i class="bi bi-file-earmark-pdf me-1"></i>Tax invoice PDF</a>
+    @can('show-delete')@if($tax->status === 'submitted')<x-delete-button :action="route('tax-invoices.destroy', $tax)" :small="false" label="Delete tax invoice" :confirm="'Delete submitted tax invoice '.$tax->number.'? Its sub-bills are released and can be invoiced again.'" />@endif @endcan</x-slot:actions>
   <div class="d-flex flex-wrap gap-3 small mb-3">
     <span>Agency: <b>{{ $tax->agency->name }}</b></span><span>Client: <b>{{ $tax->client->name }}</b></span>
     @if($tax->contract)<span>Work order: <a class="mono" href="{{ route('contracts.show', $tax->contract) }}">{{ $tax->contract->contract_no }}</a> ({{ $tax->contract->typeLabel() }})</span>@endif

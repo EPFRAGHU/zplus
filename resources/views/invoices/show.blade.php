@@ -3,6 +3,7 @@
   <x-slot:actions>
     <a class="btn btn-outline-secondary" href="{{ route('invoices.covering-letter', $invoice) }}" target="_blank"><i class="bi bi-envelope-paper me-1"></i>Covering letter</a>
     <a class="btn btn-outline-secondary" href="{{ route('invoices.pdf', $invoice) }}" target="_blank"><i class="bi bi-file-earmark-pdf me-1"></i>Sub-bill PDF</a>
+    @can('show-delete')@if(! in_array($invoice->status, ['draft', 'paid'], true))<x-delete-button :action="route('invoices.destroy', $invoice)" :small="false" label="Delete bill" :blocked="$invoice->taxInvoice?->status === 'paid' ? 'Its tax invoice is paid.' : null" :confirm="'Delete '.$invoice->status.' bill '.$invoice->invoice_no.'? It is taken out of its tax invoice. The attendance stays locked.'" />@endif @endcan
     @if($invoice->sheet->certificate_path)<a class="btn btn-outline-secondary" href="{{ route('attendance.scan', $invoice->sheet) }}" target="_blank"><i class="bi bi-file-earmark-check me-1"></i>PI certificate</a>@endif
   </x-slot:actions>
   <div class="d-flex flex-wrap gap-3 small mb-3">

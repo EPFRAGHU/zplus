@@ -202,11 +202,40 @@ final class TaxInvoiceBuilder
         return (bool) preg_match('#^'.preg_quote($contract->agency->numberPrefix(), '#').'/\d{3}/\d{2}-\d{2}(-\d+)?$#', $number);
     }
 
-    /** Releases the sub-bills of a draft tax invoice and deletes it. */
-    public function delete(TaxInvoice $tax): void
+    /**
+     * Takes a sub-bill out of its tax invoice: the tax invoice is deleted when it is left empty, otherwise its figures
+     * are worked out again without the sub-bill. Not for paid tax invoices. Returns what happened, for the Activity log.
+     */
+    public function release(Invoice $bill): ?string
     {
-        if ($tax->status !== 'draft') {
-            throw new RuntimeException('Only draft tax invoices can be deleted.');
+        $tax = $bill->taxInvoice;
+        if (! $tax) {
+            return null;
+        }
+        if ($tax->status === 'paid') {
+            throw new RuntimeException("Sub-bill {$bill->invoice_no} is in tax invoice {$tax->number}, which is paid.");
+        }
+
+        return DB::transaction(function () use ($bill, $tax) {
+            $bill->forceFill(['tax_invoice_id' => null])->save();
+            $left = $tax->subBills()->get();
+            if ($left->isEmpty()) {
+                $tax->delete();
+
+                return "tax invoice {$tax->number} deleted (no sub-bills left)";
+            }
+            $t = self::totals($left, $tax->contract ?? $left->first()->contract);
+            $tax->update(['taxable' => $t->taxable, 'cgst' => $t->cgst, 'sgst' => $t->sgst, 'igst' => $t->igst, 'total' => $t->total, 'rounded_total' => $t->roundedTotal]);
+
+            return "tax invoice {$tax->number} worked out again without it (now ₹{$t->roundedTotal})";
+        });
+    }
+
+    /** Releases the sub-bills of a tax invoice and deletes it: draft ones, or (Super Admin, $any) any not yet paid. */
+    public function delete(TaxInvoice $tax, bool $any = false): void
+    {
+        if ($any ? $tax->status === 'paid' : $tax->status !== 'draft') {
+            throw new RuntimeException($any ? 'Paid tax invoices cannot be deleted.' : 'Only draft tax invoices can be deleted.');
         }
         DB::transaction(function () use ($tax) {
             $tax->subBills()->update(['tax_invoice_id' => null]);

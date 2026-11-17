@@ -531,6 +531,8 @@ class OwnerChangesTest extends TestCase
         $a = $contract->projects()->create(['name' => 'A', 'code' => 'A']);
         $a->posts()->create(['designation' => 'Empty post', 'sanctioned_qty' => 1, 'rate' => 1000]);
 
+        $this->get('/attendance?month=2026-10')->assertDontSee('Delete this empty project');   // hidden until the switch is on
+        $this->post('/delete-mode');
         $this->get('/attendance?month=2026-10')->assertSee('Delete this empty project');
         $this->get("/contracts/{$contract->id}")->assertSee('Delete project');
 
@@ -553,5 +555,62 @@ class OwnerChangesTest extends TestCase
         $b = $contract->projects()->create(['name' => 'B', 'code' => 'B']);
         $service->open($b, CarbonImmutable::parse('2026-10-01'));
         $this->delete("/projects/{$b->id}")->assertSessionHasErrors(['project' => 'This project has attendance. Reset its months first (Attendance → open the month → Reset this month).']);
+    }
+
+    public function test_super_admin_deletes_unused_records_behind_the_switch(): void
+    {
+        $this->admin->forceFill(['is_super_admin' => true])->save();
+        [$agency, $client, $contract, $people] = $this->swachha();
+
+        // The switch: only the Super Admin has it; buttons appear only while it is on.
+        $this->get('/clients')->assertSee('Show delete options')->assertDontSee('clients/'.$client->id.'"', false);
+        $this->post('/delete-mode')->assertSessionHas('status');
+        $this->get("/contracts/{$contract->id}")->assertSee('Delete work order');
+        $this->get('/clients')->assertSee('title="It still has 1 work order. Delete or move it first."', false);   // in use: disabled, with the reason
+
+        // In use: refused with the reason.
+        $this->delete("/agencies/{$agency->id}")->assertSessionHasErrors(['delete' => 'It still has 1 client. Delete or move it first.']);
+        $this->delete("/clients/{$client->id}")->assertSessionHasErrors('delete');
+        $this->delete("/contracts/{$contract->id}")->assertSessionHasErrors('delete');
+
+        // Unused: deleted, and logged.
+        $spare = Client::query()->create(['agency_id' => $agency->id, 'name' => 'Typo client', 'short_code' => 'TYPO']);
+        $this->delete("/clients/{$spare->id}")->assertRedirect()->assertSessionHasNoErrors();
+        $this->assertNull(Client::query()->find($spare->id));
+        $empty = GemContract::query()->create(['agency_id' => $agency->id, 'client_id' => $client->id, 'bid_no' => 'X', 'contract_no' => 'WRONG-1']);
+        $this->delete("/contracts/{$empty->id}")->assertSessionHasNoErrors();
+        $pi = ProjectIncharge::query()->create(['agency_id' => $agency->id, 'name' => 'Dr. Typo']);
+        $this->delete("/incharges/{$pi->id}")->assertSessionHasNoErrors();
+        $this->assertTrue(\App\Models\ActivityLog::query()->where('note', 'Client deleted: Typo client (TYPO)')->exists());
+        $lone = Agency::query()->create(['name' => 'Test agency', 'code' => 'TST']);
+        $this->get('/agencies')->assertSee('onsubmit="return confirm(this.dataset.confirm)"', false)->assertSee('data-confirm="Delete agency Test agency?', false);
+        $this->delete("/agencies/{$lone->id}")->assertSessionHasNoErrors();
+        $this->assertNull(Agency::query()->find($lone->id));
+
+        // Employees: only without attendance, bills or letters; otherwise "set Inactive".
+        $mistake = Employee::query()->create(['emp_code' => 'SW-9999', 'name' => 'Entered by mistake', 'agency_id' => $agency->id, 'status' => 'active']);
+        $this->delete("/employees/{$mistake->id}")->assertSessionHasNoErrors();
+        $this->assertNull(Employee::query()->find($mistake->id));
+        $bills = $this->billMonth($contract->load('projects'), '2026-10-01');
+        $this->delete("/employees/{$people['HTA']->id}")->assertSessionHasErrors(['delete' => 'This employee has attendance or bills, so the record is kept for the history. Set the status to Inactive instead.']);
+
+        // Bills: any status except paid; it leaves its tax invoice.
+        $tax = app(TaxInvoiceBuilder::class)->create($contract, CarbonImmutable::parse('2026-10-01'), collect($bills)->pluck('id')->all(), $this->admin);
+        $bills['HTA']->forceFill(['status' => 'submitted'])->save();
+        $this->delete("/invoices/{$bills['HTA']->id}")->assertSessionHasNoErrors();
+        $this->assertNull(\App\Models\Invoice::query()->find($bills['HTA']->id));
+        $this->assertSame((string) $bills['CCRH']->rounded_total, (string) $tax->fresh()->rounded_total);
+        $tax->forceFill(['status' => 'submitted'])->save();
+        $this->delete("/tax-invoices/{$tax->id}")->assertSessionHasNoErrors();
+        $this->assertNull(\App\Models\TaxInvoice::query()->find($tax->id));
+        $bills['CCRH']->forceFill(['status' => 'paid'])->save();
+        $this->delete("/invoices/{$bills['CCRH']->id}")->assertSessionHasErrors('invoice');
+
+        // Nobody else: an ordinary Admin cannot delete these, nor sees the switch.
+        $this->actingAs(User::factory()->create(['role' => 'admin', 'agency_id' => $agency->id]));
+        $this->get('/clients')->assertDontSee('Show delete options');
+        $spare2 = Client::query()->create(['agency_id' => $agency->id, 'name' => 'Other typo', 'short_code' => 'TYPO2']);
+        $this->delete("/clients/{$spare2->id}")->assertForbidden();
+        $this->post('/delete-mode')->assertForbidden();
     }
 }

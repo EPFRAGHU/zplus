@@ -1,5 +1,6 @@
 <x-layouts.app :title="'Work order '.$contract->contract_no" :crumb="'Masters / <a href=\''.route('contracts.index').'\'>Work Orders</a>'">
-  <x-slot:actions>@can('manage-masters')<a class="btn btn-outline-primary" href="#add-project"><i class="bi bi-plus-lg me-1"></i>Add project</a><a class="btn btn-outline-secondary" href="{{ route('contracts.edit', $contract) }}"><i class="bi bi-pencil me-1"></i>Edit work order</a>@endcan</x-slot:actions>
+  <x-slot:actions>@can('manage-masters')<a class="btn btn-outline-primary" href="#add-project"><i class="bi bi-plus-lg me-1"></i>Add project</a><a class="btn btn-outline-secondary" href="{{ route('contracts.edit', $contract) }}"><i class="bi bi-pencil me-1"></i>Edit work order</a>@endcan
+    @can('show-delete')<x-delete-button :action="route('contracts.destroy', $contract)" :small="false" label="Delete work order" :blocked="\App\Support\SafeDelete::contract($contract)" :confirm="'Delete work order '.$contract->contract_no.'? It has no projects or bills.'" />@endcan</x-slot:actions>
   <div class="z-card p-3 mb-3">
     <div class="row g-3 small">
       <div class="col-md-3"><div class="text-secondary">Agency</div><div class="fw-semibold">{{ $contract->agency->name }}</div></div>
@@ -83,7 +84,7 @@
         <h2>{{ $project->name }} <span class="mono text-secondary fw-normal">{{ $project->code }}</span></h2>
         <span class="small text-secondary">PI: {{ $project->incharge?->label() ?? $project->pi_name ?? '—' }}@if($project->incharge?->mobile) · {{ $project->incharge->mobile }}@endif</span>
         @can('manage-masters')<button class="btn btn-sm btn-outline-secondary ms-auto" data-bs-toggle="collapse" data-bs-target="#edit-p{{ $project->id }}">Edit project</button>@endcan
-        @can('delete-project')@unless(\App\Http\Controllers\ProjectController::cannotDelete($project))
+        @can('show-delete')@unless(\App\Http\Controllers\ProjectController::cannotDelete($project))
           <form method="post" action="{{ route('projects.destroy', $project) }}" class="d-inline" onsubmit="return confirm('Delete project {{ $project->name }} ({{ $project->code }})? It has no attendance, bills or staff. Its empty posts are removed too.')">@csrf @method('delete')
             <button class="btn btn-sm btn-outline-danger"><i class="bi bi-trash"></i> Delete project</button></form>
         @endunless @endcan

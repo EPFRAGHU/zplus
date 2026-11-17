@@ -216,4 +216,22 @@ class EmployeeController extends Controller
 
         return $data;
     }
+
+    /** Super Admin: deletes an employee entered by mistake (no attendance, bills or letters) only when nothing depends on it (owner, 17 Nov 2026). */
+    public function destroy(Employee $employee): RedirectResponse
+    {
+        \Illuminate\Support\Facades\Gate::authorize('delete-records');
+        if ($why = \App\Support\SafeDelete::employee($employee)) {
+            return back()->withErrors(['delete' => $why]);
+        }
+        $label = $employee->emp_code.' '.$employee->name;
+        foreach ($employee->documents as $doc) {
+            \Illuminate\Support\Facades\Storage::disk('local')->delete($doc->path);
+            $doc->delete();
+        }
+        $employee->delete();
+        \App\Support\Activity\Activity::log('deleted', null, [], "Employee deleted: {$label}", section: 'Masters', label: $label);
+
+        return redirect()->route('employees.index')->with('status', "Employee {$label} deleted.");
+    }
 }

@@ -98,6 +98,12 @@ body{font-size:.9rem}
       <div class="text-white fw-semibold">{{ auth()->user()->name }}</div>
       <div>{{ \App\Models\User::ROLES[auth()->user()->role] ?? auth()->user()->role }}@unless(auth()->user()->isPi()) · {{ auth()->user()->agency?->code ?? 'Both agencies' }}@endunless</div>
       <a class="d-block small text-decoration-none mt-1" style="color:var(--z-rail-fg)" href="{{ route('account.password') }}"><i class="bi bi-key me-1"></i>Change password</a>
+      @can('delete-records')
+      <form method="post" action="{{ route('delete-mode') }}" class="mt-2">@csrf
+        <div class="form-check form-switch small mb-0" style="color:var(--z-rail-fg)" title="Super Admin: show the Delete buttons on lists and pages">
+          <input class="form-check-input" type="checkbox" role="switch" id="delete-mode" onchange="this.form.submit()" @checked(session('delete_mode'))>
+          <label class="form-check-label" for="delete-mode">Show delete options</label></div></form>
+      @endcan
       <form method="post" action="{{ route('logout') }}" class="mt-2">@csrf<button class="btn btn-sm btn-outline-light w-100">Sign out</button></form>
     </div>
   </aside>

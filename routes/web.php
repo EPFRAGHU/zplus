@@ -69,6 +69,17 @@ Route::middleware(['auth', 'active', 'role:admin,accounts,supervisor', \App\Http
     Route::resource('incharges', \App\Http\Controllers\ProjectInchargeController::class)->except(['show', 'destroy']);
     Route::get('staff', [\App\Http\Controllers\StaffController::class, 'index'])->name('staff.index');
     Route::post('contracts/{contract}/projects', [ProjectController::class, 'store'])->name('projects.store');
+    Route::post('delete-mode', function (\Illuminate\Http\Request $request) {
+        \Illuminate\Support\Facades\Gate::authorize('delete-records');
+        $request->session()->put('delete_mode', ! $request->session()->get('delete_mode'));
+
+        return back()->with('status', $request->session()->get('delete_mode') ? 'Delete options shown. Switch them off when you are done.' : 'Delete options hidden.');
+    })->name('delete-mode');
+    Route::delete('agencies/{agency}', [AgencyController::class, 'destroy'])->name('agencies.destroy');
+    Route::delete('clients/{client}', [ClientController::class, 'destroy'])->name('clients.destroy');
+    Route::delete('contracts/{contract}', [GemContractController::class, 'destroy'])->name('contracts.destroy');
+    Route::delete('incharges/{incharge}', [\App\Http\Controllers\ProjectInchargeController::class, 'destroy'])->name('incharges.destroy');
+    Route::delete('employees/{employee}', [EmployeeController::class, 'destroy'])->name('employees.destroy');
     Route::put('projects/{project}', [ProjectController::class, 'update'])->name('projects.update');
     Route::delete('projects/{project}', [ProjectController::class, 'destroy'])->name('projects.destroy');
     Route::get('posts', [PostController::class, 'index'])->name('posts.index');
