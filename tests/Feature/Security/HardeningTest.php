@@ -129,4 +129,12 @@ class HardeningTest extends TestCase
         }
         $this->get($url)->assertStatus(429);
     }
+
+    /** L7: search engines are told not to list any page. */
+    public function test_search_engines_are_told_not_to_index(): void
+    {
+        auth()->logout();
+        $this->get(route('login'))->assertHeader('X-Robots-Tag', 'noindex, nofollow');
+        $this->assertStringContainsString('Disallow: /', file_get_contents(public_path('robots.txt')));
+    }
 }

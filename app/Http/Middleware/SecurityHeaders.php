@@ -27,6 +27,7 @@ class SecurityHeaders
         // no framing by other sites, no forms posting elsewhere. Inline scripts are still allowed because the pages
         // use inline handlers (e.g. confirm pop-ups); moving them to files would allow removing 'unsafe-inline'.
         $response->headers->set('Content-Security-Policy', self::CSP);
+        $response->headers->set('X-Robots-Tag', 'noindex, nofollow');   // security audit L7: a private office app, keep it out of search engines
         if ($request->isSecure()) {
             $response->headers->set('Strict-Transport-Security', 'max-age=31536000');
         }
