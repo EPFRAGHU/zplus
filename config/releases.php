@@ -12,6 +12,13 @@ return [
     'timezone' => 'Asia/Kolkata',      // release times are Indian Standard Time
 
     'releases' => [
+        ['version' => '2.15.0', 'date' => '2026-11-17 19:52', 'title' => 'Owner approval of staff and pay changes', 'type' => 'feature', 'notes' => [
+            'New employees (added by hand, by Data Upload or by the GeM workbook import) stay Inactive – not on attendance or bills – until the owner approves; then they become Active',
+            'Changes of an employee\'s post, own rate, bank name, account holder, account number, IFSC and the EPF / ESIC / TDS switches wait for the owner; the old details stay in use until approved. Name, mobile, address and other details are saved at once',
+            'A change of a post\'s rate waits for the owner (designation and sanctioned number are saved at once)',
+            'The Approvals page shows each change as "now → changed to"; returned changes are never applied and the reason is shown to whoever made them',
+            'Strict four-eyes as for bills; changes made some other way meanwhile are never overwritten. Held bank account numbers are stored encrypted',
+        ]],
         ['version' => '2.14.0', 'date' => '2026-11-17 19:42', 'title' => 'Owner approval (maker–checker)', 'type' => 'feature', 'notes' => [
             'From October 2026 the owner (Super Admin) approves before anything goes further; earlier months stay exactly as they were',
             'Attendance: locking a month sends it to the owner; the sub-bill is made when the owner approves. If returned (with a reason), the month opens again for correction',

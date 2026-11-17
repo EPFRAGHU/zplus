@@ -1,7 +1,7 @@
 # ZPlus Manpower app
 
 **Repo:** epfraghu/zplus, branch `claude/manpower-app-foundation`
-**Status:** Live. Version **2.14.0** pushed (2026-11-17 08:21 IST). Coolify AUTO-DEPLOYS on every push to the branch (seen 16 Nov: v2.4.0 went live by itself) – pushing = going live. 185 tests passing. Project started **01 Nov 2026, 04:01 PM IST**.
+**Status:** Live. Version **2.15.0** pushed (2026-11-17 08:21 IST). Coolify AUTO-DEPLOYS on every push to the branch (seen 16 Nov: v2.4.0 went live by itself) – pushing = going live. 191 tests passing. Project started **01 Nov 2026, 04:01 PM IST**.
 **Live URL:** https://zplus.epf-dashboard.online (admin: the owner's Gmail; password was shown in chat once, owner told to change it via tinker)
 
 ## Stack
@@ -146,7 +146,7 @@ What moves: code (GitHub or a copy), MySQL dump, uploaded files (`zplus-storage`
 - In this cloud sandbox, Docker builds can't reach Debian mirrors (proxy 403); test images by injecting the proxy CA only in a scratch Dockerfile. Don't `pkill -f` a pattern that matches the running shell command.
 - **GeM contract tools (v2.13.0, 2026-11-17)**: gem_contracts `start_date`, `end_date`, `contract_value` (+ `expiry()`, `daysLeft()`, partial `contracts/_expiry`); import posts from GeM contract PDF (`App\Services\Contracts\GemContractPdf`, smalot/pdfparser; splits posts at "Designation :" after "Type of Function"; verifies (m×1.18 + m×sc%)×months×qty against the printed total – all 5 real contracts matched); `ContractImportController` (upload → session → check page → store, manage-masters, skips same designation+rate, refuses other contract no.); `monthly_papers` table + `MonthlyPaperController` (billing; salary_proof needs view-bank-details; remove = reset-month/Admin) and `App\Services\Billing\BillPack` ZIP; shared `App\Services\Billing\DocumentFiles` (signed-or-generated PDFs, used by AgencyMailer too); dashboard `_reminders` (wages 7th / EPF-ESIC 15th per active work order with attendance last month, ending ≤30 days, posts over sanctioned). Open question to owner: contracts have PF/ESI = 0 in rate – should employer EPF 13%/ESIC 3.25% still be added on bills?
 
-- **Maker–checker approval: Release 1 BUILT v2.14.0 (17 Nov 2026 evening); Release 2 (staff & pay changes held as pending) NOT built yet**. Decisions:
+- **Maker–checker approval: Release 1 BUILT v2.14.0 (17 Nov 2026 evening); Release 2 BUILT v2.15.0**. Decisions:
   - **Checker:** Super Admin only: raghu.epf@gmail.com, plus a second owner e-mail the owner will give later, who also becomes Super Admin.
   - **Needs approval:**
     - monthly attendance, before a sub-bill can be made
@@ -175,4 +175,5 @@ What moves: code (GitHub or a copy), MySQL dump, uploaded files (`zplus-storage`
     - partial `partials/approval-box`
     - a Super Admin can make an active Admin of both agencies a Super Admin (`make_super_admin` on user edit)
   - **Tests:** `ApprovalTest`. Older rule tests call `withoutOwnerApproval()` (tests/TestCase).
+- **v2.15.0 staff approval (built 2026-11-17)**: `App\Services\Approvals\StaffChanges` (config `approvals.staff`): new employee created Inactive + approval `new_employee` (approve → Active; edits while unapproved saved, status forced inactive; "Send again" `employees.send-for-approval`); WATCHED fields post_id, rate_override, bank_name, account_holder, account_number, ifsc, pf/esic/tds held as `employee_change` (one open per employee; `changes` encrypted:array field=>[old,new]; fingerprint = old values, approve refuses if changed meanwhile); post rate held as `post_rate`. Wired into EmployeeController store/update/statutory, PostController update, Data Upload EmployeeSheet/PostSheet, GemWorkbookImporter. Approvals table + employee_id, post_id, changes. Tests: StaffApprovalTest; older tests use withoutOwnerApproval() (also sets approvals.staff=false).
 

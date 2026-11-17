@@ -48,6 +48,7 @@ class ActivityLogTest extends TestCase
 
     public function test_edits_are_logged_with_old_and_new_values_and_secrets_masked(): void
     {
+        $this->withoutOwnerApproval();   // rules before owner approvals; see ApprovalTest / StaffApprovalTest
         $operator = User::factory()->create(['role' => 'accounts', 'name' => 'Ravi']);
         $e = Employee::query()->firstOrFail();
         $this->actingAs($operator)->put("/employees/{$e->id}", [

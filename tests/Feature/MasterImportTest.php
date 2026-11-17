@@ -184,6 +184,7 @@ class MasterImportTest extends TestCase
 
     public function test_updating_an_existing_record_needs_only_its_code(): void
     {
+        $this->withoutOwnerApproval();   // rules before owner approvals; see ApprovalTest / StaffApprovalTest
         $agency = Agency::query()->create(['code' => 'ZPS', 'name' => 'Z Plus']);
         Employee::query()->create(['emp_code' => 'EMP-1001', 'name' => 'Existing Person', 'agency_id' => $agency->id, 'status' => 'active']);
 

@@ -1,6 +1,12 @@
 <x-layouts.app :title="$employee->exists ? 'Edit '.$employee->name : 'Add employee'" crumb="Masters / Employees">
   <form method="post" action="{{ $employee->exists ? route('employees.update', $employee) : route('employees.store') }}" class="z-card">
     @csrf @if($employee->exists) @method('put') @endif
+    @if(\App\Services\Approvals\StaffChanges::applies())
+      <div class="alert alert-info small m-3 mb-0"><i class="bi bi-person-check me-1"></i>{{ $employee->exists
+        ? 'Changes to the post, own rate, bank details and EPF / ESIC / TDS wait for the owner\'s approval; the old details stay in use until then. Other details are saved at once.'
+        : 'A new employee is sent to the owner for approval and stays Inactive (not on attendance or bills) until approved.' }}</div>
+      @error('approval')<div class="alert alert-danger small m-3 mb-0">{{ $message }}</div>@enderror
+    @endif
     @php($agencyId = (string) old('agency_id', $employee->agency_id ?? $employee->post?->project->contract->agency_id))
     @php($clientId = (string) old('client_id', $employee->client_id ?? $employee->post?->project->contract->client_id))
     @php($postId = (string) old('post_id', $employee->post_id))

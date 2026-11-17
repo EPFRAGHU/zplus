@@ -6,6 +6,7 @@
     @can('show-delete')<x-delete-button :action="route('employees.destroy', $employee)" :small="false" label="Delete employee" :blocked="\App\Support\SafeDelete::employee($employee)" :confirm="'Delete '.$employee->emp_code.' '.$employee->name.'? Only for a record entered by mistake.'" />@endcan
   </x-slot:actions>
   @endcan
+  @include('partials.staff-approval')
   <div class="row g-3">
     <div class="col-lg-7">
       <div class="z-card p-3 h-100">

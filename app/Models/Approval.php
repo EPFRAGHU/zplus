@@ -8,19 +8,22 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 /** One "Send for approval" of attendance, a sub-bill, a tax invoice or a month's salary payout (maker–checker). */
-#[Fillable(['agency_id', 'type', 'attendance_sheet_id', 'invoice_id', 'tax_invoice_id', 'month', 'label', 'fingerprint', 'details',
+#[Fillable(['agency_id', 'type', 'attendance_sheet_id', 'invoice_id', 'tax_invoice_id', 'employee_id', 'post_id', 'changes', 'month', 'label', 'fingerprint', 'details',
     'status', 'submitted_by', 'submitted_at', 'decided_by', 'decided_at', 'reason'])]
 class Approval extends Model
 {
     use ScopedToAgency;
 
-    public const TYPES = ['attendance' => 'Attendance', 'sub_bill' => 'Sub-bill', 'tax_invoice' => 'Tax invoice', 'payout' => 'Salary payout & bank letter'];
+    public const TYPES = ['attendance' => 'Attendance', 'sub_bill' => 'Sub-bill', 'tax_invoice' => 'Tax invoice', 'payout' => 'Salary payout & bank letter',
+        'new_employee' => 'New employee', 'employee_change' => 'Staff / pay change', 'post_rate' => 'Post rate change'];
+
+    public const STAFF_TYPES = ['new_employee', 'employee_change', 'post_rate'];
 
     public const STATUSES = ['pending' => 'Waiting for approval', 'approved' => 'Approved', 'returned' => 'Returned', 'superseded' => 'Sent again'];
 
     protected function casts(): array
     {
-        return ['details' => 'array', 'submitted_at' => 'datetime', 'decided_at' => 'datetime'];
+        return ['details' => 'array', 'changes' => 'encrypted:array', 'submitted_at' => 'datetime', 'decided_at' => 'datetime'];
     }
 
     protected function month(): \Illuminate\Database\Eloquent\Casts\Attribute
@@ -51,6 +54,16 @@ class Approval extends Model
         return $this->belongsTo(TaxInvoice::class);
     }
 
+    public function employee(): BelongsTo
+    {
+        return $this->belongsTo(Employee::class);
+    }
+
+    public function post(): BelongsTo
+    {
+        return $this->belongsTo(Post::class);
+    }
+
     public function submitter(): BelongsTo
     {
         return $this->belongsTo(User::class, 'submitted_by');
@@ -69,6 +82,8 @@ class Approval extends Model
             'sub_bill' => $this->invoice_id ? route('invoices.show', $this->invoice_id) : null,
             'tax_invoice' => $this->tax_invoice_id ? route('tax-invoices.show', $this->tax_invoice_id) : null,
             'payout' => route('bank-letters.index', ['agency' => $this->agency_id, 'month' => $this->month->format('Y-m')]),
+            'new_employee', 'employee_change' => $this->employee_id ? route('employees.show', $this->employee_id) : null,
+            'post_rate' => $this->post_id && $this->post ? route('contracts.show', $this->post->project->gem_contract_id) : null,
             default => null,
         };
     }

@@ -131,6 +131,7 @@ class CrossAgencyWriteTest extends TestCase
             'send their sub-bill for approval' => fn () => $this->post("/invoices/{$o['invoice']->id}/send-for-approval"),
             'send their tax invoice for approval' => fn () => $this->post("/tax-invoices/{$o['tax']->id}/send-for-approval"),
             'send their salary payout for approval' => fn () => $this->post('/bank-letters/send-for-approval', ['agency' => $o['agency']->id, 'month' => '2026-10']),
+            'send their employee for approval' => fn () => $this->post("/employees/{$o['employee']->id}/send-for-approval"),
             'approve their pending item' => fn () => $this->post("/approvals/{$o['approval']->id}/approve"),
             'return their pending item' => fn () => $this->post("/approvals/{$o['approval']->id}/return", ['reason' => 'not mine to return']),
             'upload signed bank letter for their agency' => fn () => $this->post('/bank-letters/signed', ['agency' => $o['agency']->id, 'month' => '2026-09', 'signed' => $pdf()]),

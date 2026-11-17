@@ -89,6 +89,7 @@ Route::middleware(['auth', 'active', 'role:admin,accounts,supervisor', \App\Http
     Route::delete('posts/{post}', [PostController::class, 'destroy'])->name('posts.destroy');
 
     Route::resource('employees', EmployeeController::class)->except(['destroy']);
+    Route::post('employees/{employee}/send-for-approval', [EmployeeController::class, 'sendForApproval'])->name('employees.send-for-approval');
     Route::patch('employees/{employee}/statutory', [EmployeeController::class, 'statutory'])->name('employees.statutory');
     Route::get('employees/{employee}/appointment-letter', [EmployeeController::class, 'appointmentLetter'])->name('employees.appointment-letter');
     Route::post('employees/{employee}/documents', [EmployeeDocumentController::class, 'store'])->name('employees.documents.store');

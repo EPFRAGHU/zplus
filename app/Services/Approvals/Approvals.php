@@ -126,6 +126,15 @@ final class Approvals
     public function approve(Approval $approval, User $checker): string
     {
         $this->assertDecidable($approval, $checker);
+        if (in_array($approval->type, Approval::STAFF_TYPES, true)) {
+            return DB::transaction(function () use ($approval, $checker) {
+                $message = app(StaffChanges::class)->apply($approval);
+                $approval->update(['status' => 'approved', 'decided_by' => $checker->id, 'decided_at' => now()]);
+                Activity::log('status', null, [], "Approved: {$approval->label}", section: 'Approvals', label: $approval->label);
+
+                return "Approved. {$message}";
+            });
+        }
         $subject = $this->subject($approval);
         if ($this->fingerprint($approval->type, $subject)[0] !== $approval->fingerprint) {
             throw new RuntimeException('This was changed after it was sent. Ask for it to be sent again, then approve the new figures.');
@@ -224,13 +233,15 @@ final class Approvals
         };
     }
 
-    private function subject(Approval $a): AttendanceSheet|Invoice|TaxInvoice|array|null
+    private function subject(Approval $a): mixed
     {
         return match ($a->type) {
             'attendance' => $a->sheet,
             'sub_bill' => $a->invoice,
             'tax_invoice' => $a->taxInvoice,
             'payout' => $a->agency ? ['agency' => $a->agency, 'month' => $a->month] : null,
+            'new_employee', 'employee_change' => $a->employee,
+            'post_rate' => $a->post,
             default => null,
         };
     }

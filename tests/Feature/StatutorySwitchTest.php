@@ -40,6 +40,7 @@ class StatutorySwitchTest extends TestCase
 
     public function test_switches_on_the_employees_list_turn_epf_and_esic_on_and_off(): void
     {
+        $this->withoutOwnerApproval();   // rules before owner approvals; see ApprovalTest / StaffApprovalTest
         $e = Employee::query()->firstOrFail();
         $this->actingAs($this->admin)->get('/employees')->assertOk()->assertSee('EPF / ESIC')->assertSee('role="switch"', false);
 

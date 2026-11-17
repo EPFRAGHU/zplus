@@ -102,7 +102,7 @@ final class GemWorkbookImporter
                     $agency = $code ? Agency::query()->firstOrCreate(['code' => $code], ['name' => $name]) : null;
                     [$agencyId, $clientId] = $agency ? [$agency->id, $this->clientFor($client, $agency)->id] : [null, null];
                 }
-                Employee::query()->create([
+                $newEmployee = [
                     'emp_code' => Employee::nextCode($agencyId ? (int) $agencyId : null),
                     'agency_id' => $agencyId,
                     'client_id' => $clientId,
@@ -114,7 +114,9 @@ final class GemWorkbookImporter
                     'account_holder' => $s['account'] ? strtoupper($s['name']) : null,
                     'account_number' => $s['account'],
                     'ifsc' => Ifsc::isValid($s['ifsc']) ? $s['ifsc'] : null,
-                ]);
+                ];
+                // Owner approval (release 2): imported staff wait for the owner like staff added by hand.
+                auth()->user() ? app(\App\Services\Approvals\StaffChanges::class)->create($newEmployee, auth()->user()) : Employee::query()->create($newEmployee);
                 $created['employees']++;
             }
         });

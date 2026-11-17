@@ -12,6 +12,6 @@ abstract class TestCase extends BaseTestCase
      */
     protected function withoutOwnerApproval(): void
     {
-        config(['approvals.start' => '2100-01-01']);
+        config(['approvals.start' => '2100-01-01', 'approvals.staff' => false]);
     }
 }

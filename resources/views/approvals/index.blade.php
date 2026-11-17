@@ -18,6 +18,7 @@
             @if($a->type === 'sub_bill' && $a->invoice_id)<a class="small" target="_blank" href="{{ route('invoices.pdf', $a->invoice_id) }}">PDF</a>@endif
             @if($a->type === 'tax_invoice' && $a->tax_invoice_id)<a class="small" target="_blank" href="{{ route('tax-invoices.pdf', $a->tax_invoice_id) }}">PDF</a>@endif
           </div>
+          @if(in_array($a->type, \App\Models\Approval::STAFF_TYPES, true))@include('approvals._changes', ['a' => $a])@endif
           @include('approvals._decide', ['a' => $a])
         </div>
       @empty

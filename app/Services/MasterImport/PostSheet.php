@@ -82,4 +82,20 @@ final class PostSheet extends MasterSheet
                 'sanctioned_qty' => $p->sanctioned_qty, 'rate' => (float) $p->rate];
         }
     }
+
+    /** A changed rate of an existing post waits for the owner (owner approval, release 2). */
+    public function save(RowResult $r): Model
+    {
+        $user = auth()->user();
+        if (! $r->model || ! $user || ! \App\Services\Approvals\StaffChanges::applies()) {
+            return parent::save($r);
+        }
+        try {
+            app(\App\Services\Approvals\StaffChanges::class)->updatePost($r->model, array_filter($r->data, fn ($v) => $v !== null), $user);
+        } catch (\RuntimeException) {
+            $r->model->update(array_diff_key(array_filter($r->data, fn ($v) => $v !== null), ['rate' => 1]));
+        }
+
+        return $r->model;
+    }
 }

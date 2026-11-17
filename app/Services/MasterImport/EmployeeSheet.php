@@ -185,8 +185,23 @@ final class EmployeeSheet extends MasterSheet
         if (! $r->model && empty($r->data['emp_code'])) {
             $r->data['emp_code'] = Employee::nextCode(isset($r->data['agency_id']) ? (int) $r->data['agency_id'] : null);
         }
+        $data = array_filter($r->data, fn ($value) => $value !== null);   // blank cells keep stored values / defaults
+        $staff = app(\App\Services\Approvals\StaffChanges::class);
+        $user = auth()->user();
+        if (! $user || ! \App\Services\Approvals\StaffChanges::applies()) {
+            return parent::save($r);
+        }
+        if (! $r->model) {
+            return $staff->create($data, $user);   // new staff: Inactive until the owner approves
+        }
+        try {
+            $staff->update($r->model, $data, $user);   // post / rate / bank / EPF-ESIC-TDS changes wait for the owner
+        } catch (\RuntimeException) {
+            // A change of this employee is already waiting: the rest of the row is saved, the held part is not sent twice.
+            $r->model->update(array_diff_key($data, array_flip(\App\Services\Approvals\StaffChanges::WATCHED)));
+        }
 
-        return parent::save($r);
+        return $r->model;
     }
 
     public function export(): iterable

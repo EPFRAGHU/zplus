@@ -28,13 +28,24 @@ class ApprovalController extends Controller
         return view('approvals.index', [
             'canApprove' => Approvals::canApprove($me),
             'pending' => $base()->where('status', 'pending')->oldest('submitted_at')->get()->sortBy(fn ($a) => $a->agency->name)->values(),
+            // Returned to me, and not sent again since (for the same record).
             'returned' => $base()->where('status', 'returned')->where('submitted_by', $me->id)->latest('decided_at')->limit(30)->get()
-                ->filter(fn ($a) => ! Approval::query()->where('type', $a->type)->where('id', '>', $a->id)
-                    ->where(fn ($q) => $a->attendance_sheet_id ? $q->where('attendance_sheet_id', $a->attendance_sheet_id)
-                        : ($a->invoice_id ? $q->where('invoice_id', $a->invoice_id) : ($a->tax_invoice_id ? $q->where('tax_invoice_id', $a->tax_invoice_id)
-                        : $q->where('agency_id', $a->agency_id)->where('month', $a->month->toDateString()))))->exists())->values(),
+                ->filter(fn ($a) => ! Approval::query()->where('type', $a->type)->where('id', '>', $a->id)->where(self::sameRecord($a))->exists())->values(),
             'recent' => $base()->whereIn('status', ['approved', 'returned'])->latest('decided_at')->limit(25)->get(),
         ]);
+    }
+
+    /** Query condition: approvals of the same record as $a. */
+    private static function sameRecord(Approval $a): \Closure
+    {
+        return fn ($q) => match (true) {
+            (bool) $a->attendance_sheet_id => $q->where('attendance_sheet_id', $a->attendance_sheet_id),
+            (bool) $a->invoice_id => $q->where('invoice_id', $a->invoice_id),
+            (bool) $a->tax_invoice_id => $q->where('tax_invoice_id', $a->tax_invoice_id),
+            (bool) $a->employee_id => $q->where('employee_id', $a->employee_id),
+            (bool) $a->post_id => $q->where('post_id', $a->post_id),
+            default => $q->where('agency_id', $a->agency_id)->where('month', $a->month->toDateString()),
+        };
     }
 
     public function sendAttendance(Request $request, AttendanceSheet $sheet): RedirectResponse

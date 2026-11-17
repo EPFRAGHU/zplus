@@ -68,9 +68,10 @@ class EmployeeController extends Controller
         Gate::authorize('manage-masters');
         $data = $this->validated($request);
         $data['emp_code'] = $data['emp_code'] ?? null ?: Employee::nextCode((int) $data['agency_id']);   // blank: SW-1001 / ZP-1001 …
-        $employee = Employee::query()->create($data);
+        $employee = app(\App\Services\Approvals\StaffChanges::class)->create($data, $request->user());
 
-        return redirect()->route('employees.show', $employee)->with('status', 'Employee added.');
+        return redirect()->route('employees.show', $employee)->with('status', \App\Services\Approvals\StaffChanges::applies()
+            ? 'Employee added and sent to the owner for approval. Until approved the employee stays Inactive (not on attendance or bills).' : 'Employee added.');
     }
 
     public function show(Employee $employee): View
@@ -91,9 +92,14 @@ class EmployeeController extends Controller
     public function update(Request $request, Employee $employee): RedirectResponse
     {
         Gate::authorize('manage-masters');
-        $employee->update($this->validated($request, $employee));
+        try {
+            $held = app(\App\Services\Approvals\StaffChanges::class)->update($employee, $this->validated($request, $employee), $request->user());
+        } catch (\RuntimeException $e) {
+            return back()->withInput()->withErrors(['approval' => $e->getMessage()]);
+        }
 
-        return redirect()->route('employees.show', $employee)->with('status', 'Employee saved.');
+        return redirect()->route('employees.show', $employee)->with('status', $held
+            ? 'Employee saved. Sent to the owner for approval (applied once approved): '.implode(', ', $held).'.' : 'Employee saved.');
     }
 
     /** Appointment letter in the SWACHHA format, numbered once per employee. */
@@ -127,8 +133,15 @@ class EmployeeController extends Controller
     public function statutory(Request $request, Employee $employee): RedirectResponse
     {
         Gate::authorize('manage-masters');
-        $employee->update(['pf_applicable' => $request->boolean('pf_applicable'), 'esic_applicable' => $request->boolean('esic_applicable'),
-            'tds_applicable' => $request->boolean('tds_applicable')]);
+        try {
+            $held = app(\App\Services\Approvals\StaffChanges::class)->update($employee, ['pf_applicable' => $request->boolean('pf_applicable'),
+                'esic_applicable' => $request->boolean('esic_applicable'), 'tds_applicable' => $request->boolean('tds_applicable')], $request->user());
+        } catch (\RuntimeException $e) {
+            return back()->withErrors(['approval' => $e->getMessage()]);
+        }
+        if ($held) {
+            return back()->with('status', "{$employee->name}: ".implode(', ', $held).' change sent to the owner for approval.');
+        }
 
         return back()->with('status', "{$employee->name}: EPF ".($employee->pf_applicable ? 'on' : 'off').', ESIC '.($employee->esic_applicable ? 'on' : 'off')
             .', TDS '.($employee->tds_applicable ? 'on' : 'off').'.');
@@ -215,6 +228,19 @@ class EmployeeController extends Controller
         }
 
         return $data;
+    }
+
+    /** "Send again" for a new employee that was returned or changed after sending. */
+    public function sendForApproval(Request $request, Employee $employee): RedirectResponse
+    {
+        Gate::authorize('manage-masters');
+        try {
+            app(\App\Services\Approvals\StaffChanges::class)->sendNew($employee, $request->user());
+        } catch (\RuntimeException $e) {
+            return back()->withErrors(['approval' => $e->getMessage()]);
+        }
+
+        return back()->with('status', 'Sent to the owner for approval.');
     }
 
     /** Super Admin: deletes an employee entered by mistake (no attendance, bills or letters) only when nothing depends on it (owner, 17 Nov 2026). */

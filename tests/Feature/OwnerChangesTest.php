@@ -504,6 +504,7 @@ class OwnerChangesTest extends TestCase
 
     public function test_tds_can_be_switched_off_per_employee(): void
     {
+        $this->withoutOwnerApproval();   // rules before owner approvals; see ApprovalTest / StaffApprovalTest
         [$agency, , $contract, $people] = $this->swachha();
         $service = app(AttendanceService::class);
         $sheet = $service->open(Project::query()->where('code', 'HTA')->firstOrFail(), CarbonImmutable::parse('2026-10-01'));

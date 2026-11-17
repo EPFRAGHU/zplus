@@ -99,9 +99,13 @@ class PostController extends Controller
     public function update(Request $request, Post $post): RedirectResponse
     {
         Gate::authorize('manage-masters');
-        $post->update($this->validated($request));
+        try {
+            $held = app(\App\Services\Approvals\StaffChanges::class)->updatePost($post, $this->validated($request), $request->user());
+        } catch (\RuntimeException $e) {
+            return back()->withErrors(['approval' => $e->getMessage()]);
+        }
 
-        return back()->with('status', 'Post saved.');
+        return back()->with('status', $held ? 'Post saved. The new rate is sent to the owner for approval and applies once approved.' : 'Post saved.');
     }
 
     public function destroy(Post $post): RedirectResponse

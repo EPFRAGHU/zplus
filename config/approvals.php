@@ -4,4 +4,7 @@
 // need the owner's (Super Admin's) approval. Earlier months stay exactly as they were.
 return [
     'start' => '2026-10-01',
+
+    // Release 2: new staff and changes of post, rate, bank details and EPF / ESIC / TDS wait for the owner too.
+    'staff' => true,
 ];
