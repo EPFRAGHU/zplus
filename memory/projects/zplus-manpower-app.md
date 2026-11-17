@@ -94,16 +94,19 @@ Size (non-blank lines): ~6,000 app code (PHP 3,010, Blade 2,004, migrations 704)
 - **Owner's decisions for v2.4.0 (16 Nov 2026)**: database = add only, keep data (backup first); new service charge for NEW bills only (approved/paid keep amounts, drafts can be remade); Z Plus numbers ZP/001/26-27 and ZP-1001; existing EMP-xxxx IDs kept, new ones SW-/ZP-. Reference files were SWACHHA's Oct 2026 bills (CCRH, HTA, MPH: `SW/001/26-27(CODE)`, combined tax invoice `SW/001/26-27` on GEMC-…8030) – real staff data, never committed.
 - **Costing proposal for the Z Plus owner (13 Nov 2026)**: `docs/sales/ZPlus-Software-Costing.pdf` (13 pages, sample-data screenshots, DB diagram, tech, links). Market-equivalent effort 112 days → ₹5.6 L / ₹13.4 L / ₹22.4 L at ₹5k / ₹12k / ₹20k per day; proposed ₹2,50,000 one-time + AMC ₹5,000/month from month 4 (hosting, backups, updates, 4 h support) → ₹2,95,000 year 1, ₹60,000/yr after. Owner still to fill name/phone, confirm price, GST status, and whether SWACHHA pays separately. Days are market-equivalent, NOT a timesheet (app started 01 Nov 2026 – do not claim months of work). Built from a scratch copy of the app; the repo was not changed.
 
-## Owner to-do on the live app (as of 04 Nov 2026)
-- [ ] Coolify: add `SESSION_EXPIRE_ON_CLOSE=true` and `SESSION_LIFETIME=60`, then **Redeploy** (v2.3.x; db container restarts once for the trigger flag; everyone signs in again)
-- [x] v2.4.0 deployed (auto) 16 Nov; DB backup /root/zplus-backup-2026-11-16.sql on the VPS (the db container name CHANGES on every deploy – timestamp suffix; find it with `DB=$(docker ps --format '{{.Names}}' | grep '^db-ppc5ypfm2aogcq4hfie2kwhv' | head -1)`, then `docker exec "$DB" sh -c 'mysqldump -u root -p"$MYSQL_ROOT_PASSWORD" --single-transaction --routines --triggers zplus' > ~/zplus-backup-DATE.sql; chmod 600 …`). After redeploy: Agencies → check prefix SW / ZP; PI Allotment → add mobile/e-mail, check the auto-created PIs; Work Orders → set Online/Offline
-- [ ] After redeploy, check triggers in the app container: `php artisan tinker --execute="echo count(DB::select('SHOW TRIGGERS'));"` → above 0 (NOT the laravel.log grep: production logs go to stderr, see Coolify Logs for "Could not create trigger")
-- [ ] Send `User-Roles-Guide-v2.pdf` to the Z Plus and SWACHHA admins
-- [ ] Users: set zplussurakhyaseva@gmail.com "Works for" = Z Plus (was "Both" after v2.2.0); add hr.swachha@gmail.com as Admin for SWACHHA
-- [ ] Agencies → Edit: bank details for Z Plus and SWACHHA (printed on tax invoices); optionally rename "SWACHHA" to "M/S SWACHHA"
-- [ ] Load data: Clients → GeM contracts → Projects → Posts → Employees (by hand or Data Upload); set EPF/ESIC switches
-- [ ] Coolify Backups: daily database backup
-- Done: agencies ZPS/SWH added with letterheads (03 Nov); Super Admin password changed by owner via Change password (03 Nov); zplussurakhyaseva@gmail.com created as Admin
+## Owner to-do on the live app (as of 17 Nov 2026)
+- [ ] Before any delete / reset / recalculate of real records: VPS backup (container name changes each deploy):
+      `DB=$(docker ps --format '{{.Names}}' | grep '^db-ppc5ypfm2aogcq4hfie2kwhv' | head -1); docker exec "$DB" sh -c 'mysqldump -u root -p"$MYSQL_ROOT_PASSWORD" --single-transaction --quick --routines --triggers zplus' > ~/zplus-backup-DATE.sql` → must end "-- Dump completed"
+- [ ] Agencies → Edit (both): bank name, branch, account no., IFSC (bank letters / tax invoices show blanks otherwise); SWACHHA Registrations: add line "CL&RA No: K-438/2013"
+- [ ] Fix client data: "Regional Resource Hub for Health Technology Assessment in India" was entered as a CLIENT – should be project HTA under ICMR-NIHR (RMRCBB) client; asked for screenshots of Clients / Work Orders
+- [ ] Project In-charge: full PI names (Dr. Srikanta Kanungo, Dr. Debdutta Bhattacharya), mobiles, e-mails; allot every project
+- [ ] Work orders: Online/Offline; confirm contract date (sub-bills 01.10.2026 vs tax invoice 30.09.2026)
+- [ ] Reset the example October sub-bill month(s) ("Reset this month"); example project "A" already deleted by owner
+- [ ] Old bills / tax invoices made before 16 Nov: "Recalculate all" on Sub-bills (send ICMR the new PDFs of submitted ones)
+- [ ] Employees with old EMP- IDs: change by hand (next free ID shown on Add employee) or ask for a bulk "Renumber to agency series" (offered, not built)
+- [ ] TDS 2%: switch off for any staff who should not have it (Employees list switches)
+- [ ] Coolify: daily DB backups; consider turning off Auto Deploy (every push goes live)
+- Done: agencies + letterheads, Super Admin password, zplussurakhyaseva@gmail.com Admin, v2.4.0 migration ran 16 Nov (backup ~/zplus-backup-2026-11-16.sql, ~/zplus-backup-before-recalc.sql)
 
 ## Open questions for the user
 - Employer EPF on bills uses the ₹15,000 wage ceiling (same as the deduction) – confirm with their GeM practice
@@ -119,6 +122,7 @@ Size (non-blank lines): ~6,000 app code (PHP 3,010, Blade 2,004, migrations 704)
 What moves: code (GitHub or a copy), MySQL dump, uploaded files (`zplus-storage` volume → storage/app), and the **same APP_KEY** (else encrypted bank/Aadhaar unreadable). New server: any Linux with Docker (`docker compose up -d` + HTTPS proxy), or Coolify, or plain PHP 8.3 + MySQL + nginx (docs/DEPLOY_VPS.md); min 2 CPU / 2 GB / 20 GB. Steps: test copy first → maintenance mode → final export → import → repoint DNS or new APP_URL → verify (sign in, PDFs, signed certificates, bank details decrypt) → keep old copy off but not deleted. Agree first: who maintains/updates, code access, govt security audit (CERT-In empanelled) / HTTPS / offline needs, backups, ownership/licence, whether only one agency's data moves (would need a data split). Offered to prepare a migration guide, plain-Docker version, or per-agency export when the time comes.
 
 ## Next (offered / not started)
+- Bulk "Renumber to agency series" for old EMP- IDs; "Show delete link" toggle on Attendance only (done via the global switch)
 - (Partly done in v2.0.0 as the PI portal.) **Deferred: wider client portal** – client admin + PI logins scoped to their client/projects; PI enters/uploads and approves attendance (locks month); client sees staff list (no bank/Aadhaar/PAN/phones), vacancies, bills and status; restricted from payroll, masters, other clients. Needs user roles, strict scoping with tests, approval audit trail, Users screen, login security. Check first whether ICMR accepts online PI approval instead of a signed certificate. Planned as v2.0.0.
 - Attendance Excel template (per project/month download + upload with check screen; optional all-projects workbook) – proposed, waiting on owner's answers (per project vs all projects; who fills it)
 - Cashfree Payouts (account verification, salary batches, webhooks), SMS (DLT) and WhatsApp messages, payslips per employee. Still to ask: does each agency have its own Cashfree account?
