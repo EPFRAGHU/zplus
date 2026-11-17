@@ -1,12 +1,54 @@
 <x-layouts.app title="Employee Management" crumb="Masters / <span class='text-danger'>Employee Management</span>">
   <form method="get" class="z-card p-3 mb-3 d-flex gap-2 flex-wrap align-items-end">
-    <div class="flex-grow-1" style="min-width:280px"><label class="form-label small text-secondary mb-1" for="emp">Employee</label>
-      <select id="emp" name="employee" class="form-select" onchange="this.form.submit()">
+    <div class="flex-grow-1 position-relative" style="min-width:280px"><label class="form-label small text-secondary mb-1" for="emp-search">Employee</label>
+      {{-- Type part of the name, Emp ID, post or project: matching employees drop down; click one (or Enter) to open their details.
+           The plain list below stays as the fallback when JavaScript is off. --}}
+      <input id="emp-search" type="search" class="form-control d-none" autocomplete="off" role="combobox" aria-expanded="false" aria-controls="emp-results" aria-autocomplete="list"
+             placeholder="Type the employee's name or Emp ID…" value="{{ $employee ? $employee->emp_code.' · '.$employee->name : '' }}">
+      <ul id="emp-results" class="list-group position-absolute w-100 shadow d-none" role="listbox" style="z-index:1050;max-height:360px;overflow-y:auto;top:100%"></ul>
+      <select id="emp" name="employee" class="form-select" onchange="this.form.submit()" aria-label="Employee">
         <option value="">Choose an employee to see all their details</option>
         @foreach($employees->groupBy(fn ($e) => $e->agency?->name ?? 'No agency') as $agencyName => $list)
-          <optgroup label="{{ $agencyName }}">@foreach($list as $e)<option value="{{ $e->id }}" @selected($employee?->id === $e->id)>{{ $e->emp_code }} · {{ $e->name }}{{ $e->post ? ' · '.$e->post->designation.' ('.$e->post->project->code.')' : '' }}</option>@endforeach</optgroup>
+          <optgroup label="{{ $agencyName }}">@foreach($list as $e)<option value="{{ $e->id }}" data-agency="{{ $agencyName }}" @selected($employee?->id === $e->id)>{{ $e->emp_code }} · {{ $e->name }}{{ $e->post ? ' · '.$e->post->designation.' ('.$e->post->project->code.')' : '' }}</option>@endforeach</optgroup>
         @endforeach
       </select></div>
+    <style>#emp-results .list-group-item.active .text-secondary{color:rgba(255,255,255,.85)!important}</style>
+    <script>
+    (() => {
+      const select = document.getElementById('emp'), input = document.getElementById('emp-search'), list = document.getElementById('emp-results');
+      const people = [...select.options].filter(o => o.value).map(o => ({ id: o.value, text: o.text, agency: o.dataset.agency || '', key: (o.text + ' ' + (o.dataset.agency || '')).toLowerCase() }));
+      select.classList.add('d-none'); input.classList.remove('d-none');
+      let shown = [], active = -1;
+      const close = () => { list.classList.add('d-none'); input.setAttribute('aria-expanded', 'false'); active = -1; };
+      const choose = (p) => { input.value = p.text; close(); select.value = p.id; select.form.submit(); };
+      const paint = () => [...list.children].forEach((li, i) => { li.classList.toggle('active', i === active); if (i === active) li.scrollIntoView({ block: 'nearest' }); });
+      const render = () => {
+        const words = input.value.toLowerCase().split(/\s+/).filter(Boolean);
+        const hits = people.filter(p => words.every(w => p.key.includes(w)));
+        shown = hits.slice(0, 50); active = shown.length ? 0 : -1; list.innerHTML = '';
+        if (!shown.length) {
+          const li = document.createElement('li'); li.className = 'list-group-item small text-secondary'; li.textContent = 'No employee matches "' + input.value + '"'; list.appendChild(li);
+        }
+        shown.forEach((p, i) => {
+          const li = document.createElement('li'); li.className = 'list-group-item list-group-item-action'; li.setAttribute('role', 'option'); li.style.cursor = 'pointer';
+          li.textContent = p.text; const tag = document.createElement('span'); tag.className = 'small text-secondary ms-2'; tag.textContent = p.agency; li.appendChild(tag);
+          li.addEventListener('mousedown', e => { e.preventDefault(); choose(p); }); li.addEventListener('mouseenter', () => { active = i; paint(); });
+          list.appendChild(li);
+        });
+        if (hits.length > 50) { const li = document.createElement('li'); li.className = 'list-group-item small text-secondary'; li.textContent = (hits.length - 50) + ' more – keep typing to narrow down'; list.appendChild(li); }
+        list.classList.remove('d-none'); input.setAttribute('aria-expanded', 'true'); paint();
+      };
+      input.addEventListener('input', render);
+      input.addEventListener('focus', () => { input.select(); render(); });
+      input.addEventListener('blur', () => setTimeout(close, 150));
+      input.addEventListener('keydown', e => {
+        if (e.key === 'ArrowDown' && shown.length) { e.preventDefault(); active = Math.min(active + 1, shown.length - 1); paint(); }
+        else if (e.key === 'ArrowUp' && shown.length) { e.preventDefault(); active = Math.max(active - 1, 0); paint(); }
+        else if (e.key === 'Enter') { e.preventDefault(); if (active >= 0 && shown[active]) choose(shown[active]); }
+        else if (e.key === 'Escape') { close(); }
+      });
+    })();
+    </script>
     <button class="btn btn-outline-secondary">Show</button>
   </form>
 

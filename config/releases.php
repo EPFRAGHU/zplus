@@ -12,6 +12,10 @@ return [
     'timezone' => 'Asia/Kolkata',      // release times are Indian Standard Time
 
     'releases' => [
+        ['version' => '2.12.1', 'date' => '2026-11-17 08:29', 'title' => 'Search box for employees', 'type' => 'fix', 'notes' => [
+            'Employee Management: type part of the name, Emp ID, post, project or agency in the Employee box; matching employees drop down as you type',
+            'Click one (or use the arrow keys and Enter) to open all their details, as before',
+        ]],
         ['version' => '2.12.0', 'date' => '2026-11-17 08:21', 'title' => 'E-mail to client', 'type' => 'feature', 'notes' => [
             '"E-mail to client" box on every sub-bill (sends the sub-bill + covering letter) and tax invoice (sends the tax invoice + all its sub-bills), from the agency\'s own Gmail',
             'The DSC-signed copy is attached when it was uploaded after the last change; otherwise the PDF is made fresh and marked "not signed"',
