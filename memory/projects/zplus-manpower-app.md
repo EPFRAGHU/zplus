@@ -123,6 +123,7 @@ What moves: code (GitHub or a copy), MySQL dump, uploaded files (`zplus-storage`
 - Cashfree Payouts (account verification, salary batches, webhooks), SMS (DLT) and WhatsApp messages, payslips per employee. Still to ask: does each agency have its own Cashfree account?
 
 ## Lessons
+- **Owner (17 Nov 2026): this is a production-grade app with real data – be careful with every modification** (rules in CLAUDE.md → Preferences, first item)
 - Blade: a `@php … @endphp` block in a view that also uses inline `@php(...)` broke compilation ("unexpected endif"); build helper data (e.g. sort links) in the controller instead
 - **Every push redeploys (Coolify auto-deploy) and RECREATES the db container** (new name, a few seconds down). On 16 Nov a memory-only push killed the owner's mysqldump mid-way ("Lost connection … 2013"). Don't push while the owner is backing up / recalculating; ask first. A backup is good only with exit code 0 and last line `-- Dump completed on …` (≈170 KB, ~21 tables with INSERTs).
 - **PI = Project In-charge**, never "Principal Investigator" – owner corrected this

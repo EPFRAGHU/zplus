@@ -41,6 +41,13 @@ Owner/operator of the manpower business behind **M/S Z Plus Surakhya Seva** and 
 → Details, status and open questions: memory/projects/zplus-manpower-app.md
 
 ## Preferences (how to work on this)
+- **PRODUCTION-GRADE APP, LIVE WITH REAL DATA (owner, 17 Nov 2026): be careful with every code change.**
+  - Every push to the branch auto-deploys to https://zplus.epf-dashboard.online and briefly restarts the database: push only finished, tested work; never while the owner is backing up or working on bills; memory-only pushes too
+  - Database changes ADDITIVE ONLY (new tables/columns, safe defaults); never drop, rename or rewrite existing data; old bills keep their figures unless the owner asks
+  - Before anything that changes or deletes real records (recalculate, reset, renumber, delete), tell the owner to take a backup first and check it ends with "-- Dump completed"
+  - Destructive actions: Admin only, refuse paid/locked data, confirm, record in the Activity log
+  - Read the code before changing it; keep changes small; run the full `php artisan test`; add tests for the change and for cross-agency safety; render and look at PDFs
+  - Say plainly when a change alters amounts, numbers or behaviour; when unsure what the owner means, ask before building
 - **Review every change against the owner's checklist before calling it done** and report in its format (Verdict · Critical/High/Medium/Low findings with fixes · fixed code · what to test). Don't invent problems; say plainly if unsafe; say when a fix changes behaviour; ask if config is missing → memory/context/review-checklist.md
 - Agency and client are shown on every page and PDF; lists are grouped into dark **agency blocks** with light-blue **client blocks** (`<x-client-block>`)
 - One agency per client record: a client served by both agencies is added twice
