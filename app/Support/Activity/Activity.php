@@ -11,7 +11,7 @@ use Throwable;
 final class Activity
 {
     /** Fields never shown in full: only "changed" plus the last 4 digits. */
-    public const SECRET = ['account_number', 'aadhaar', 'bank_account_no'];
+    public const SECRET = ['account_number', 'aadhaar', 'bank_account_no', 'pan'];
 
     /** Fields that are noise in the log. */
     public const IGNORED = ['created_at', 'updated_at', 'remember_token', 'last_login_at', 'account_last4', 'aadhaar_last4', 'paid_days'];
@@ -98,6 +98,9 @@ final class Activity
     {
         if ($field === 'password' || $field === 'pin_hash') {
             return $value === null ? null : '(set)';
+        }
+        if ($field === 'pan') {
+            return $value === null || $value === '' ? null : '••••••'.substr((string) $value, -4);   // security audit M5
         }
         if (in_array($field, self::SECRET, true)) {
             $digits = preg_replace('/\D/', '', (string) $value);

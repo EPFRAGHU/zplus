@@ -65,4 +65,23 @@ class HardeningTest extends TestCase
         $this->assertSame(3, $found);
         unlink($file);
     }
+
+    /** M5: PAN is shown in full only to those who may see bank details, and never in full in the Activity log. */
+    public function test_pan_is_masked_for_operators_and_in_the_activity_log(): void
+    {
+        config(['approvals.staff' => false]);
+        $employee = \App\Models\Employee::query()->create(['emp_code' => 'SW-1001', 'name' => 'Staff', 'agency_id' => $this->r['agency']->id,
+            'client_id' => $this->r['client']->id, 'status' => 'active', 'pan' => 'ABCDE1234F']);
+        $this->get(route('employees.show', $employee))->assertSee('ABCDE1234F');                       // owner / Admin / Accounts
+        $operator = User::factory()->create(['role' => 'supervisor']);
+        $this->actingAs($operator)->get(route('employees.show', $employee))->assertDontSee('ABCDE1234F')->assertSee('234F');
+        $this->actingAs($operator)->get(route('staff.index', ['employee' => $employee->id]))->assertDontSee('ABCDE1234F');
+
+        $this->actingAs($this->owner);
+        $employee->update(['pan' => 'PQRST9876Z']);
+        $logged = \App\Models\ActivityLog::query()->where('subject_id', $employee->id)->get()->toJson();
+        $this->assertStringNotContainsString('ABCDE1234F', $logged);
+        $this->assertStringNotContainsString('PQRST9876Z', $logged);
+        $this->assertStringContainsString('876Z', $logged);
+    }
 }

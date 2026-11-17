@@ -77,7 +77,7 @@
           <dt class="col-sm-4 text-secondary fw-normal">Bank</dt><dd class="col-sm-8">{{ $employee->bank_name ?? '—' }} · <span class="mono">{{ $showBank ? ($employee->account_number ?? '—') : ($employee->maskedAccount() ?? '—') }}</span> · <span class="mono">{{ $employee->ifsc ?? '—' }}</span>
             @if(! $employee->ifsc || ! $employee->account_last4)<span class="badge text-bg-danger">Incomplete</span>@endif</dd>
           <dt class="col-sm-4 text-secondary fw-normal">Name as per bank</dt><dd class="col-sm-8">{{ $employee->account_holder ?? '—' }}</dd>
-          <dt class="col-sm-4 text-secondary fw-normal">PAN</dt><dd class="col-sm-8 mono">{{ $employee->pan ?? '—' }}</dd>
+          <dt class="col-sm-4 text-secondary fw-normal">PAN</dt><dd class="col-sm-8 mono">{{ (auth()->user()->can('view-bank-details') ? $employee->pan : $employee->maskedPan()) ?? '—' }}</dd>
           <dt class="col-sm-4 text-secondary fw-normal">Aadhaar</dt><dd class="col-sm-8 mono">{{ $employee->aadhaar_last4 ? 'XXXX XXXX '.$employee->aadhaar_last4 : '—' }}</dd>
           <dt class="col-sm-4 text-secondary fw-normal">UAN · ESIC IP</dt><dd class="col-sm-8 mono">{{ $employee->uan ?? '—' }} · {{ $employee->esic_ip ?? '—' }}</dd>
           <dt class="col-sm-4 text-secondary fw-normal">EPF · ESIC · TDS</dt><dd class="col-sm-8">{{ $employee->pf_applicable ? 'EPF on' : 'EPF off' }} · {{ $employee->esic_applicable ? 'ESIC on' : 'ESIC off' }} · {{ $employee->tds_applicable ? 'TDS on' : 'TDS off' }}</dd>

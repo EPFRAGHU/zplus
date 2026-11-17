@@ -78,6 +78,12 @@ class Employee extends Model
         return (string) ($this->rate_override ?? $this->post?->rate ?? '0');
     }
 
+    /** PAN for people who may not see bank details (Operators): last 4 characters only (security audit M5). */
+    public function maskedPan(): ?string
+    {
+        return $this->pan ? '••••••'.substr($this->pan, -4) : null;
+    }
+
     public function maskedAccount(): ?string
     {
         return $this->account_last4 ? '••••'.$this->account_last4 : null;

@@ -23,7 +23,7 @@
           <dt class="col-sm-4 text-secondary fw-normal">Mobile</dt><dd class="col-sm-8">{{ $employee->mobile ?? '—' }}</dd>
           <dt class="col-sm-4 text-secondary fw-normal">Bank</dt><dd class="col-sm-8">{{ $employee->bank_name ?? '—' }} <span class="mono">{{ $employee->maskedAccount() }}</span> <span class="mono">{{ $employee->ifsc }}</span>
             @if(! $employee->ifsc || ! $employee->account_last4)<span class="badge text-bg-danger">Incomplete</span>@endif</dd>
-          <dt class="col-sm-4 text-secondary fw-normal">PAN</dt><dd class="col-sm-8 mono">{{ $employee->pan ?? '—' }}</dd>
+          <dt class="col-sm-4 text-secondary fw-normal">PAN</dt><dd class="col-sm-8 mono">{{ (auth()->user()->can('view-bank-details') ? $employee->pan : $employee->maskedPan()) ?? '—' }}</dd>
           <dt class="col-sm-4 text-secondary fw-normal">Aadhaar</dt><dd class="col-sm-8 mono">{{ $employee->aadhaar_last4 ? 'XXXX XXXX '.$employee->aadhaar_last4 : '—' }}</dd>
         </dl>
       </div>
