@@ -1,7 +1,7 @@
 # ZPlus Manpower app
 
 **Repo:** epfraghu/zplus, branch `claude/manpower-app-foundation`
-**Status:** Live. Version **2.15.0** pushed (2026-11-17 08:21 IST). Coolify AUTO-DEPLOYS on every push to the branch (seen 16 Nov: v2.4.0 went live by itself) – pushing = going live. 191 tests passing. Project started **01 Nov 2026, 04:01 PM IST**.
+**Status:** Live. Version **2.15.1** committed (2026-11-17 08:21 IST). Coolify AUTO-DEPLOYS on every push to the branch (seen 16 Nov: v2.4.0 went live by itself) – pushing = going live. 206 tests passing. Project started **01 Nov 2026, 04:01 PM IST**.
 **Live URL:** https://zplus.epf-dashboard.online (admin: the owner's Gmail; password was shown in chat once, owner told to change it via tinker)
 
 ## Stack
@@ -176,4 +176,20 @@ What moves: code (GitHub or a copy), MySQL dump, uploaded files (`zplus-storage`
     - a Super Admin can make an active Admin of both agencies a Super Admin (`make_super_admin` on user edit)
   - **Tests:** `ApprovalTest`. Older rule tests call `withoutOwnerApproval()` (tests/TestCase).
 - **v2.15.0 staff approval (built 2026-11-17)**: `App\Services\Approvals\StaffChanges` (config `approvals.staff`): new employee created Inactive + approval `new_employee` (approve → Active; edits while unapproved saved, status forced inactive; "Send again" `employees.send-for-approval`); WATCHED fields post_id, rate_override, bank_name, account_holder, account_number, ifsc, pf/esic/tds held as `employee_change` (one open per employee; `changes` encrypted:array field=>[old,new]; fingerprint = old values, approve refuses if changed meanwhile); post rate held as `post_rate`. Wired into EmployeeController store/update/statutory, PostController update, Data Upload EmployeeSheet/PostSheet, GemWorkbookImporter. Approvals table + employee_id, post_id, changes. Tests: StaffApprovalTest; older tests use withoutOwnerApproval() (also sets approvals.staff=false).
+- **Security audit (17 Nov 2026)**:
+  - **Phase 1:** read-only report kept OUT of git (scratchpad SECURITY_AUDIT.md, sent to the owner).
+  - **Phase 2 fixes (v2.15.1, one commit each):**
+    - H2 project-name JS injection (data-confirm)
+    - M2 Activity export as text
+    - M5 PAN masked (`Employee::maskedPan`, Activity SECRET 'pan'; no data rewrite, owner chose mask only)
+    - M1 CSP (`SecurityHeaders::CSP`, still 'unsafe-inline' for scripts)
+    - L2 `filesystems.local.serve=false`
+    - L3 `trustHosts` (APP_URL domain + localhost/127.0.0.1 for the health check: APP_URL in Coolify MUST be the real domain)
+    - L4 `throttle:20,1` on heavy routes
+    - L7 robots/X-Robots-Tag
+    - L8 max rate 9999999
+    - H3 Laravel 13.43 / Symfony 7.4.23
+  - **Tests:** tests/Feature/Security/HardeningTest + AttackSimulationTest.
+  - **Owner declined:** 2-step login, PAN encryption.
+  - **Remaining / manual:** H1 daily backups (Coolify + off-server copy + files volume), M4 backup before migration pushes, L1 root container, L5 lock-out (accepted), L6 session 120 min, L9 PI sees unapproved bill PDFs, inline scripts → 'unsafe-inline'.
 

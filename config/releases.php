@@ -12,6 +12,13 @@ return [
     'timezone' => 'Asia/Kolkata',      // release times are Indian Standard Time
 
     'releases' => [
+        ['version' => '2.15.1', 'date' => '2026-11-17 20:46', 'title' => 'Security hardening', 'type' => 'fix', 'notes' => [
+            'Security check of the whole app; no bill, amount, number or approval changes',
+            'Closed a way to hide script in a project name (Delete project pop-ups); browser security policy (CSP) added on every page',
+            'Activity log Excel export: names and notes can never become Excel formulas',
+            'PAN shown in full only to Admin, Accounts and the owner (Operators see the last 4 characters) and masked in the Activity log',
+            'Laravel and Symfony updated with their security fixes; the app answers only for its own domain; heavy downloads limited to 20 a minute; kept out of search engines; upper limit on rates',
+        ]],
         ['version' => '2.15.0', 'date' => '2026-11-17 19:52', 'title' => 'Owner approval of staff and pay changes', 'type' => 'feature', 'notes' => [
             'New employees (added by hand, by Data Upload or by the GeM workbook import) stay Inactive – not on attendance or bills – until the owner approves; then they become Active',
             'Changes of an employee\'s post, own rate, bank name, account holder, account number, IFSC and the EPF / ESIC / TDS switches wait for the owner; the old details stay in use until approved. Name, mobile, address and other details are saved at once',
