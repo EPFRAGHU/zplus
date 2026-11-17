@@ -107,6 +107,8 @@ Size (non-blank lines): ~6,000 app code (PHP 3,010, Blade 2,004, migrations 704)
 - [ ] Employees with old EMP- IDs: change by hand (next free ID shown on Add employee) or ask for a bulk "Renumber to agency series" (offered, not built)
 - [ ] TDS 2%: switch off for any staff who should not have it (Employees list switches)
 - [ ] Coolify: daily DB backups; consider turning off Auto Deploy (every push goes live)
+- [ ] DSC: test once – sign one tax invoice with the Class 3 token (Adobe Reader "Use a certificate" or JSignPdf, keystore WINDOWS-MY), upload it under "Signed copy (DSC)", check Adobe shows "Signature is valid"; confirm ICMR accepts it
+- Monthly routine (v2.11.0): lock attendance → bills → tax invoice → Sub-bills page (month + agency) "Download all PDFs (ZIP)" → sign all in JSignPdf → upload each signed copy on its page → e-mail the signed copies from the agency Gmail
 - Done: agencies + letterheads, Super Admin password, zplussurakhyaseva@gmail.com Admin, v2.4.0 migration ran 16 Nov (backup ~/zplus-backup-2026-11-16.sql, ~/zplus-backup-before-recalc.sql)
 
 ## Open questions for the user
