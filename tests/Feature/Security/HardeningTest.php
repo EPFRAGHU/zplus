@@ -105,4 +105,18 @@ class HardeningTest extends TestCase
         auth()->logout();
         $this->get('/storage/certificates/x.pdf')->assertNotFound();
     }
+
+    /** L3: in production only the site's own domain (and the health check's 127.0.0.1 / localhost) is answered. */
+    public function test_only_the_sites_own_host_names_are_trusted(): void
+    {
+        config(['app.url' => 'https://zplus.epf-dashboard.online']);
+        $patterns = (new \Illuminate\Http\Middleware\TrustHosts(app()))->hosts();
+        $trusted = fn (string $host) => collect($patterns)->contains(fn ($p) => preg_match('{'.$p.'}i', $host));
+        foreach (['zplus.epf-dashboard.online', 'localhost', '127.0.0.1'] as $ok) {
+            $this->assertTrue($trusted($ok), $ok);
+        }
+        foreach (['evil.example.com', 'zplus.epf-dashboard.online.evil.com', 'epf-dashboard.online.attacker.in'] as $bad) {
+            $this->assertFalse($trusted($bad), $bad);
+        }
+    }
 }
