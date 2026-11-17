@@ -12,7 +12,7 @@ Owner/operator of the manpower business behind **M/S Z Plus Surakhya Seva** and 
 | **SWH** / SWACHHA | Manpower agency "Since-1972", GSTIN 21AADAS8034Q1Z6 (printed letterhead has a typo: 21AAADAS…) |
 | **ICMR** / NIHR / RMRCBB | ICMR-NIHR (RMRCBB), Bhubaneswar: the client both agencies supply staff to |
 | **PI** | Project In-charge of a project (NOT "Principal Investigator"); signs the monthly attendance certificate |
-→ More: memory/context/business.md, memory/glossary.md
+→ More: memory/context/business.md, memory/glossary.md, memory/context/gem-contracts-2026-27.md (5 SWACHHA GeM contracts Oct 2026–Sep 2027)
 
 ## Terms
 | Term | Meaning |
