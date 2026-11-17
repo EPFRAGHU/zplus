@@ -53,7 +53,7 @@ class PostController extends Controller
             'pi_name' => ['nullable', 'string', 'max:255'],
             'designation' => ['required', 'string', 'max:255'],
             'sanctioned_qty' => ['required', 'integer', 'min:1', 'max:999'],
-            'rate' => ['required', 'numeric', 'min:0', 'decimal:0,2'],
+            'rate' => ['required', 'numeric', 'min:0', 'max:9999999', 'decimal:0,2'],
         ], [
             'client_id.required' => 'Choose the client first.',
             'gem_contract_id.required_if' => 'Choose the GeM contract, or switch to "New contract".',
@@ -124,7 +124,7 @@ class PostController extends Controller
         return $request->validate([
             'designation' => ['required', 'string', 'max:255'],
             'sanctioned_qty' => ['required', 'integer', 'min:0', 'max:999'],
-            'rate' => ['required', 'numeric', 'min:0', 'decimal:0,2'],
+            'rate' => ['required', 'numeric', 'min:0', 'max:9999999', 'decimal:0,2'],
         ]);
     }
 }

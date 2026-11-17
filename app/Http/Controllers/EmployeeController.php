@@ -194,7 +194,7 @@ class EmployeeController extends Controller
             'joining_date' => ['nullable', 'date'],
             'exit_date' => ['nullable', 'date', 'after_or_equal:joining_date'],
             'status' => ['required', Rule::in(array_keys(Employee::STATUSES))],
-            'rate_override' => ['nullable', 'numeric', 'min:0', 'decimal:0,2'],
+            'rate_override' => ['nullable', 'numeric', 'min:0', 'max:9999999', 'decimal:0,2'],
             'bank_name' => ['nullable', 'string', 'max:255'],
             'account_holder' => ['nullable', 'string', 'max:255'],
             'account_number' => ['nullable', 'regex:/^\d{6,20}$/'],

@@ -57,7 +57,7 @@ final class PostSheet extends MasterSheet
         $no = strtoupper((string) $v['contract_no']);
         $code = strtoupper((string) $v['project_code']);
         $errors = $this->validate($v, ['designation' => ['nullable', 'max:255'], 'sanctioned_qty' => ['nullable', 'integer', 'min:0', 'max:999'],
-            'rate' => ['nullable', 'numeric', 'min:0', 'decimal:0,2']]);
+            'rate' => ['nullable', 'numeric', 'min:0', 'max:9999999', 'decimal:0,2']]);
         $project = $this->projects["{$no}|{$code}"] ?? null;
         if ($no && $code && ! $project) {
             $errors[] = "Project {$code} under contract {$no} is not in the app. Upload the projects first.";

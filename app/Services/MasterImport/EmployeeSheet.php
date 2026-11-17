@@ -111,7 +111,7 @@ final class EmployeeSheet extends MasterSheet
         $errors = $this->validate($v, [
             'emp_code' => ['nullable', 'max:20'], 'name' => ['nullable', 'max:255'],
             'mobile' => ['nullable', 'regex:/^[6-9]\d{9}$/'], 'whatsapp' => ['nullable', 'regex:/^[6-9]\d{9}$/'], 'email' => ['nullable', 'email'],
-            'dob' => ['nullable', 'date', 'before:today'], 'rate_override' => ['nullable', 'numeric', 'min:0'],
+            'dob' => ['nullable', 'date', 'before:today'], 'rate_override' => ['nullable', 'numeric', 'min:0', 'max:9999999'],
             'account_number' => ['nullable', 'regex:/^\d{6,20}$/'], 'upi_id' => ['nullable', 'regex:/^[\w.\-]{2,}@[a-zA-Z]{2,}$/'],
             'pan' => ['nullable', 'regex:/^[A-Z]{5}\d{4}[A-Z]$/'], 'aadhaar' => ['nullable', 'regex:/^\d{12}$/'],
             'uan' => ['nullable', 'digits:12'], 'esic_ip' => ['nullable', 'digits_between:10,17'],

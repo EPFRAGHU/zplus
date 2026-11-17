@@ -137,4 +137,12 @@ class HardeningTest extends TestCase
         $this->get(route('login'))->assertHeader('X-Robots-Tag', 'noindex, nofollow');
         $this->assertStringContainsString('Disallow: /', file_get_contents(public_path('robots.txt')));
     }
+
+    /** L8: rates have an upper limit (₹99,99,999), so a slip cannot create an absurd salary. */
+    public function test_rates_have_an_upper_limit(): void
+    {
+        $post = $this->r['contract']->projects()->create(['name' => 'Lab', 'code' => 'LAB'])->posts()->create(['designation' => 'A', 'sanctioned_qty' => 1, 'rate' => 30000]);
+        $this->put(route('posts.update', $post), ['designation' => 'A', 'sanctioned_qty' => 1, 'rate' => 300000000])->assertSessionHasErrors('rate');
+        $this->assertSame('30000.00', (string) $post->fresh()->rate);
+    }
 }
