@@ -43,4 +43,26 @@ class HardeningTest extends TestCase
             $this->assertStringContainsString('data-confirm="Delete project X&#039;); fetch(&#039;/approvals&#039;)', $html, $url);
         }
     }
+
+    /** M2: text in the Activity log export can never become a live Excel formula. */
+    public function test_activity_export_writes_formula_like_text_as_plain_text(): void
+    {
+        $payload = '=HYPERLINK("https://example.invalid/steal","Click")';
+        \App\Support\Activity\Activity::log('updated', null, [], $payload, section: '+SUM(1,1)', label: '@cmd');
+        $response = $this->get(route('activity.export'))->assertOk();
+        $file = tempnam(sys_get_temp_dir(), 'act');
+        file_put_contents($file, $response->streamedContent());
+        $ws = \PhpOffice\PhpSpreadsheet\IOFactory::load($file)->getActiveSheet();
+        $found = 0;
+        foreach ($ws->getRowIterator(2) as $row) {
+            foreach ($row->getCellIterator() as $cell) {
+                if (in_array((string) $cell->getValue(), [$payload, '+SUM(1,1)', '@cmd'], true)) {
+                    $this->assertSame(\PhpOffice\PhpSpreadsheet\Cell\DataType::TYPE_STRING, $cell->getDataType());
+                    $found++;
+                }
+            }
+        }
+        $this->assertSame(3, $found);
+        unlink($file);
+    }
 }

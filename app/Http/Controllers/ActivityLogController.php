@@ -39,10 +39,14 @@ class ActivityLogController extends Controller
         $ws->getStyle('A1:I1')->getFont()->setBold(true);
         $r = 2;
         foreach ($this->query($request)->limit(20000)->cursor() as $log) {
-            $ws->fromArray([
+            $values = [
                 $log->created_at->timezone('Asia/Kolkata')->format('d-m-Y H:i:s'), $log->user_name, User::ROLES[$log->user_role] ?? $log->user_role,
                 ActivityLog::ACTIONS[$log->action][0] ?? $log->action, $log->section, $log->subject_label, self::changesText($log->changes), $log->note, $log->ip,
-            ], null, "A{$r}");
+            ];
+            // Every cell as plain text: a name or note starting with = + - @ must never become an Excel formula (security audit M2).
+            foreach ($values as $i => $value) {
+                $ws->setCellValueExplicit([$i + 1, $r], (string) $value, \PhpOffice\PhpSpreadsheet\Cell\DataType::TYPE_STRING);
+            }
             $r++;
         }
         foreach (['A' => 18, 'B' => 20, 'C' => 12, 'D' => 14, 'E' => 16, 'F' => 34, 'G' => 70, 'H' => 40, 'I' => 15] as $col => $w) {
