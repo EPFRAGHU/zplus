@@ -119,4 +119,14 @@ class HardeningTest extends TestCase
             $this->assertFalse($trusted($bad), $bad);
         }
     }
+
+    /** L4: heavy downloads are limited to 20 a minute per user. */
+    public function test_heavy_downloads_are_rate_limited(): void
+    {
+        $url = route('activity.export');
+        for ($i = 1; $i <= 20; $i++) {
+            $this->get($url)->assertOk();
+        }
+        $this->get($url)->assertStatus(429);
+    }
 }

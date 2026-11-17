@@ -52,7 +52,7 @@ Route::middleware(['auth', 'active', 'role:admin,accounts,supervisor', \App\Http
 
     // Activity log (Super Admin)
     Route::get('activity', [\App\Http\Controllers\ActivityLogController::class, 'index'])->name('activity.index');
-    Route::get('activity/export', [\App\Http\Controllers\ActivityLogController::class, 'export'])->name('activity.export');
+    Route::get('activity/export', [\App\Http\Controllers\ActivityLogController::class, 'export'])->middleware('throttle:20,1')->name('activity.export');
 
     // Users (Admin)
     Route::get('users', [UserController::class, 'index'])->name('users.index');
@@ -108,19 +108,19 @@ Route::middleware(['auth', 'active', 'role:admin,accounts,supervisor', \App\Http
     Route::get('attendance/{sheet}/bank-letter', [AttendanceController::class, 'bankLetter'])->name('attendance.bank-letter');
     Route::get('bank-letters', [\App\Http\Controllers\BankLetterController::class, 'index'])->name('bank-letters.index');
     Route::get('bank-letters/pdf', [\App\Http\Controllers\BankLetterController::class, 'pdf'])->name('bank-letters.pdf');
-    Route::get('month-documents.zip', [\App\Http\Controllers\SignedDocumentController::class, 'zip'])->name('month-documents.zip');
+    Route::get('month-documents.zip', [\App\Http\Controllers\SignedDocumentController::class, 'zip'])->middleware('throttle:20,1')->name('month-documents.zip');
     Route::post('invoices/{invoice}/signed', [\App\Http\Controllers\SignedDocumentController::class, 'storeForInvoice'])->name('invoices.signed');
     Route::post('tax-invoices/{taxInvoice}/signed', [\App\Http\Controllers\SignedDocumentController::class, 'storeForTaxInvoice'])->name('tax-invoices.signed');
     Route::post('bank-letters/signed', [\App\Http\Controllers\SignedDocumentController::class, 'storeForBankLetter'])->name('bank-letters.signed');
     Route::post('invoices/{invoice}/email', [\App\Http\Controllers\AgencyEmailController::class, 'invoice'])->middleware('throttle:10,1')->name('invoices.email');
     Route::post('tax-invoices/{taxInvoice}/email', [\App\Http\Controllers\AgencyEmailController::class, 'taxInvoice'])->middleware('throttle:10,1')->name('tax-invoices.email');
-    Route::post('contracts/{contract}/import', [\App\Http\Controllers\ContractImportController::class, 'upload'])->name('contracts.import');
+    Route::post('contracts/{contract}/import', [\App\Http\Controllers\ContractImportController::class, 'upload'])->middleware('throttle:20,1')->name('contracts.import');
     Route::get('contracts/{contract}/import', [\App\Http\Controllers\ContractImportController::class, 'show'])->name('contracts.import.show');
     Route::post('contracts/{contract}/import/save', [\App\Http\Controllers\ContractImportController::class, 'store'])->name('contracts.import.store');
     Route::post('contracts/{contract}/papers', [\App\Http\Controllers\MonthlyPaperController::class, 'store'])->name('papers.store');
     Route::get('papers/{paper}', [\App\Http\Controllers\MonthlyPaperController::class, 'show'])->name('papers.show');
     Route::delete('papers/{paper}', [\App\Http\Controllers\MonthlyPaperController::class, 'destroy'])->name('papers.destroy');
-    Route::get('contracts/{contract}/bill-pack', [\App\Http\Controllers\MonthlyPaperController::class, 'pack'])->name('contracts.bill-pack');
+    Route::get('contracts/{contract}/bill-pack', [\App\Http\Controllers\MonthlyPaperController::class, 'pack'])->middleware('throttle:20,1')->name('contracts.bill-pack');
     Route::get('approvals', [\App\Http\Controllers\ApprovalController::class, 'index'])->name('approvals.index');
     Route::post('approvals/{approval}/approve', [\App\Http\Controllers\ApprovalController::class, 'approve'])->name('approvals.approve');
     Route::post('approvals/{approval}/return', [\App\Http\Controllers\ApprovalController::class, 'returnBack'])->name('approvals.return');
@@ -157,11 +157,11 @@ Route::middleware(['auth', 'active', 'role:admin,accounts,supervisor', \App\Http
     // Master data from Excel templates
     Route::get('data-upload', [\App\Http\Controllers\MasterImportController::class, 'index'])->name('master-import.index');
     Route::get('data-upload/{type}/template', [\App\Http\Controllers\MasterImportController::class, 'template'])->name('master-import.template');
-    Route::post('data-upload/{type}/check', [\App\Http\Controllers\MasterImportController::class, 'preview'])->name('master-import.preview');
+    Route::post('data-upload/{type}/check', [\App\Http\Controllers\MasterImportController::class, 'preview'])->middleware('throttle:20,1')->name('master-import.preview');
     Route::post('data-upload/{type}/save', [\App\Http\Controllers\MasterImportController::class, 'commit'])->name('master-import.commit');
 
     // Excel import
     Route::get('import', [ImportController::class, 'create'])->name('import.create');
-    Route::post('import/preview', [ImportController::class, 'preview'])->name('import.preview');
+    Route::post('import/preview', [ImportController::class, 'preview'])->middleware('throttle:20,1')->name('import.preview');
     Route::post('import/commit', [ImportController::class, 'commit'])->name('import.commit');
 });
