@@ -1,7 +1,7 @@
 # ZPlus Manpower app
 
 **Repo:** epfraghu/zplus, branch `claude/manpower-app-foundation`
-**Status:** Live. Version **2.13.0** pushed (2026-11-17 08:21 IST). Coolify AUTO-DEPLOYS on every push to the branch (seen 16 Nov: v2.4.0 went live by itself) – pushing = going live. 176 tests passing. Project started **01 Nov 2026, 04:01 PM IST**.
+**Status:** Live. Version **2.14.0** pushed (2026-11-17 08:21 IST). Coolify AUTO-DEPLOYS on every push to the branch (seen 16 Nov: v2.4.0 went live by itself) – pushing = going live. 185 tests passing. Project started **01 Nov 2026, 04:01 PM IST**.
 **Live URL:** https://zplus.epf-dashboard.online (admin: the owner's Gmail; password was shown in chat once, owner told to change it via tinker)
 
 ## Stack
@@ -146,7 +146,7 @@ What moves: code (GitHub or a copy), MySQL dump, uploaded files (`zplus-storage`
 - In this cloud sandbox, Docker builds can't reach Debian mirrors (proxy 403); test images by injecting the proxy CA only in a scratch Dockerfile. Don't `pkill -f` a pattern that matches the running shell command.
 - **GeM contract tools (v2.13.0, 2026-11-17)**: gem_contracts `start_date`, `end_date`, `contract_value` (+ `expiry()`, `daysLeft()`, partial `contracts/_expiry`); import posts from GeM contract PDF (`App\Services\Contracts\GemContractPdf`, smalot/pdfparser; splits posts at "Designation :" after "Type of Function"; verifies (m×1.18 + m×sc%)×months×qty against the printed total – all 5 real contracts matched); `ContractImportController` (upload → session → check page → store, manage-masters, skips same designation+rate, refuses other contract no.); `monthly_papers` table + `MonthlyPaperController` (billing; salary_proof needs view-bank-details; remove = reset-month/Admin) and `App\Services\Billing\BillPack` ZIP; shared `App\Services\Billing\DocumentFiles` (signed-or-generated PDFs, used by AgencyMailer too); dashboard `_reminders` (wages 7th / EPF-ESIC 15th per active work order with attendance last month, ending ≤30 days, posts over sanctioned). Open question to owner: contracts have PF/ESI = 0 in rate – should employer EPF 13%/ESIC 3.25% still be added on bills?
 
-- **Maker–checker approval (decided 17 Nov 2026 evening, NOT built yet – waiting for owner's "proceed")**:
+- **Maker–checker approval: Release 1 BUILT v2.14.0 (17 Nov 2026 evening); Release 2 (staff & pay changes held as pending) NOT built yet**. Decisions:
   - **Checker:** Super Admin only: raghu.epf@gmail.com, plus a second owner e-mail the owner will give later, who also becomes Super Admin.
   - **Needs approval:**
     - monthly attendance, before a sub-bill can be made
@@ -156,3 +156,23 @@ What moves: code (GitHub or a copy), MySQL dump, uploaded files (`zplus-storage`
   - **Strict four-eyes:** the maker can never approve their own entry.
   - **Start:** from October 2026. Older months stay exactly as they are.
   - **Return:** the checker sends it back with a reason, the maker corrects and sends again. Every step is logged.
+- **v2.14.0 owner approval (built 2026-11-17)**:
+  - **Approvals service:** `App\Services\Approvals\Approvals`, table `approvals` (ScopedToAgency).
+    - types: attendance / sub_bill / tax_invoice / payout (agency+month, per-sheet hashes in `details`)
+    - start month `config('approvals.start')` = 2026-10-01
+    - state: not_needed / not_sent / pending / approved / returned / changed (fingerprint of figures)
+    - grandfathered: attendance already billed, sub-bills/tax invoices already submitted/paid with no approval rows
+  - **What it changes:**
+    - lock (Oct+) sends the month for approval instead of making the bill; approving it makes the sub-bill (created_by = sender)
+    - return re-opens the month
+    - InvoiceController::store, status→submitted, TaxInvoice status→submitted, e-mail and BillPack all need "cleared"
+    - payout downloads (attendance.payouts, attendance.bank-letter, bank-letters.pdf) need `payoutClearedFor` or an owner viewer
+    - month ZIP includes the bank letter only when cleared
+  - **Screens and routes:**
+    - `approvals.index` inbox, plus a sidebar badge
+    - `approvals.approve` / `approvals.return` (canApprove = isSuperAdmin; four-eyes: submitted_by ≠ decider)
+    - `approvals.send.*`
+    - partial `partials/approval-box`
+    - a Super Admin can make an active Admin of both agencies a Super Admin (`make_super_admin` on user edit)
+  - **Tests:** `ApprovalTest`. Older rule tests call `withoutOwnerApproval()` (tests/TestCase).
+

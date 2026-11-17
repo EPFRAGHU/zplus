@@ -7,6 +7,10 @@
     <span class="small text-secondary align-self-center">One salary transfer letter for all the agency's employees of the month, on its own letterhead. Net pay as on the salary payout sheet.</span>
   </form>
 
+  @if($agency && $all->isNotEmpty())
+  @include('partials.approval-box', ['type' => 'payout', 'subject' => ['agency' => $agency, 'month' => $month], 'sendAction' => route('approvals.send.payout'),
+    'sendFields' => ['agency' => $agency->id, 'month' => $month->format('Y-m')], 'canSend' => auth()->user()->can('view-bank-details')])
+  @endif
   @if($letter)
     @php($rs = fn (int $paise) => inr($paise / 100, true))
     @if($pending->isNotEmpty())
@@ -19,7 +23,8 @@
       <input type="hidden" name="agency" value="{{ $agency->id }}"><input type="hidden" name="month" value="{{ $month->format('Y-m') }}">
       <div class="z-card-h flex-wrap gap-2"><h2>{{ $agency->name }} · {{ $month->format('F Y') }}</h2>
         <span class="small text-secondary">{{ $letter['sbi']->count() + $letter['neft']->count() }} employees · total <b>{{ $rs($letter['total']) }}</b></span>
-        <button class="btn btn-primary ms-auto"><i class="bi bi-file-earmark-pdf me-1"></i>Bank letter PDF</button></div>
+        @php($payoutOk = \App\Services\Approvals\Approvals::canApprove(auth()->user()) || $all->every(fn ($s) => app(\App\Services\Approvals\Approvals::class)->payoutClearedFor($s)))
+        <button class="btn btn-primary ms-auto" @disabled(! $payoutOk) title="{{ $payoutOk ? '' : 'The owner must approve this month\'s salary payout first' }}"><i class="bi bi-file-earmark-pdf me-1"></i>Bank letter PDF</button></div>
       <div class="px-3 pt-2 small"><b>Projects in the letter</b> (untick to leave one out, then click <b>Update</b>):
         @foreach($all as $s)
           <label class="ms-2 text-nowrap"><input type="checkbox" class="form-check-input" name="projects[]" value="{{ $s->project_id }}" form="pick" @checked(in_array($s->project_id, $chosen))> {{ $s->project->name }} <span class="mono">({{ $s->project->code }})</span></label>

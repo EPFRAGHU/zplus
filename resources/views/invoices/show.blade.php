@@ -59,6 +59,7 @@
       </div>
     </div>
   </div>
+  @include('partials.approval-box', ['type' => 'sub_bill', 'subject' => $invoice, 'sendAction' => route('approvals.send.invoice', $invoice), 'canSend' => auth()->user()->can('billing')])
   @can('billing')
   @include('partials.signed-copy', ['signed' => \App\Models\SignedDocument::latestFor('sub_bill', invoiceId: $invoice->id), 'action' => route('invoices.signed', $invoice), 'changedAt' => $invoice->updated_at])
   @php($agencyName = $invoice->contract->agency->name)

@@ -45,6 +45,7 @@ class SalaryPayoutTest extends TestCase
 
     public function test_sheet_prints_on_the_agency_letterhead_for_accounts_only(): void
     {
+        $this->withoutOwnerApproval();   // billing rules before owner approvals; see ApprovalTest
         $sheet = $this->sheet();
         $swh = Agency::query()->where('code', 'SWH')->firstOrFail();
         $sheet->project->contract->update(['agency_id' => $swh->id, 'client_id' => \App\Models\Client::query()->where('agency_id', $swh->id)->value('id')]);

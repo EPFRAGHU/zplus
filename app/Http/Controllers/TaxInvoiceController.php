@@ -93,6 +93,9 @@ class TaxInvoiceController extends Controller
             'status' => ['required', Rule::in([self::NEXT[$taxInvoice->status] ?? null])],
             'paid_on' => ['required_if:status,paid', 'nullable', 'date'],
         ]);
+        if ($data['status'] === 'submitted' && ! app(\App\Services\Approvals\Approvals::class)->cleared('tax_invoice', $taxInvoice)) {
+            return back()->withErrors(['tax' => 'The owner has not approved this tax invoice yet. Use "Send for approval" first.']);
+        }
         $taxInvoice->forceFill(['status' => $data['status'], 'paid_on' => $data['paid_on'] ?? $taxInvoice->paid_on])->save();
         if ($data['status'] === 'paid') {
             // A paid tax invoice settles its sub-bills too.

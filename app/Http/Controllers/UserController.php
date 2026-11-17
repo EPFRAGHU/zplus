@@ -67,8 +67,19 @@ class UserController extends Controller
         } else {
             unset($data['password']);
         }
+        if ($request->boolean('make_super_admin') && ! $user->is_super_admin) {
+            // Only a Super Admin can make another owner a Super Admin (owner, 17 Nov 2026: a second owner approves too).
+            abort_unless($request->user()->isSuperAdmin(), 403);
+            if ($data['role'] !== 'admin' || ! empty($data['agency_id']) || ! $data['active']) {
+                return back()->withErrors(['role' => 'A Super Admin must be an active Admin working for both agencies.'])->withInput();
+            }
+        }
         $user->forceFill(collect($data)->except('projects')->all())->save();
         $user->projects()->sync($user->isPi() ? ($data['projects'] ?? []) : []);
+        if ($request->boolean('make_super_admin') && ! $user->is_super_admin) {
+            $user->forceFill(['is_super_admin' => true])->save();
+            \App\Support\Activity\Activity::log('updated', $user, [], "Made Super Admin (owner): {$user->name} ({$user->email})", section: 'Users', label: $user->email);
+        }
 
         return redirect()->route('users.index')->with('status', "{$user->name} saved.".(isset($data['must_change_password']) ? ' The new password is temporary.' : ''));
     }

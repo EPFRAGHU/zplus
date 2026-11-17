@@ -120,6 +120,13 @@ Route::middleware(['auth', 'active', 'role:admin,accounts,supervisor', \App\Http
     Route::get('papers/{paper}', [\App\Http\Controllers\MonthlyPaperController::class, 'show'])->name('papers.show');
     Route::delete('papers/{paper}', [\App\Http\Controllers\MonthlyPaperController::class, 'destroy'])->name('papers.destroy');
     Route::get('contracts/{contract}/bill-pack', [\App\Http\Controllers\MonthlyPaperController::class, 'pack'])->name('contracts.bill-pack');
+    Route::get('approvals', [\App\Http\Controllers\ApprovalController::class, 'index'])->name('approvals.index');
+    Route::post('approvals/{approval}/approve', [\App\Http\Controllers\ApprovalController::class, 'approve'])->name('approvals.approve');
+    Route::post('approvals/{approval}/return', [\App\Http\Controllers\ApprovalController::class, 'returnBack'])->name('approvals.return');
+    Route::post('attendance/{sheet}/send-for-approval', [\App\Http\Controllers\ApprovalController::class, 'sendAttendance'])->name('approvals.send.attendance');
+    Route::post('invoices/{invoice}/send-for-approval', [\App\Http\Controllers\ApprovalController::class, 'sendInvoice'])->name('approvals.send.invoice');
+    Route::post('tax-invoices/{taxInvoice}/send-for-approval', [\App\Http\Controllers\ApprovalController::class, 'sendTaxInvoice'])->name('approvals.send.tax-invoice');
+    Route::post('bank-letters/send-for-approval', [\App\Http\Controllers\ApprovalController::class, 'sendPayout'])->name('approvals.send.payout');
     Route::get('signed-documents/{signedDocument}', [\App\Http\Controllers\SignedDocumentController::class, 'show'])->name('signed-documents.show');
     Route::get('attendance/{sheet}/certificate', [AttendanceController::class, 'certificate'])->name('attendance.certificate');
     Route::get('attendance/{sheet}/scan', [AttendanceController::class, 'scan'])->name('attendance.scan');

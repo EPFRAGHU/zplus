@@ -26,7 +26,7 @@ class CrossAgencyWriteTest extends TestCase
     use RefreshDatabase;
 
     private const TABLES = ['agencies', 'clients', 'gem_contracts', 'projects', 'posts', 'employees', 'employee_documents',
-        'attendance_sheets', 'attendance_entries', 'invoices', 'invoice_lines', 'tax_invoices', 'users', 'project_user', 'project_incharges', 'signed_documents', 'sent_emails', 'monthly_papers'];
+        'attendance_sheets', 'attendance_entries', 'invoices', 'invoice_lines', 'tax_invoices', 'users', 'project_user', 'project_incharges', 'signed_documents', 'sent_emails', 'monthly_papers', 'approvals'];
 
     private User $owner;
 
@@ -70,7 +70,10 @@ class CrossAgencyWriteTest extends TestCase
         $paper = \App\Models\MonthlyPaper::query()->create(['agency_id' => $agency->id, 'gem_contract_id' => $contract->id, 'month' => '2026-09-01', 'kind' => 'logbook',
             'path' => "papers/{$code}.pdf", 'original_name' => 'logbook.pdf']);
 
-        return compact('agency', 'client', 'contract', 'project', 'post', 'employee', 'document', 'open', 'locked', 'invoice', 'tax', 'admin', 'pi', 'incharge', 'paper');
+        $approval = \App\Models\Approval::query()->create(['agency_id' => $agency->id, 'type' => 'sub_bill', 'invoice_id' => $invoice->id, 'month' => '2026-10-01',
+            'label' => "Sub-bill {$code}", 'fingerprint' => 'x', 'status' => 'pending', 'submitted_by' => $admin->id, 'submitted_at' => now()]);
+
+        return compact('agency', 'client', 'contract', 'project', 'post', 'employee', 'document', 'open', 'locked', 'invoice', 'tax', 'admin', 'pi', 'incharge', 'paper', 'approval');
     }
 
     private function fingerprint(): string
@@ -124,6 +127,12 @@ class CrossAgencyWriteTest extends TestCase
             'save imported posts into their work order' => fn () => $this->post("/contracts/{$o['contract']->id}/import/save", ['project_id' => $o['project']->id, 'posts' => [['add' => 1, 'designation' => 'X', 'sanctioned_qty' => 1, 'rate' => 1]]]),
             'upload a monthly paper to their work order' => fn () => $this->post("/contracts/{$o['contract']->id}/papers", ['month' => '2026-09', 'kind' => 'logbook', 'paper' => [$pdf()]]),
             'remove their monthly paper' => fn () => $this->delete("/papers/{$o['paper']->id}"),
+            'send their attendance for approval' => fn () => $this->post("/attendance/{$o['locked']->id}/send-for-approval"),
+            'send their sub-bill for approval' => fn () => $this->post("/invoices/{$o['invoice']->id}/send-for-approval"),
+            'send their tax invoice for approval' => fn () => $this->post("/tax-invoices/{$o['tax']->id}/send-for-approval"),
+            'send their salary payout for approval' => fn () => $this->post('/bank-letters/send-for-approval', ['agency' => $o['agency']->id, 'month' => '2026-10']),
+            'approve their pending item' => fn () => $this->post("/approvals/{$o['approval']->id}/approve"),
+            'return their pending item' => fn () => $this->post("/approvals/{$o['approval']->id}/return", ['reason' => 'not mine to return']),
             'upload signed bank letter for their agency' => fn () => $this->post('/bank-letters/signed', ['agency' => $o['agency']->id, 'month' => '2026-09', 'signed' => $pdf()]),
             'delete their bill' => fn () => $this->delete("/invoices/{$o['invoice']->id}"),
             'make a tax invoice from their bill' => fn () => $this->post('/tax-invoices', ['gem_contract_id' => $o['contract']->id, 'month' => '2026-09', 'sub_bills' => [$o['invoice']->id], 'invoice_date' => '2026-10-05']),
@@ -187,6 +196,7 @@ class CrossAgencyWriteTest extends TestCase
         $this->get("/incharges/{$swh['incharge']->id}/edit")->assertNotFound();
         $this->get("/contracts/{$swh['contract']->id}")->assertNotFound();
         $this->get("/papers/{$swh['paper']->id}")->assertNotFound();
+        $this->get('/approvals')->assertOk()->assertDontSee('Sub-bill SWH');
         $this->get("/contracts/{$swh['contract']->id}/bill-pack?month=2026-09")->assertNotFound();
         $this->get("/contracts/{$swh['contract']->id}/import")->assertNotFound();
         $this->get('/')->assertOk()->assertDontSee($swh['contract']->contract_no);

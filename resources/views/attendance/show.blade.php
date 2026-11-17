@@ -4,13 +4,20 @@
     <a class="btn btn-outline-secondary" href="{{ route('attendance.certificate', $sheet) }}" target="_blank"><i class="bi bi-printer me-1"></i>Print certificate for PI</a>
     @if($locked)
       @can('view-bank-details')
+        @if(\App\Services\Approvals\Approvals::canApprove(auth()->user()) || app(\App\Services\Approvals\Approvals::class)->payoutClearedFor($sheet))
         <a class="btn btn-outline-secondary" href="{{ route('attendance.payouts', $sheet) }}" target="_blank"><i class="bi bi-cash-stack me-1"></i>Salary payout sheet</a>
         <a class="btn btn-outline-secondary" href="{{ route('attendance.bank-letter', $sheet) }}" target="_blank"><i class="bi bi-bank me-1"></i>Bank letter</a>
+        @else
+        <a class="btn btn-outline-secondary" href="{{ route('bank-letters.index', ['agency' => $sheet->project->contract->agency_id, 'month' => $sheet->month->format('Y-m')]) }}" title="The owner must approve the month's salary payout first"><i class="bi bi-lock me-1"></i>Payout: owner approval needed</a>
+        @endif
       @endcan
     @endif
     @if($sheet->certificate_path)<a class="btn btn-outline-secondary" href="{{ route('attendance.scan', $sheet) }}" target="_blank"><i class="bi bi-file-earmark-check me-1"></i>Signed scan</a>@endif
     @can('reset-month')<button class="btn btn-outline-danger" type="button" data-bs-toggle="collapse" data-bs-target="#reset-month"><i class="bi bi-arrow-counterclockwise me-1"></i>Reset this month</button>@endcan
   </x-slot:actions>
+  @if($locked)
+  @include('partials.approval-box', ['type' => 'attendance', 'subject' => $sheet, 'sendAction' => route('approvals.send.attendance', $sheet), 'canSend' => ! auth()->user()->isPi()])
+  @endif
   @can('reset-month')
   @php($resetBill = $sheet->invoice)
   <div class="collapse mb-3 @if($errors->has('confirm') || $errors->has('reset')) show @endif" id="reset-month"><div class="alert alert-danger">

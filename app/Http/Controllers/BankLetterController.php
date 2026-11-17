@@ -44,6 +44,9 @@ class BankLetterController extends Controller
         $month = $this->month($request->input('month'));
         [$locked] = $this->letters->sheets($agency, $month, $request->input('projects') ? array_map('intval', (array) $request->input('projects')) : null);
         abort_if($locked->isEmpty(), 422, 'No locked attendance for this agency and month.');
+        $approvals = app(\App\Services\Approvals\Approvals::class);
+        abort_unless(\App\Services\Approvals\Approvals::canApprove($request->user()) || $locked->every(fn ($s) => $approvals->payoutClearedFor($s)), 403,
+            'The salary payout for this month is not approved by the owner yet. Use "Send for approval" on the Bank Letter page.');
         $data = $this->letters->build($agency, $month, $locked);
 
         return Pdf::loadView('pdf.bank-letter', $data)->setPaper('a4')

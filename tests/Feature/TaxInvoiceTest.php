@@ -115,6 +115,7 @@ class TaxInvoiceTest extends TestCase
 
     public function test_tax_invoice_screens_pdf_and_payment(): void
     {
+        $this->withoutOwnerApproval();   // billing rules before owner approvals; see ApprovalTest
         [$client, $bills, $user] = $this->twoSubBills();   // $client: the work order
 
         $this->actingAs($user)->get('/invoices')->assertOk()->assertSee('Make tax invoice');

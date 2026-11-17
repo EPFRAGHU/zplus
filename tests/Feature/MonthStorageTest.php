@@ -39,6 +39,7 @@ class MonthStorageTest extends TestCase
 
     public function test_bill_month_filter_finds_the_bill(): void
     {
+        $this->withoutOwnerApproval();   // billing rules before owner approvals; see ApprovalTest
         $this->seed(DemoSeeder::class);
         $admin = User::factory()->create(['role' => 'admin']);
         $service = app(AttendanceService::class);

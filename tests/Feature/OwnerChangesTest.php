@@ -161,6 +161,7 @@ class OwnerChangesTest extends TestCase
 
     public function test_work_order_page_makes_sub_bills_then_the_tax_invoice(): void
     {
+        $this->withoutOwnerApproval();   // billing rules before owner approvals; see ApprovalTest
         [, , $contract] = $this->swachha();
         $service = app(AttendanceService::class);
         foreach ($contract->projects as $p) {
@@ -207,6 +208,7 @@ class OwnerChangesTest extends TestCase
 
     public function test_bank_letter_lists_sbi_by_emp_id_and_other_banks_by_neft(): void
     {
+        $this->withoutOwnerApproval();   // billing rules before owner approvals; see ApprovalTest
         [, , $contract, $people] = $this->swachha();
         $project = Project::query()->where('code', 'HTA')->firstOrFail();
         $service = app(AttendanceService::class);
@@ -464,6 +466,7 @@ class OwnerChangesTest extends TestCase
 
     public function test_bank_letter_module_lists_all_employees_of_the_agency_for_the_month(): void
     {
+        $this->withoutOwnerApproval();   // billing rules before owner approvals; see ApprovalTest
         [$agency, $client, $contract, $people] = $this->swachha();
         $mph = $contract->projects()->create(['name' => 'MPH', 'code' => 'MPH']);
         $mph->posts()->create(['designation' => 'APM', 'sanctioned_qty' => 1, 'rate' => 55000]);
@@ -616,6 +619,7 @@ class OwnerChangesTest extends TestCase
 
     public function test_month_zip_and_dsc_signed_copies(): void
     {
+        $this->withoutOwnerApproval();   // billing rules before owner approvals; see ApprovalTest
         \Illuminate\Support\Facades\Storage::fake('local');
         [$agency, , $contract] = $this->swachha();
         $bills = $this->billMonth($contract->load('projects'), '2026-10-01');

@@ -72,8 +72,12 @@ class InvoiceController extends Controller
     {
         Gate::authorize('billing');
         $data = $request->validate(['attendance_sheet_id' => ['required', new \App\Rules\ExistsInMyAgency(\App\Models\AttendanceSheet::class)]]);
+        $sheet = AttendanceSheet::query()->findOrFail($data['attendance_sheet_id']);
+        if (! app(\App\Services\Approvals\Approvals::class)->cleared('attendance', $sheet)) {
+            return back()->withErrors(['invoice' => 'The attendance of this month is not approved by the owner yet. The sub-bill is made automatically once it is approved.']);
+        }
         try {
-            $invoice = $generator->generate(AttendanceSheet::query()->findOrFail($data['attendance_sheet_id']), $request->user());
+            $invoice = $generator->generate($sheet, $request->user());
         } catch (RuntimeException $e) {
             return back()->withErrors(['invoice' => $e->getMessage()]);
         }
@@ -142,6 +146,9 @@ class InvoiceController extends Controller
             'paid_on' => ['required_if:status,paid', 'nullable', 'date'],
         ]);
         Gate::authorize($data['status'] === 'approved' ? 'approve-invoice' : 'billing');
+        if ($data['status'] === 'submitted' && ! app(\App\Services\Approvals\Approvals::class)->cleared('sub_bill', $invoice)) {
+            return back()->withErrors(['invoice' => 'The owner has not approved this sub-bill yet. Use "Send for approval" first.']);
+        }
 
         $invoice->forceFill(array_filter([
             'status' => $data['status'],

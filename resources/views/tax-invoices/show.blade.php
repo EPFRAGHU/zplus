@@ -53,6 +53,7 @@
       @unless($tax->agency->bank_account_no)<div class="alert alert-warning small mt-3 mb-0">Bank details are missing on the PDF. Add them under <a href="{{ route('agencies.edit', $tax->agency) }}">Agencies → Edit</a>.</div>@endunless
     </div></div>
   </div>
+  @include('partials.approval-box', ['type' => 'tax_invoice', 'subject' => $tax, 'sendAction' => route('approvals.send.tax-invoice', $tax), 'canSend' => auth()->user()->can('billing')])
   @can('billing')
   @include('partials.signed-copy', ['signed' => \App\Models\SignedDocument::latestFor('tax_invoice', taxInvoiceId: $tax->id), 'action' => route('tax-invoices.signed', $tax), 'changedAt' => $tax->updated_at])
   @include('partials.email-client', ['action' => route('tax-invoices.email', $tax), 'agency' => $tax->agency,

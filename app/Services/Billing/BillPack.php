@@ -32,6 +32,13 @@ final class BillPack
             throw new RuntimeException("Nothing yet for {$month->format('F Y')}: no sub-bills, tax invoice or papers on this work order.");
         }
 
+        $approvals = app(\App\Services\Approvals\Approvals::class);
+        $open = $taxes->reject(fn ($t) => $approvals->cleared('tax_invoice', $t))->map(fn ($t) => 'tax invoice '.$t->number)
+            ->merge($bills->reject(fn ($b) => $approvals->cleared('sub_bill', $b))->map(fn ($b) => 'sub-bill '.$b->invoice_no));
+        if ($open->isNotEmpty()) {
+            throw new RuntimeException('Not approved by the owner yet: '.$open->implode(', ').'. The bill pack can be downloaded once they are approved.');
+        }
+
         $tmp = tempnam(sys_get_temp_dir(), 'zplus-pack-');
         $zip = new ZipArchive;
         if ($zip->open($tmp, ZipArchive::OVERWRITE) !== true) {

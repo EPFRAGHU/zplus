@@ -22,6 +22,9 @@ class AgencyEmailController extends Controller
         Gate::authorize('billing');
         $invoice->load('contract.agency');
         [$to, $cc, $subject, $body] = $this->validated($request);
+        if (! app(\App\Services\Approvals\Approvals::class)->cleared('sub_bill', $invoice)) {
+            return back()->withInput()->withErrors(['email' => 'The owner has not approved this sub-bill yet, so it cannot be e-mailed.']);
+        }
 
         return $this->deliver($invoice->contract->agency, $to, $cc, $subject, $body, fn () => $this->mailer->documentsForInvoice($invoice),
             ['kind' => 'sub_bill', 'invoice_id' => $invoice->id, 'document_no' => $invoice->invoice_no], "sub-bill {$invoice->invoice_no}");
@@ -32,6 +35,12 @@ class AgencyEmailController extends Controller
         Gate::authorize('billing');
         $taxInvoice->load('agency');
         [$to, $cc, $subject, $body] = $this->validated($request);
+        $approvals = app(\App\Services\Approvals\Approvals::class);
+        $open = collect([$taxInvoice])->reject(fn ($t) => $approvals->cleared('tax_invoice', $t))->map(fn ($t) => 'tax invoice '.$t->number)
+            ->merge($taxInvoice->subBills->reject(fn ($b) => $approvals->cleared('sub_bill', $b))->map(fn ($b) => 'sub-bill '.$b->invoice_no));
+        if ($open->isNotEmpty()) {
+            return back()->withInput()->withErrors(['email' => 'Not approved by the owner yet: '.$open->implode(', ').'. It cannot be e-mailed.']);
+        }
 
         return $this->deliver($taxInvoice->agency, $to, $cc, $subject, $body, fn () => $this->mailer->documentsForTaxInvoice($taxInvoice),
             ['kind' => 'tax_invoice', 'tax_invoice_id' => $taxInvoice->id, 'document_no' => $taxInvoice->number], "tax invoice {$taxInvoice->number}");

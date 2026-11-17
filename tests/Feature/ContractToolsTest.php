@@ -122,6 +122,7 @@ class ContractToolsTest extends TestCase
 
     public function test_papers_checklist_upload_permissions_and_bill_pack(): void
     {
+        $this->withoutOwnerApproval();   // billing rules before owner approvals; see ApprovalTest
         $c = $this->r['contract'];
         $page = $this->get(route('contracts.show', ['contract' => $c, 'month' => '2026-10']))->assertOk();
         $page->assertSee('Monthly papers, October 2026')->assertSee('Missing');

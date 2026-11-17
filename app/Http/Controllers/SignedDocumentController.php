@@ -58,7 +58,8 @@ class SignedDocumentController extends Controller
         $request->validate(['agency' => ['required', new \App\Rules\ExistsInMyAgency(Agency::class)], 'month' => ['required', 'date_format:Y-m']]);
         $agency = Agency::query()->findOrFail($request->integer('agency'));
         try {
-            [$path, $name, $count] = $documents->zip($agency, CarbonImmutable::createFromFormat('!Y-m', $request->input('month')), Gate::allows('view-bank-details'));
+            [$path, $name, $count] = $documents->zip($agency, CarbonImmutable::createFromFormat('!Y-m', $request->input('month')), Gate::allows('view-bank-details')
+                && (\App\Services\Approvals\Approvals::canApprove($request->user()) || app(\App\Services\Approvals\Approvals::class)->cleared('payout', ['agency' => $agency, 'month' => CarbonImmutable::createFromFormat('!Y-m', $request->input('month'))])));
         } catch (\RuntimeException $e) {
             return back()->withErrors(['zip' => $e->getMessage()]);
         }

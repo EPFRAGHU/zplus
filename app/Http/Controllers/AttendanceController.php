@@ -95,7 +95,19 @@ class AttendanceController extends Controller
             return back()->withErrors(['attendance' => $e->getMessage()]);
         }
 
-        // Approved: the sub-bill for this project and month is made straight away (as a draft for Accounts).
+        // From October 2026 (maker–checker): the locked month goes to the owner; the sub-bill is made when approved.
+        $approvals = app(\App\Services\Approvals\Approvals::class);
+        if (\App\Services\Approvals\Approvals::applies($sheet->month)) {
+            try {
+                $approvals->send('attendance', $sheet->fresh(), $request->user());
+            } catch (RuntimeException $e) {
+                return back()->with('status', 'Month locked.')->withErrors(['attendance' => $e->getMessage()]);
+            }
+
+            return redirect()->route('attendance.show', $sheet)->with('status', 'Month locked and sent to the owner for approval. The sub-bill is made once it is approved.');
+        }
+
+        // Before October 2026: the sub-bill for this project and month is made straight away (as a draft for Accounts).
         try {
             $invoice = app(\App\Services\Billing\InvoiceGenerator::class)->generate($sheet->fresh(), $request->user());
         } catch (\Throwable $e) {
@@ -137,6 +149,7 @@ class AttendanceController extends Controller
     {
         Gate::authorize('view-bank-details');
         abort_unless($sheet->isLocked(), 422, 'Lock the month before making the salary payout sheet.');
+        $this->assertPayoutApproved($sheet);
         $sheet->load('entries.employee.post', 'project.contract.client', 'project.contract.agency');
 
         return Pdf::loadView('pdf.salary-payouts', ['sheet' => $sheet, 'lines' => $payouts->lines($sheet), 'agency' => $sheet->project->contract->agency])
@@ -151,11 +164,19 @@ class AttendanceController extends Controller
     {
         Gate::authorize('view-bank-details');
         abort_unless($sheet->isLocked(), 422, 'Lock the month before making the bank letter.');
+        $this->assertPayoutApproved($sheet);
         $sheet->load('entries.employee.post', 'project.contract.client', 'project.contract.agency');
         $data = $letters->build($sheet->project->contract->agency, $sheet->month, collect([$sheet]), $sheet->project->code);
 
         return Pdf::loadView('pdf.bank-letter', $data)->setPaper('a4')
             ->stream('bank-letter-'.\App\Support\Codes::fileSafe($sheet->project->code).'-'.$sheet->month->format('Y-m').'.pdf');
+    }
+
+    /** From October 2026 the month's salary payout must be approved by the owner (who may always look at it to approve). */
+    private function assertPayoutApproved(AttendanceSheet $sheet): void
+    {
+        abort_unless(\App\Services\Approvals\Approvals::canApprove(auth()->user()) || app(\App\Services\Approvals\Approvals::class)->payoutClearedFor($sheet), 403,
+            'The salary payout for this month is not approved by the owner yet. Send it for approval from the Bank Letter page.');
     }
 
     /** Printable "Monthly Attendance and Working Certificate" for the PI to sign. */

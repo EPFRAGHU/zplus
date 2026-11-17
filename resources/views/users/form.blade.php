@@ -55,6 +55,13 @@
         @endforeach
       </div>
     </div>
+    @if($editing && auth()->user()->isSuperAdmin() && ! $user->is_super_admin)
+    <div class="alert alert-warning small mt-4 mb-0">
+      <div class="form-check"><input class="form-check-input" type="checkbox" name="make_super_admin" value="1" id="f-super" @checked(old('make_super_admin'))>
+        <label class="form-check-label" for="f-super"><b>Make this login a Super Admin (owner)</b>: approves or returns attendance, bills and salary payouts of both agencies,
+          sees the Activity log and can delete unused records. Only for an owner. Needs role Admin and "Both agencies". It cannot be undone from the app.</label></div>
+    </div>
+    @endif
     <div class="d-flex gap-2 justify-content-end mt-3"><a class="btn btn-outline-secondary" href="{{ route('users.index') }}">Cancel</a><button class="btn btn-primary">{{ $editing ? 'Save user' : 'Add user' }}</button></div>
   </form>
 </x-layouts.app>

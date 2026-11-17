@@ -12,6 +12,15 @@ return [
     'timezone' => 'Asia/Kolkata',      // release times are Indian Standard Time
 
     'releases' => [
+        ['version' => '2.14.0', 'date' => '2026-11-17 19:42', 'title' => 'Owner approval (maker–checker)', 'type' => 'feature', 'notes' => [
+            'From October 2026 the owner (Super Admin) approves before anything goes further; earlier months stay exactly as they were',
+            'Attendance: locking a month sends it to the owner; the sub-bill is made when the owner approves. If returned (with a reason), the month opens again for correction',
+            'Sub-bills and tax invoices: "Send for approval"; only approved ones can be marked submitted, e-mailed or put in the GeM bill pack. A tax invoice is approved after its sub-bills',
+            'Salary payout sheets and bank letters: approved per agency and month on the Bank Letter page before they can be downloaded',
+            'Anything changed after approval (figures, bank account, attendance) must be approved again',
+            'Strict four-eyes: whoever sent it can never approve it. New "Approvals" menu: the owner\'s inbox with Approve / Return, and makers see what was returned to them',
+            'Super Admin can make a second owner login a Super Admin (Users → Edit). Every step is in the Activity log. No bill amount or number changes',
+        ]],
         ['version' => '2.13.0', 'date' => '2026-11-17 13:28', 'title' => 'GeM contract tools: import, papers, bill pack, reminders', 'type' => 'feature', 'notes' => [
             'Work orders: service start and end date and total contract value; "Ends in N days" warning from 30 days before the end date (work order list, work order page and dashboard)',
             'Import posts from the GeM contract PDF: upload it on the work order page, check the posts (designation, number, basic pay), service period and value, then add the ticked posts to a project. The app checks its reading against the contract\'s printed total',

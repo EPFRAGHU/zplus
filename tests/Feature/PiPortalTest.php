@@ -103,6 +103,7 @@ class PiPortalTest extends TestCase
 
     public function test_pi_marks_submits_uploads_signed_copy_and_agency_corrects_approves_and_bills(): void
     {
+        $this->withoutOwnerApproval();   // billing rules before owner approvals; see ApprovalTest
         $this->actingAs($pi = $this->pi());
         $this->post("/pi/projects/{$this->mph->id}/months", ['month' => now()->subMonthNoOverflow()->format('Y-m')])->assertRedirect();
         $sheet = AttendanceSheet::query()->where('project_id', $this->mph->id)->firstOrFail()->load('entries.employee');
@@ -174,6 +175,7 @@ class PiPortalTest extends TestCase
 
     public function test_operator_can_still_mark_and_lock_without_the_pi(): void
     {
+        $this->withoutOwnerApproval();   // billing rules before owner approvals; see ApprovalTest
         $sheet = app(AttendanceService::class)->open($this->mph, CarbonImmutable::parse('2026-10-01'));
         $this->actingAs(User::factory()->create(['role' => 'supervisor']));
         $this->put("/attendance/{$sheet->id}", ['codes' => $this->codes($sheet)])->assertSessionHas('status', 'Attendance saved.');

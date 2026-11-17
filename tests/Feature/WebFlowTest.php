@@ -57,6 +57,7 @@ class WebFlowTest extends TestCase
 
     public function test_full_october_flow_through_the_screens(): void
     {
+        $this->withoutOwnerApproval();   // billing rules before owner approvals; see ApprovalTest
         Storage::fake('local');
         $this->seed(DemoSeeder::class);
         $accounts = $this->user('accounts');
@@ -168,6 +169,7 @@ class WebFlowTest extends TestCase
 
     public function test_bills_show_and_filter_by_agency_and_client(): void
     {
+        $this->withoutOwnerApproval();   // billing rules before owner approvals; see ApprovalTest
         $this->seed(DemoSeeder::class);
         $admin = $this->user('admin');
         $zps = Agency::query()->where('code', 'ZPS')->firstOrFail();
