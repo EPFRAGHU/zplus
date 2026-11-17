@@ -35,6 +35,7 @@ Owner/operator of the manpower business behind **M/S Z Plus Surakhya Seva** and 
 | **Bank Letter** | Menu (Admin/Accounts): agency + month → all employees of locked months, SBI/NEFT, on agency letterhead (`App\Services\Payroll\BankLetter`) |
 | **DSC signing** | DSC token can't sign on the server; owner signs on own PC (Adobe Reader / JSignPdf, WINDOWS-MY keystore). App: month ZIP (`month-documents.zip`, `App\Services\Billing\MonthDocuments`) and uploaded signed copies (`signed_documents`, `SignedDocument::latestFor`, routes `*.signed`, `signed-documents.show`) |
 | **E-mail to client** | Box on sub-bill / tax invoice pages (Admin/Accounts): sends PDFs (signed copy if uploaded) from the agency Gmail; app password ONLY in Coolify env `AGENCY_MAIL_SWH_/ZPS_USERNAME/PASSWORD` (blank = off); log in `sent_emails` + Activity (`App\Services\Mail\AgencyMailer`, v2.12.0) |
+| **Monthly papers / bill pack** | Work order page (v2.13.0): per month salary proof, EPF/ESIC challans, logbook, feedback (`monthly_papers`); "Download bill pack (ZIP)" (`App\\Services\\Billing\\BillPack`); dashboard reminders wages by 7th, EPF/ESIC by 15th; import posts from GeM contract PDF (`GemContractPdf`) |
 | **Data Upload** | Setup → Data Upload: Excel templates per master, upload → check → save (`app/Services/MasterImport`) |
 | **Letterhead layout** | `classic` (ZPS, centred + footer) or `banner` (SWH, logo/registrations/pink address box) |
 → Full list: memory/glossary.md

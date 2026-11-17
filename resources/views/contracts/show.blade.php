@@ -10,6 +10,9 @@
       <div class="col-md-3"><div class="text-secondary">Status</div><x-status :value="$contract->status" /></div>
       <div class="col-md-3"><div class="text-secondary">GeM bid no.</div><div class="mono">{{ $contract->bid_no ?: '—' }}</div></div>
       <div class="col-md-3"><div class="text-secondary">Contract date</div><div>{{ $contract->contract_date?->format('d.m.Y') ?? '—' }}</div></div>
+      <div class="col-md-3"><div class="text-secondary">Service period</div><div>{{ $contract->start_date?->format('d.m.Y') ?? '—' }} to {{ $contract->end_date?->format('d.m.Y') ?? '—' }}</div>
+        @include('contracts._expiry', ['c' => $contract])</div>
+      <div class="col-md-3"><div class="text-secondary">Contract value</div><div>{{ $contract->contract_value !== null ? inr($contract->contract_value) : '—' }}</div></div>
       <div class="col-md-6"><div class="text-secondary">Billing</div><div>{{ $contract->isDaily() ? 'Daily rate × paid days' : 'Monthly rate × paid days ÷ days in month' }}</div></div>
       <div class="col-12"><div class="text-secondary">Bill calculation</div>
         <div>Wages + employer EPF {{ (float) $contract->epf_percent }}% (on wages up to ₹15,000) and ESIC {{ (float) $contract->esic_percent }}% for staff with them switched on, then
@@ -77,7 +80,18 @@
     </table></div>
   </div>
 
+  @include('contracts._papers')
+
   <h2 class="h6 fw-bold mt-4 mb-2">Projects and posts</h2>
+  @can('manage-masters')
+  <form method="post" action="{{ route('contracts.import', $contract) }}" enctype="multipart/form-data" class="z-card p-3 mb-3 d-flex flex-wrap gap-2 align-items-center">@csrf
+    <div class="me-2"><b class="small"><i class="bi bi-file-earmark-arrow-up me-1"></i>Import posts from the GeM contract PDF</b>
+      <div class="small text-secondary">Reads every post (designation, number, basic pay), the service period and the contract value. You check them before anything is saved.</div></div>
+    <input type="file" name="contract_pdf" accept="application/pdf,.pdf" required class="form-control form-control-sm @error('contract_pdf') is-invalid @enderror" style="max-width:320px" aria-label="GeM contract PDF">
+    <button class="btn btn-sm btn-outline-primary">Read the PDF</button>
+    @error('contract_pdf')<div class="small text-danger w-100">{{ $message }}</div>@enderror
+  </form>
+  @endcan
   @foreach ($contract->projects as $project)
     <div class="z-card mb-3">
       <div class="z-card-h">

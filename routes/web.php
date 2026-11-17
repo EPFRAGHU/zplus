@@ -113,6 +113,13 @@ Route::middleware(['auth', 'active', 'role:admin,accounts,supervisor', \App\Http
     Route::post('bank-letters/signed', [\App\Http\Controllers\SignedDocumentController::class, 'storeForBankLetter'])->name('bank-letters.signed');
     Route::post('invoices/{invoice}/email', [\App\Http\Controllers\AgencyEmailController::class, 'invoice'])->middleware('throttle:10,1')->name('invoices.email');
     Route::post('tax-invoices/{taxInvoice}/email', [\App\Http\Controllers\AgencyEmailController::class, 'taxInvoice'])->middleware('throttle:10,1')->name('tax-invoices.email');
+    Route::post('contracts/{contract}/import', [\App\Http\Controllers\ContractImportController::class, 'upload'])->name('contracts.import');
+    Route::get('contracts/{contract}/import', [\App\Http\Controllers\ContractImportController::class, 'show'])->name('contracts.import.show');
+    Route::post('contracts/{contract}/import/save', [\App\Http\Controllers\ContractImportController::class, 'store'])->name('contracts.import.store');
+    Route::post('contracts/{contract}/papers', [\App\Http\Controllers\MonthlyPaperController::class, 'store'])->name('papers.store');
+    Route::get('papers/{paper}', [\App\Http\Controllers\MonthlyPaperController::class, 'show'])->name('papers.show');
+    Route::delete('papers/{paper}', [\App\Http\Controllers\MonthlyPaperController::class, 'destroy'])->name('papers.destroy');
+    Route::get('contracts/{contract}/bill-pack', [\App\Http\Controllers\MonthlyPaperController::class, 'pack'])->name('contracts.bill-pack');
     Route::get('signed-documents/{signedDocument}', [\App\Http\Controllers\SignedDocumentController::class, 'show'])->name('signed-documents.show');
     Route::get('attendance/{sheet}/certificate', [AttendanceController::class, 'certificate'])->name('attendance.certificate');
     Route::get('attendance/{sheet}/scan', [AttendanceController::class, 'scan'])->name('attendance.scan');

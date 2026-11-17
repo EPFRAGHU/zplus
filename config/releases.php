@@ -12,6 +12,14 @@ return [
     'timezone' => 'Asia/Kolkata',      // release times are Indian Standard Time
 
     'releases' => [
+        ['version' => '2.13.0', 'date' => '2026-11-17 13:28', 'title' => 'GeM contract tools: import, papers, bill pack, reminders', 'type' => 'feature', 'notes' => [
+            'Work orders: service start and end date and total contract value; "Ends in N days" warning from 30 days before the end date (work order list, work order page and dashboard)',
+            'Import posts from the GeM contract PDF: upload it on the work order page, check the posts (designation, number, basic pay), service period and value, then add the ticked posts to a project. The app checks its reading against the contract\'s printed total',
+            'Monthly papers on each work order: salary payment proof, EPF challan, ESIC challan, logbook, service feedback – checklist per month (EPF/ESIC only when someone has it switched on)',
+            '"Download bill pack (ZIP)": tax invoice, sub-bills, covering letters (signed copies where uploaded), PI attendance certificates and the month\'s papers, for uploading on GeM',
+            'Dashboard reminders: last month\'s wages due by the 7th and EPF/ESIC by the 15th per work order, work orders ending soon, posts with more staff than sanctioned',
+            'Admin / Accounts only (removing a paper: Admin); salary proofs only for those who may see bank details; every upload, download and removal is in the Activity log. No bill amount or number changes',
+        ]],
         ['version' => '2.12.1', 'date' => '2026-11-17 08:29', 'title' => 'Search box for employees', 'type' => 'fix', 'notes' => [
             'Employee Management: type part of the name, Emp ID, post, project or agency in the Employee box; matching employees drop down as you type',
             'Click one (or use the arrow keys and Enter) to open all their details, as before',

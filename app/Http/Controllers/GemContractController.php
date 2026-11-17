@@ -68,8 +68,19 @@ class GemContractController extends Controller
             'taxInvoices' => $contract->taxInvoices()->where('month', $month->toDateString())->get(),
             'pending' => $subBills->whereNull('tax_invoice_id'),
             'nextTaxNumber' => app(\App\Services\Billing\TaxInvoiceBuilder::class)->suggestNumber($contract, $month),
+            'papers' => \App\Models\MonthlyPaper::query()->with('uploader')->where('gem_contract_id', $contract->id)->where('month', $month->toDateString())->orderBy('id')->get()->groupBy('kind'),
+            'needs' => self::statutoryNeeds($contract),
             'incharges' => \App\Models\ProjectIncharge::query()->where('agency_id', $contract->agency_id)->where('status', 'active')->orderBy('name')->get(),
         ]);
+    }
+
+    /** Whether anyone on this work order has EPF / ESIC switched on (so its challan is needed each month). */
+    public static function statutoryNeeds(GemContract $contract): array
+    {
+        $staff = \App\Models\Employee::query()->whereIn('status', ['active', 'notice'])
+            ->whereHas('post.project', fn ($q) => $q->where('gem_contract_id', $contract->id));
+
+        return ['epf_challan' => (clone $staff)->where('pf_applicable', true)->exists(), 'esi_challan' => (clone $staff)->where('esic_applicable', true)->exists()];
     }
 
     public function edit(GemContract $contract): View
@@ -106,6 +117,9 @@ class GemContractController extends Controller
             'bid_no' => [Rule::requiredIf(fn () => $request->input('contract_type', 'online') !== 'offline'), 'nullable', 'string', 'max:40'],
             'contract_no' => ['required', 'string', 'max:40', Rule::unique('gem_contracts')->ignore($contract)],
             'contract_date' => ['nullable', 'date'],
+            'start_date' => ['nullable', 'date'],
+            'end_date' => ['nullable', 'date', 'after_or_equal:start_date'],
+            'contract_value' => ['nullable', 'numeric', 'min:0', 'max:9999999999999', 'decimal:0,2'],
             'billing_type' => ['required', Rule::in(['monthly', 'daily'])],
             'sac_code' => ['nullable', 'digits_between:4,8'],
             'service_charge_percent' => ['required', 'numeric', 'between:0,100', 'decimal:0,4'],
@@ -117,6 +131,7 @@ class GemContractController extends Controller
             'agency_id.required' => 'Choose the agency that raises bills on this contract.',
             'client_id.required' => 'Choose the client this contract is with.',
             'bid_no.required' => 'Enter the GeM bid number of this online contract.',
+            'end_date.after_or_equal' => 'The service end date must be on or after the start date.',
             'contract_no.unique' => 'This contract / work order number is already saved. Open it from Work Orders and use "Add project" to add another project under it.',
         ]);
         $data['inter_state'] = $request->boolean('inter_state');

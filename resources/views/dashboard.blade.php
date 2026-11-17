@@ -44,6 +44,7 @@
     <x-kpi label="Billed this year" :value="inr($stats['billedThisYear'])" color="#1d1a1c" />
     <x-kpi label="Awaiting payment" :value="inr($stats['unpaid'])" meta="Approved and submitted bills" color="#5b3fd1" />
   </div>
+  @include('dashboard._reminders')
   <div class="row g-3">
     <div class="col-xl-8">
       <div class="z-card h-100">

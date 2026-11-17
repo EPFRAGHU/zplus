@@ -47,6 +47,7 @@
       <div class="z-card-h">
         <div><a class="fw-bold text-decoration-none mono" href="{{ route('contracts.show', $c) }}">{{ $c->contract_no }}</a>
           <span class="badge {{ $c->contract_type === 'offline' ? 'text-bg-secondary' : 'text-bg-info' }} ms-1">{{ $c->typeLabel() }}</span>
+          @include('contracts._expiry', ['c' => $c])
           <div class="mono text-secondary small">{{ $c->bid_no ? 'Bid '.$c->bid_no : '' }} · {{ $c->projects->pluck('code')->implode(', ') ?: 'no projects yet' }}</div></div>
         <div class="small">
           <div><span class="text-secondary">Agency:</span> <span class="fw-semibold">{{ $c->agency->name }}</span> ({{ $c->agency->code }})</div>

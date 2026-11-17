@@ -2,8 +2,6 @@
 
 namespace App\Services\Mail;
 
-use App\Http\Controllers\InvoiceController;
-use App\Http\Controllers\TaxInvoiceController;
 use App\Mail\AgencyDocuments;
 use App\Models\Agency;
 use App\Models\Invoice;
@@ -11,10 +9,8 @@ use App\Models\SentEmail;
 use App\Models\SignedDocument;
 use App\Models\TaxInvoice;
 use App\Support\Codes;
-use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Mail;
-use Illuminate\Support\Facades\Storage;
 use RuntimeException;
 
 /**
@@ -43,30 +39,18 @@ final class AgencyMailer
         return $this->credentials($agency) !== null;
     }
 
+    public function __construct(private readonly \App\Services\Billing\DocumentFiles $files) {}
+
     /** Sub-bill + its covering letter. @return list<array{name: string, data: string, signed: bool}> */
     public function documentsForInvoice(Invoice $invoice): array
     {
-        $data = InvoiceController::pdfData($invoice);
-        $name = Codes::fileSafe($invoice->invoice_no);
-
-        return [
-            $this->signedOr(SignedDocument::latestFor('sub_bill', invoiceId: $invoice->id), $invoice->updated_at, "{$name}.pdf",
-                fn () => Pdf::loadView('pdf.invoice', $data)->setPaper('a4')->output()),
-            ['name' => "covering-letter-{$name}.pdf", 'data' => Pdf::loadView('pdf.covering-letter', $data)->setPaper('a4')->output(), 'signed' => false],
-        ];
+        return [$this->files->subBill($invoice), $this->files->coveringLetter($invoice)];
     }
 
     /** Tax invoice + every sub-bill in it. @return list<array{name: string, data: string, signed: bool}> */
     public function documentsForTaxInvoice(TaxInvoice $tax): array
     {
-        $docs = [$this->signedOr(SignedDocument::latestFor('tax_invoice', taxInvoiceId: $tax->id), $tax->updated_at, 'tax-invoice-'.Codes::fileSafe($tax->number).'.pdf',
-            fn () => Pdf::loadView('pdf.tax-invoice', TaxInvoiceController::pdfData($tax))->setPaper('a4')->output())];
-        foreach ($tax->subBills()->orderBy('id')->get() as $bill) {
-            $docs[] = $this->signedOr(SignedDocument::latestFor('sub_bill', invoiceId: $bill->id), $bill->updated_at, Codes::fileSafe($bill->invoice_no).'.pdf',
-                fn () => Pdf::loadView('pdf.invoice', InvoiceController::pdfData($bill))->setPaper('a4')->output());
-        }
-
-        return $docs;
+        return [$this->files->taxInvoice($tax), ...$tax->subBills()->orderBy('id')->get()->map(fn ($bill) => $this->files->subBill($bill))->all()];
     }
 
     /** What will be attached, without making the PDFs (for the page). @return list<array{name: string, signed: bool}> */
@@ -131,14 +115,7 @@ final class AgencyMailer
 
     private function isSigned(?SignedDocument $signed, $changedAt): bool
     {
-        return $signed !== null && ! ($changedAt && $changedAt->gt($signed->created_at)) && Storage::disk('local')->exists($signed->path);
-    }
-
-    private function signedOr(?SignedDocument $signed, $changedAt, string $name, callable $generate): array
-    {
-        return $this->isSigned($signed, $changedAt)
-            ? ['name' => $name, 'data' => Storage::disk('local')->get($signed->path), 'signed' => true]
-            : ['name' => $name, 'data' => $generate(), 'signed' => false];
+        return $this->files->isSigned($signed, $changedAt);
     }
 
     /** A plain message for the operator; never includes the password. */

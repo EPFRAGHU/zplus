@@ -29,6 +29,9 @@
       <div class="col-12" id="already-saved" hidden><div class="alert alert-info small py-2 mb-0"><i class="bi bi-info-circle me-1"></i>
         <span id="already-text"></span> <a id="already-link" href="#" class="fw-semibold">Open it and add your project there</a> instead of entering it again.</div></div>
       <x-field name="contract_date" label="Contract date" type="date" :value="$contract->contract_date?->toDateString()" col="col-md-4" />
+      <x-field name="start_date" label="Service start date" type="date" :value="$contract->start_date?->toDateString()" col="col-md-4" hint="From the GeM contract, e.g. 01-Oct-2026" />
+      <x-field name="end_date" label="Service end date" type="date" :value="$contract->end_date?->toDateString()" col="col-md-4" hint="A warning shows 30 days before this date" />
+      <x-field name="contract_value" label="Total contract value (₹)" :value="$contract->contract_value" col="col-md-4" hint="Incl. all duties and taxes, as printed on the contract" />
       <x-select name="billing_type" label="Billing type" :options="['monthly' => 'Monthly rate (consolidated)', 'daily' => 'Daily rate × paid days']" :value="$contract->billing_type" required col="col-md-4" />
       <x-field name="sac_code" label="SAC / HSN code" :value="$contract->sac_code ?? '998514'" col="col-md-2" class="mono" hint="Printed on bills" />
       <x-field name="service_charge_percent" label="Service charge (%)" :value="$contract->service_charge_percent" required col="col-md-2" hint="e.g. 3.85" />

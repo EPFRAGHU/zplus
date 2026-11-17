@@ -11,14 +11,14 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasManyThrough;
 
-#[Fillable(['agency_id', 'client_id', 'contract_type', 'bid_no', 'contract_no', 'contract_date', 'billing_type', 'sac_code', 'service_charge_percent', 'service_charge_includes_gst', 'gst_percent', 'epf_percent', 'esic_percent', 'inter_state', 'status'])]
+#[Fillable(['agency_id', 'client_id', 'contract_type', 'bid_no', 'contract_no', 'contract_date', 'start_date', 'end_date', 'contract_value', 'billing_type', 'sac_code', 'service_charge_percent', 'service_charge_includes_gst', 'gst_percent', 'epf_percent', 'esic_percent', 'inter_state', 'status'])]
 class GemContract extends Model
 {
     use LogsActivity, ScopedToAgency;
 
     protected function casts(): array
     {
-        return ['contract_date' => 'date', 'inter_state' => 'boolean', 'service_charge_includes_gst' => 'boolean'];
+        return ['contract_date' => 'date', 'start_date' => 'date', 'end_date' => 'date', 'contract_value' => 'decimal:2', 'inter_state' => 'boolean', 'service_charge_includes_gst' => 'boolean'];
     }
 
     public function agency(): BelongsTo
@@ -46,6 +46,28 @@ class GemContract extends Model
     public function typeLabel(): string
     {
         return self::TYPES[$this->contract_type] ?? 'Online (GeM)';
+    }
+
+    public function papers(): HasMany
+    {
+        return $this->hasMany(MonthlyPaper::class);
+    }
+
+    /** Days until the service end date (negative once ended), or null when no end date is entered. */
+    public function daysLeft(): ?int
+    {
+        return $this->end_date ? (int) now()->startOfDay()->diffInDays($this->end_date->copy()->startOfDay(), false) : null;
+    }
+
+    /** "ended", "ending" (30 days or less) or null, for active work orders with an end date. */
+    public function expiry(): ?string
+    {
+        $left = $this->daysLeft();
+        if ($left === null || $this->status !== 'active') {
+            return null;
+        }
+
+        return $left < 0 ? 'ended' : ($left <= 30 ? 'ending' : null);
     }
 
     public function taxInvoices(): HasMany

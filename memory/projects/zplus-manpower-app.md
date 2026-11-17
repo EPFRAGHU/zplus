@@ -1,7 +1,7 @@
 # ZPlus Manpower app
 
 **Repo:** epfraghu/zplus, branch `claude/manpower-app-foundation`
-**Status:** Live. Version **2.12.1** pushed (2026-11-17 08:21 IST). Coolify AUTO-DEPLOYS on every push to the branch (seen 16 Nov: v2.4.0 went live by itself) – pushing = going live. 170 tests passing. Project started **01 Nov 2026, 04:01 PM IST**.
+**Status:** Live. Version **2.13.0** pushed (2026-11-17 08:21 IST). Coolify AUTO-DEPLOYS on every push to the branch (seen 16 Nov: v2.4.0 went live by itself) – pushing = going live. 176 tests passing. Project started **01 Nov 2026, 04:01 PM IST**.
 **Live URL:** https://zplus.epf-dashboard.online (admin: the owner's Gmail; password was shown in chat once, owner told to change it via tinker)
 
 ## Stack
@@ -144,3 +144,5 @@ What moves: code (GitHub or a copy), MySQL dump, uploaded files (`zplus-storage`
 - dompdf can't read private storage: logos are embedded as data URIs
 - Coolify: compose file must be `docker-compose.yaml`; set domain port 80; no `www` domain without DNS; use `expose` not `ports`; Coolify `SERVICE_PASSWORD_*` vars auto-generate secrets
 - In this cloud sandbox, Docker builds can't reach Debian mirrors (proxy 403); test images by injecting the proxy CA only in a scratch Dockerfile. Don't `pkill -f` a pattern that matches the running shell command.
+- **GeM contract tools (v2.13.0, 2026-11-17)**: gem_contracts `start_date`, `end_date`, `contract_value` (+ `expiry()`, `daysLeft()`, partial `contracts/_expiry`); import posts from GeM contract PDF (`App\Services\Contracts\GemContractPdf`, smalot/pdfparser; splits posts at "Designation :" after "Type of Function"; verifies (m×1.18 + m×sc%)×months×qty against the printed total – all 5 real contracts matched); `ContractImportController` (upload → session → check page → store, manage-masters, skips same designation+rate, refuses other contract no.); `monthly_papers` table + `MonthlyPaperController` (billing; salary_proof needs view-bank-details; remove = reset-month/Admin) and `App\Services\Billing\BillPack` ZIP; shared `App\Services\Billing\DocumentFiles` (signed-or-generated PDFs, used by AgencyMailer too); dashboard `_reminders` (wages 7th / EPF-ESIC 15th per active work order with attendance last month, ending ≤30 days, posts over sanctioned). Open question to owner: contracts have PF/ESI = 0 in rate – should employer EPF 13%/ESIC 3.25% still be added on bills?
+

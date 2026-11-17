@@ -19,6 +19,7 @@ class LogAccess
         'bank-letters.index' => ['viewed', 'Bank Letter (bank details of all employees)'],
         'bank-letters.pdf' => ['downloaded', 'Bank letter for the month (bank details)'],
         'signed-documents.show' => ['downloaded', 'Signed copy (DSC)'],
+        'papers.show' => ['downloaded', 'Monthly paper (challan / salary proof / logbook)'],
         'staff.index' => ['viewed', 'Employee Management (details, payments)'],
         'attendance.certificate' => ['downloaded', 'Attendance certificate'],
         'attendance.scan' => ['downloaded', 'Signed attendance certificate'],

@@ -77,9 +77,41 @@ class DashboardController extends Controller
             'monthly' => $invoices()->whereYear('month', now()->year)->get(['month', 'rounded_total', 'status'])
                 ->groupBy(fn ($i) => (int) $i->month->format('n'))
                 ->map(fn ($g) => ['billed' => (float) $g->sum('rounded_total'), 'paid' => (float) $g->where('status', 'paid')->sum('rounded_total')]),
+            'compliance' => $this->compliance($contracts(), $lastMonth),
+            'ending' => $contracts()->with('agency', 'client')->where('status', 'active')->whereNotNull('end_date')
+                ->where('end_date', '<=', now()->addDays(30)->toDateString())->orderBy('end_date')->get(),
+            'overPosts' => Post::query()->whereHas('project', $byProject)->with('project.contract')->withCount('activeEmployees')->get()
+                ->filter(fn ($p) => $p->active_employees_count > $p->sanctioned_qty)->values(),
             'summary' => $this->summary($agencyId, $clientId, $month),
             'projectRows' => $this->projectRows($projects(), $month),
         ]);
+    }
+
+    /**
+     * Last month's wages and statutory papers per active work order that has attendance that month: wages must be paid
+     * by the 7th and EPF / ESIC deposited by the 15th of this month (GeM contract SLA). "Done" = the paper is uploaded.
+     */
+    private function compliance(Builder $contracts, \Carbon\CarbonInterface $wageMonth): array
+    {
+        $list = $contracts->with('agency', 'client')->where('status', 'active')
+            ->whereHas('projects.attendanceSheets', fn ($q) => $q->where('month', $wageMonth->toDateString()))->get();
+        $papers = \App\Models\MonthlyPaper::query()->whereIn('gem_contract_id', $list->pluck('id'))->where('month', $wageMonth->toDateString())
+            ->get(['gem_contract_id', 'kind'])->groupBy('gem_contract_id');
+        $rows = $list->map(function ($c) use ($papers) {
+            $have = ($papers[$c->id] ?? collect())->pluck('kind')->unique();
+            $needs = GemContractController::statutoryNeeds($c);
+
+            return ['contract' => $c,
+                'salary_proof' => $have->contains('salary_proof'),
+                'epf_challan' => $needs['epf_challan'] ? $have->contains('epf_challan') : null,
+                'esi_challan' => $needs['esi_challan'] ? $have->contains('esi_challan') : null];
+        })->sortBy(fn ($r) => $r['contract']->agency->name.'|'.$r['contract']->contract_no)->values();
+        $due = $wageMonth->copy()->addMonthNoOverflow();
+
+        return ['month' => $wageMonth, 'rows' => $rows,
+            'wagesDue' => $due->copy()->day(7), 'statutoryDue' => $due->copy()->day(15),
+            'wagesPending' => $rows->where('salary_proof', false)->count(),
+            'statutoryPending' => $rows->filter(fn ($r) => $r['epf_challan'] === false || $r['esi_challan'] === false)->count()];
     }
 
     /** One row per project: contract, PI, staff vs sanctioned, last month's attendance and bill, billed this year. */

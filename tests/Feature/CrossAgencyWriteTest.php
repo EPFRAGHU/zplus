@@ -26,7 +26,7 @@ class CrossAgencyWriteTest extends TestCase
     use RefreshDatabase;
 
     private const TABLES = ['agencies', 'clients', 'gem_contracts', 'projects', 'posts', 'employees', 'employee_documents',
-        'attendance_sheets', 'attendance_entries', 'invoices', 'invoice_lines', 'tax_invoices', 'users', 'project_user', 'project_incharges', 'signed_documents', 'sent_emails'];
+        'attendance_sheets', 'attendance_entries', 'invoices', 'invoice_lines', 'tax_invoices', 'users', 'project_user', 'project_incharges', 'signed_documents', 'sent_emails', 'monthly_papers'];
 
     private User $owner;
 
@@ -67,7 +67,10 @@ class CrossAgencyWriteTest extends TestCase
         $incharge = \App\Models\ProjectIncharge::query()->create(['agency_id' => $agency->id, 'name' => "Dr. {$code}", 'user_id' => $pi->id]);
         $project->update(['project_incharge_id' => $incharge->id]);
 
-        return compact('agency', 'client', 'contract', 'project', 'post', 'employee', 'document', 'open', 'locked', 'invoice', 'tax', 'admin', 'pi', 'incharge');
+        $paper = \App\Models\MonthlyPaper::query()->create(['agency_id' => $agency->id, 'gem_contract_id' => $contract->id, 'month' => '2026-09-01', 'kind' => 'logbook',
+            'path' => "papers/{$code}.pdf", 'original_name' => 'logbook.pdf']);
+
+        return compact('agency', 'client', 'contract', 'project', 'post', 'employee', 'document', 'open', 'locked', 'invoice', 'tax', 'admin', 'pi', 'incharge', 'paper');
     }
 
     private function fingerprint(): string
@@ -117,6 +120,10 @@ class CrossAgencyWriteTest extends TestCase
             'upload signed copy to their tax invoice' => fn () => $this->post("/tax-invoices/{$o['tax']->id}/signed", ['signed' => $pdf()]),
             'e-mail their bill' => fn () => $this->post("/invoices/{$o['invoice']->id}/email", ['to' => 'x@y.in', 'subject' => 's', 'message' => 'm']),
             'e-mail their tax invoice' => fn () => $this->post("/tax-invoices/{$o['tax']->id}/email", ['to' => 'x@y.in', 'subject' => 's', 'message' => 'm']),
+            'read a contract PDF into their work order' => fn () => $this->post("/contracts/{$o['contract']->id}/import", ['contract_pdf' => $pdf()]),
+            'save imported posts into their work order' => fn () => $this->post("/contracts/{$o['contract']->id}/import/save", ['project_id' => $o['project']->id, 'posts' => [['add' => 1, 'designation' => 'X', 'sanctioned_qty' => 1, 'rate' => 1]]]),
+            'upload a monthly paper to their work order' => fn () => $this->post("/contracts/{$o['contract']->id}/papers", ['month' => '2026-09', 'kind' => 'logbook', 'paper' => [$pdf()]]),
+            'remove their monthly paper' => fn () => $this->delete("/papers/{$o['paper']->id}"),
             'upload signed bank letter for their agency' => fn () => $this->post('/bank-letters/signed', ['agency' => $o['agency']->id, 'month' => '2026-09', 'signed' => $pdf()]),
             'delete their bill' => fn () => $this->delete("/invoices/{$o['invoice']->id}"),
             'make a tax invoice from their bill' => fn () => $this->post('/tax-invoices', ['gem_contract_id' => $o['contract']->id, 'month' => '2026-09', 'sub_bills' => [$o['invoice']->id], 'invoice_date' => '2026-10-05']),
@@ -179,6 +186,10 @@ class CrossAgencyWriteTest extends TestCase
         $this->get('/incharges')->assertOk()->assertDontSee('Dr. SWH')->assertSee('Dr. ZPS');
         $this->get("/incharges/{$swh['incharge']->id}/edit")->assertNotFound();
         $this->get("/contracts/{$swh['contract']->id}")->assertNotFound();
+        $this->get("/papers/{$swh['paper']->id}")->assertNotFound();
+        $this->get("/contracts/{$swh['contract']->id}/bill-pack?month=2026-09")->assertNotFound();
+        $this->get("/contracts/{$swh['contract']->id}/import")->assertNotFound();
+        $this->get('/')->assertOk()->assertDontSee($swh['contract']->contract_no);
         $this->get("/attendance/{$zps['locked']->id}/bank-letter")->assertOk()->assertHeader('content-type', 'application/pdf');
     }
 }
