@@ -97,4 +97,12 @@ class HardeningTest extends TestCase
         }
         $this->get(route('login'))->assertHeader('Content-Security-Policy', \App\Http\Middleware\SecurityHeaders::CSP);
     }
+
+    /** L2: Laravel's signed /storage file routes are switched off (the app never uses them). */
+    public function test_storage_file_routes_are_switched_off(): void
+    {
+        $this->assertFalse(\Illuminate\Support\Facades\Route::has('storage.local'));
+        auth()->logout();
+        $this->get('/storage/certificates/x.pdf')->assertNotFound();
+    }
 }

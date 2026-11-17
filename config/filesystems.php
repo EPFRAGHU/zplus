@@ -33,7 +33,7 @@ return [
         'local' => [
             'driver' => 'local',
             'root' => storage_path('app/private'),
-            'serve' => true,
+            'serve' => false,   // security audit L2: the app never makes signed file links, so Laravel's /storage routes stay off
             'throw' => false,
             'report' => false,
         ],
