@@ -193,3 +193,12 @@ What moves: code (GitHub or a copy), MySQL dump, uploaded files (`zplus-storage`
   - **Owner declined:** 2-step login, PAN encryption.
   - **Remaining / manual:** H1 daily backups (Coolify + off-server copy + files volume), M4 backup before migration pushes, L1 root container, L5 lock-out (accepted), L6 session 120 min, L9 PI sees unapproved bill PDFs, inline scripts → 'unsafe-inline'.
 
+- **Daily backup (set up 17 Nov 2026, security audit H1 fixed)**:
+  - **Script:** `/root/zplus-backup.sh` on the VPS.
+    - mysqldump from the dynamic `db-ppc5ypfm2aogcq4hfie2kwhv*` container, gzip, checked for "Dump completed"
+    - tar of the app's `/var/www/html/storage/app` volume
+    - keeps 14 days in `/root/zplus-backups`, log in `backup.log`
+  - **Cron:** `0 21 * * *` UTC (2:30 AM IST). Server clock is UTC.
+  - **Off-server copy:** owner copies weekly with scp from laptop PowerShell. First copy was mistakenly run on the server itself; told to delete `/root/db-*.gz` / `/root/files-*.gz` duplicates.
+  - **Coolify panel:** reachable at http://200.234.46.48:8000 (Docker bypasses ufw) or via `ssh -L 8000:localhost:8000 root@200.234.46.48` → http://localhost:8000. Owner advised to enable Coolify 2FA.
+  - **v2.15.1 security update** pushed 17 Nov 2026 evening after APP_URL was confirmed `https://zplus.epf-dashboard.online`.
