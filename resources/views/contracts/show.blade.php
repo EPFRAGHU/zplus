@@ -99,7 +99,7 @@
         <span class="small text-secondary">PI: {{ $project->incharge?->label() ?? $project->pi_name ?? '—' }}@if($project->incharge?->mobile) · {{ $project->incharge->mobile }}@endif</span>
         @can('manage-masters')<button class="btn btn-sm btn-outline-secondary ms-auto" data-bs-toggle="collapse" data-bs-target="#edit-p{{ $project->id }}">Edit project</button>@endcan
         @can('show-delete')@unless(\App\Http\Controllers\ProjectController::cannotDelete($project))
-          <form method="post" action="{{ route('projects.destroy', $project) }}" class="d-inline" onsubmit="return confirm('Delete project {{ $project->name }} ({{ $project->code }})? It has no attendance, bills or staff. Its empty posts are removed too.')">@csrf @method('delete')
+          <form method="post" action="{{ route('projects.destroy', $project) }}" class="d-inline" data-confirm="Delete project {{ $project->name }} ({{ $project->code }})? It has no attendance, bills or staff. Its empty posts are removed too." onsubmit="return confirm(this.dataset.confirm)">@csrf @method('delete')
             <button class="btn btn-sm btn-outline-danger"><i class="bi bi-trash"></i> Delete project</button></form>
         @endunless @endcan
       </div>
