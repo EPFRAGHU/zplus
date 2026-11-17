@@ -202,3 +202,14 @@ What moves: code (GitHub or a copy), MySQL dump, uploaded files (`zplus-storage`
   - **Off-server copy:** owner copies weekly with scp from laptop PowerShell. First copy was mistakenly run on the server itself; told to delete `/root/db-*.gz` / `/root/files-*.gz` duplicates.
   - **Coolify panel:** reachable at http://200.234.46.48:8000 (Docker bypasses ufw) or via `ssh -L 8000:localhost:8000 root@200.234.46.48` → http://localhost:8000. Owner advised to enable Coolify 2FA.
   - **v2.15.1 security update** pushed 17 Nov 2026 evening after APP_URL was confirmed `https://zplus.epf-dashboard.online`.
+- **Updated price suggestion (17 Nov 2026, v2.15.1; NOT yet in the costing PDF)**:
+  - **Effort:** market-equivalent about 180 days (was 112 at v2.3.2). Market value ₹9.0 L / ₹21.6 L / ₹36 L at ₹5k / ₹12k / ₹20k per day. Days are market value, not a timesheet.
+  - **Suggested quote (both agencies, excl. GST):**
+    - ₹3,75,000 one-time
+    - AMC ₹6,500/month from month 4 (₹78,000/yr): hosting, nightly backups, security updates, small fixes, 4 h support
+    - year 1 total ₹4,33,500
+    - new features ₹6,000–8,000 per day
+  - **Lower-upfront option:** ₹2,50,000 + ₹9,000/month.
+  - **If the agencies pay separately:** ₹2,10,000 + ₹3,500/month each.
+  - **Payment terms:** 40% on order / 40% after one month of billing / 20% after 3 months.
+  - **Owner to decide:** joint or separate, GST 18% if registered. Then (on "proceed") update `docs/sales/ZPlus-Software-Costing.pdf` with current features, screenshots and prices.
