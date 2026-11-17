@@ -84,4 +84,17 @@ class HardeningTest extends TestCase
         $this->assertStringNotContainsString('PQRST9876Z', $logged);
         $this->assertStringContainsString('876Z', $logged);
     }
+
+    /** M1: every page sends a Content-Security-Policy (only this site's scripts, no framing by others, forms post only here). */
+    public function test_content_security_policy_is_sent(): void
+    {
+        foreach ([route('dashboard'), route('login')] as $url) {
+            $csp = (string) ($url === route('login') ? $this->post(route('logout'))->baseResponse : $this->get($url)->baseResponse)->headers->get('Content-Security-Policy');
+            foreach (["default-src 'self'", "object-src 'none'", "frame-ancestors 'self'", "form-action 'self'", "base-uri 'self'"] as $rule) {
+                $this->assertStringContainsString($rule, $csp, $url);
+            }
+            $this->assertStringNotContainsString('*', $csp);
+        }
+        $this->get(route('login'))->assertHeader('Content-Security-Policy', \App\Http\Middleware\SecurityHeaders::CSP);
+    }
 }
