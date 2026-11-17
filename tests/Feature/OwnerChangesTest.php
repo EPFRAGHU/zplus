@@ -523,4 +523,31 @@ class OwnerChangesTest extends TestCase
         $this->assertTrue(Employee::query()->where('name', 'New Joiner')->value('tds_applicable'));
         $this->get('/employees/create')->assertSee('name="tds_applicable"', false);
     }
+
+    public function test_admin_can_delete_an_empty_example_project_only(): void
+    {
+        [$agency, , $contract] = $this->swachha();
+        $a = $contract->projects()->create(['name' => 'A', 'code' => 'A']);
+        $a->posts()->create(['designation' => 'Empty post', 'sanctioned_qty' => 1, 'rate' => 1000]);
+
+        $this->get('/attendance?month=2026-10')->assertSee('Delete this empty project');
+        $this->get("/contracts/{$contract->id}")->assertSee('Delete project');
+
+        // Not for projects with staff (HTA) or attendance; not for Accounts / Operator.
+        $hta = Project::query()->where('code', 'HTA')->firstOrFail();
+        $this->delete("/projects/{$hta->id}")->assertSessionHasErrors('project');
+        $this->actingAs(User::factory()->create(['role' => 'accounts', 'agency_id' => $agency->id]));
+        $this->delete("/projects/{$a->id}")->assertForbidden();
+
+        $this->actingAs($this->admin);
+        $this->delete("/projects/{$a->id}")->assertRedirect()->assertSessionHasNoErrors();
+        $this->assertNull(Project::query()->find($a->id));
+        $this->assertSame(0, \App\Models\Post::query()->where('project_id', $a->id)->count());
+        $this->assertTrue(\App\Models\ActivityLog::query()->where('note', 'Project deleted: A (A)')->exists());
+
+        $service = app(AttendanceService::class);
+        $b = $contract->projects()->create(['name' => 'B', 'code' => 'B']);
+        $service->open($b, CarbonImmutable::parse('2026-10-01'));
+        $this->delete("/projects/{$b->id}")->assertSessionHasErrors(['project' => 'This project has attendance. Reset its months first (Attendance → open the month → Reset this month).']);
+    }
 }

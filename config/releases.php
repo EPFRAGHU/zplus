@@ -12,6 +12,10 @@ return [
     'timezone' => 'Asia/Kolkata',      // release times are Indian Standard Time
 
     'releases' => [
+        ['version' => '2.9.3', 'date' => '2026-11-17 05:33', 'title' => 'Delete an empty example project', 'type' => 'fix', 'notes' => [
+            'Admin: "Delete project" on the work order page and "Delete this empty project" on the Attendance list, for projects entered by mistake or as an example',
+            'Only when the project has no attendance, no sub-bills and no employees; its empty posts are removed with it; recorded in the Activity log',
+        ]],
         ['version' => '2.9.2', 'date' => '2026-11-17 05:20', 'title' => 'TDS on/off per employee', 'type' => 'fix', 'notes' => [
             'TDS switch per employee, like EPF and ESIC: on the Employees list (EPF / ESIC / TDS switches) and in the employee form (KYC & statutory tab)',
             'On for everyone already in the app and for new employees, so nothing changes until a person is switched off; switched off = no TDS on the salary sheet, bank letter and Employee Management',

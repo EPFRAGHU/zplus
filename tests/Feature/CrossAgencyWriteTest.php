@@ -89,6 +89,7 @@ class CrossAgencyWriteTest extends TestCase
             'edit their contract' => fn () => $this->put("/contracts/{$o['contract']->id}", ['agency_id' => $o['agency']->id, 'client_id' => $o['client']->id, 'bid_no' => 'Hacked', 'contract_no' => $o['contract']->contract_no, 'billing_type' => 'monthly', 'service_charge_percent' => 3.85, 'gst_percent' => 18, 'epf_percent' => 13, 'esic_percent' => 3.25, 'status' => 'active']),
             'add project to their contract' => fn () => $this->post("/contracts/{$o['contract']->id}/projects", ['name' => 'X', 'code' => 'X']),
             'edit their project' => fn () => $this->put("/projects/{$o['project']->id}", ['name' => 'Hacked', 'code' => 'H']),
+            'delete their project' => fn () => $this->delete("/projects/{$o['project']->id}"),
             'add post to their project' => fn () => $this->post("/projects/{$o['project']->id}/posts", ['designation' => 'X', 'sanctioned_qty' => 1, 'rate' => 1]),
             'quick-add post under their contract' => fn () => $this->post('/posts/quick', ['agency_id' => $o['agency']->id, 'client_id' => $o['client']->id, 'contract_mode' => 'existing', 'gem_contract_id' => $o['contract']->id, 'project_mode' => 'existing', 'project_id' => $o['project']->id, 'designation' => 'X', 'sanctioned_qty' => 1, 'rate' => 1]),
             'edit their post' => fn () => $this->put("/posts/{$o['post']->id}", ['designation' => 'Hacked', 'sanctioned_qty' => 9, 'rate' => 1]),

@@ -50,6 +50,10 @@
                 <input name="holidays" class="form-control form-control-sm" placeholder="Holidays, e.g. 2, 19, 20" aria-label="Holiday dates for {{ $p->name }}" style="max-width:190px">
                 <button class="btn btn-sm btn-primary text-nowrap" @disabled($p->employees_count === 0) title="{{ $p->employees_count === 0 ? 'No employees on this project yet' : '' }}">Start sheet</button>
               </form>
+              @can('delete-project')@if($p->employees_count === 0 && ! \App\Http\Controllers\ProjectController::cannotDelete($p))
+                <form method="post" action="{{ route('projects.destroy', $p) }}" class="mt-1" onsubmit="return confirm('Delete project {{ $p->name }} ({{ $p->code }})? It has no staff, attendance or bills.')">@csrf @method('delete')
+                  <button class="btn btn-sm btn-link text-danger p-0"><i class="bi bi-trash"></i> Delete this empty project</button></form>
+              @endif @endcan
             @endif
           </td>
         </tr>

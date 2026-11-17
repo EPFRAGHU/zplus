@@ -70,6 +70,7 @@ Route::middleware(['auth', 'active', 'role:admin,accounts,supervisor', \App\Http
     Route::get('staff', [\App\Http\Controllers\StaffController::class, 'index'])->name('staff.index');
     Route::post('contracts/{contract}/projects', [ProjectController::class, 'store'])->name('projects.store');
     Route::put('projects/{project}', [ProjectController::class, 'update'])->name('projects.update');
+    Route::delete('projects/{project}', [ProjectController::class, 'destroy'])->name('projects.destroy');
     Route::get('posts', [PostController::class, 'index'])->name('posts.index');
     Route::post('posts/quick', [PostController::class, 'quickStore'])->name('posts.quick');
     Route::post('projects/{project}/posts', [PostController::class, 'store'])->name('posts.store');
