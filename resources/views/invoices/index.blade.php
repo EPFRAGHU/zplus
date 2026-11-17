@@ -57,6 +57,18 @@
     <div><label class="form-label small text-secondary mb-1" for="s">Status</label><select id="s" name="status" class="form-select"><option value="">Any</option>@foreach(\App\Models\Invoice::STATUSES as $k => $v)<option value="{{ $k }}" @selected(request('status') === $k)>{{ $v }}</option>@endforeach</select></div>
     <button class="btn btn-outline-secondary">Filter</button>
   </form>
+  @can('billing')
+  @php($zipAgency = $agencyId ?: ($agencies->count() === 1 ? $agencies->first()->id : null))
+  @if(request('month') && $zipAgency)
+    <div class="mb-3 d-flex flex-wrap gap-2 align-items-center">
+      <a class="btn btn-outline-secondary" href="{{ route('month-documents.zip', ['agency' => $zipAgency, 'month' => substr(request('month'), 0, 7)]) }}"><i class="bi bi-file-zip me-1"></i>Download all PDFs of this month (ZIP)</a>
+      <span class="small text-secondary">Sub-bills, covering letters, tax invoices{{ \Illuminate\Support\Facades\Gate::allows('view-bank-details') ? ' and the bank letter' : '' }} – sign them together with the DSC token, then upload each signed copy on its page.</span>
+      @error('zip')<span class="small text-danger">{{ $message }}</span>@enderror
+    </div>
+  @elseif(request('month'))
+    <div class="small text-secondary mb-3">Choose one agency to download this month's PDFs as a ZIP.</div>
+  @endif
+  @endcan
   <div class="z-card"><div class="table-responsive"><table class="table table-hover">
     <thead><tr><th>Bill no.</th><th>Agency</th><th>Client</th><th>Work order</th><th>Project</th><th>Month</th><th class="num">Before GST</th><th class="num">Bill amount</th><th>Status</th></tr></thead>
     <tbody>

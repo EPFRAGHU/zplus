@@ -26,7 +26,7 @@ class CrossAgencyWriteTest extends TestCase
     use RefreshDatabase;
 
     private const TABLES = ['agencies', 'clients', 'gem_contracts', 'projects', 'posts', 'employees', 'employee_documents',
-        'attendance_sheets', 'attendance_entries', 'invoices', 'invoice_lines', 'tax_invoices', 'users', 'project_user', 'project_incharges'];
+        'attendance_sheets', 'attendance_entries', 'invoices', 'invoice_lines', 'tax_invoices', 'users', 'project_user', 'project_incharges', 'signed_documents'];
 
     private User $owner;
 
@@ -113,6 +113,9 @@ class CrossAgencyWriteTest extends TestCase
             'make a bill from their month' => fn () => $this->post('/invoices', ['attendance_sheet_id' => $o['open']->id]),
             'approve their bill' => fn () => $this->post("/invoices/{$o['invoice']->id}/status", ['status' => 'approved']),
             'recalculate their bill' => fn () => $this->post("/invoices/{$o['invoice']->id}/recalculate"),
+            'upload signed copy to their bill' => fn () => $this->post("/invoices/{$o['invoice']->id}/signed", ['signed' => $pdf()]),
+            'upload signed copy to their tax invoice' => fn () => $this->post("/tax-invoices/{$o['tax']->id}/signed", ['signed' => $pdf()]),
+            'upload signed bank letter for their agency' => fn () => $this->post('/bank-letters/signed', ['agency' => $o['agency']->id, 'month' => '2026-09', 'signed' => $pdf()]),
             'delete their bill' => fn () => $this->delete("/invoices/{$o['invoice']->id}"),
             'make a tax invoice from their bill' => fn () => $this->post('/tax-invoices', ['gem_contract_id' => $o['contract']->id, 'month' => '2026-09', 'sub_bills' => [$o['invoice']->id], 'invoice_date' => '2026-10-05']),
             'tax invoice of their bill under my work order' => fn () => $this->post('/tax-invoices', ['month' => '2026-09', 'sub_bills' => [$o['invoice']->id], 'invoice_date' => '2026-10-05']),

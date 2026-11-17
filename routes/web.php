@@ -107,6 +107,11 @@ Route::middleware(['auth', 'active', 'role:admin,accounts,supervisor', \App\Http
     Route::get('attendance/{sheet}/bank-letter', [AttendanceController::class, 'bankLetter'])->name('attendance.bank-letter');
     Route::get('bank-letters', [\App\Http\Controllers\BankLetterController::class, 'index'])->name('bank-letters.index');
     Route::get('bank-letters/pdf', [\App\Http\Controllers\BankLetterController::class, 'pdf'])->name('bank-letters.pdf');
+    Route::get('month-documents.zip', [\App\Http\Controllers\SignedDocumentController::class, 'zip'])->name('month-documents.zip');
+    Route::post('invoices/{invoice}/signed', [\App\Http\Controllers\SignedDocumentController::class, 'storeForInvoice'])->name('invoices.signed');
+    Route::post('tax-invoices/{taxInvoice}/signed', [\App\Http\Controllers\SignedDocumentController::class, 'storeForTaxInvoice'])->name('tax-invoices.signed');
+    Route::post('bank-letters/signed', [\App\Http\Controllers\SignedDocumentController::class, 'storeForBankLetter'])->name('bank-letters.signed');
+    Route::get('signed-documents/{signedDocument}', [\App\Http\Controllers\SignedDocumentController::class, 'show'])->name('signed-documents.show');
     Route::get('attendance/{sheet}/certificate', [AttendanceController::class, 'certificate'])->name('attendance.certificate');
     Route::get('attendance/{sheet}/scan', [AttendanceController::class, 'scan'])->name('attendance.scan');
     Route::get('attendance/{sheet}/submitted-pdf', [AttendanceController::class, 'submittedPdf'])->name('attendance.submitted-pdf');

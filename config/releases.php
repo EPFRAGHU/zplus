@@ -12,6 +12,11 @@ return [
     'timezone' => 'Asia/Kolkata',      // release times are Indian Standard Time
 
     'releases' => [
+        ['version' => '2.11.0', 'date' => '2026-11-17 07:01', 'title' => 'Month ZIP and DSC-signed copies', 'type' => 'feature', 'notes' => [
+            'Download all PDFs of a month as one ZIP per agency (sub-bills, covering letters, tax invoices and the bank letter) from the Sub-bills page (choose month and agency) or the Bank Letter page – to sign them together with the DSC token (Adobe Reader / JSignPdf)',
+            '"Signed copy (DSC)" box on every sub-bill, tax invoice and monthly bank letter: upload the signed PDF; the app keeps it, shows "Signed ✓" and warns if the bill changed after signing',
+            'Admin / Accounts only (bank letter: those who may see bank details); every upload and download is in the Activity log',
+        ]],
         ['version' => '2.10.0', 'date' => '2026-11-17 05:59', 'title' => 'Super Admin delete options', 'type' => 'feature', 'notes' => [
             'Super Admin only: a "Show delete options" switch in the sidebar; Delete buttons appear only while it is on',
             'Delete agencies, clients, work orders, Project In-charges, projects and employees – only when nothing depends on them; otherwise the button is disabled and says what to remove or move first',

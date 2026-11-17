@@ -613,4 +613,58 @@ class OwnerChangesTest extends TestCase
         $this->delete("/clients/{$spare2->id}")->assertForbidden();
         $this->post('/delete-mode')->assertForbidden();
     }
+
+    public function test_month_zip_and_dsc_signed_copies(): void
+    {
+        \Illuminate\Support\Facades\Storage::fake('local');
+        [$agency, , $contract] = $this->swachha();
+        $bills = $this->billMonth($contract->load('projects'), '2026-10-01');
+        $tax = app(TaxInvoiceBuilder::class)->create($contract, CarbonImmutable::parse('2026-10-01'), collect($bills)->pluck('id')->all(), $this->admin);
+
+        // ZIP: every sub-bill, covering letter, tax invoice and the bank letter of the month.
+        $this->get('/invoices?month=2026-10&agency='.$agency->id)->assertSee('Download all PDFs of this month (ZIP)');
+        $res = $this->get("/month-documents.zip?agency={$agency->id}&month=2026-10")->assertOk()->assertHeader('content-type', 'application/zip');
+        $zipPath = $res->baseResponse->getFile()->getPathname();
+        $zip = new \ZipArchive;
+        $zip->open($zipPath);
+        $names = collect(range(0, $zip->numFiles - 1))->map(fn ($i) => $zip->getNameIndex($i))->sort()->values()->all();
+        $zip->close();
+        $this->assertSame(['bank-letter-2026-10.pdf', 'covering-letters/covering-letter-SW-001-26-27-CCRH.pdf', 'covering-letters/covering-letter-SW-001-26-27-HTA.pdf',
+            'sub-bills/SW-001-26-27-CCRH.pdf', 'sub-bills/SW-001-26-27-HTA.pdf', 'tax-invoices/SW-001-26-27.pdf'], $names);
+        $this->get("/month-documents.zip?agency={$agency->id}&month=2026-12")->assertSessionHasErrors('zip');   // nothing that month
+
+        // Upload signed copies: PDF only; the latest is shown; "changed after signing" when the bill changes later.
+        $hta = $bills['HTA'];
+        $pdf = fn ($name) => \Illuminate\Http\UploadedFile::fake()->create($name, 30, 'application/pdf');
+        $this->post("/invoices/{$hta->id}/signed", ['signed' => \Illuminate\Http\UploadedFile::fake()->create('x.docx', 5, 'application/msword')])->assertSessionHasErrors('signed');
+        $this->post("/invoices/{$hta->id}/signed", ['signed' => $pdf('HTA signed.pdf')])->assertSessionHasNoErrors();
+        $this->post("/tax-invoices/{$tax->id}/signed", ['signed' => $pdf('TI signed.pdf')])->assertSessionHasNoErrors();
+        $this->post('/bank-letters/signed', ['agency' => $agency->id, 'month' => '2026-10', 'signed' => $pdf('bank signed.pdf')])->assertSessionHasNoErrors();
+        $this->assertSame(3, \App\Models\SignedDocument::query()->count());
+        $this->get("/invoices/{$hta->id}")->assertSee('Signed ✓')->assertSee('HTA-signed.pdf')->assertDontSee('Changed after signing');
+        $this->get("/tax-invoices/{$tax->id}")->assertSee('Signed ✓');
+        $this->get("/bank-letters?agency={$agency->id}&month=2026-10")->assertSee('Signed ✓')->assertSee('bank-signed.pdf');
+        $signed = \App\Models\SignedDocument::query()->where('kind', 'sub_bill')->firstOrFail();
+        $this->get("/signed-documents/{$signed->id}")->assertOk();
+        $this->travel(5)->minutes();
+        $hta->touch();
+        $this->get("/invoices/{$hta->id}")->assertSee('Changed after signing');
+
+        // Deleting the bill removes its signed copy and file.
+        $path = $signed->path;
+        app(TaxInvoiceBuilder::class)->delete($tax);
+        $this->delete("/invoices/{$hta->id}");
+        $this->assertNull(\App\Models\SignedDocument::query()->find($signed->id));
+        \Illuminate\Support\Facades\Storage::disk('local')->assertMissing($path);
+
+        // Operators cannot download the ZIP or upload; another agency's records are not found.
+        $this->actingAs(User::factory()->create(['role' => 'supervisor', 'agency_id' => $agency->id]));
+        $this->get("/month-documents.zip?agency={$agency->id}&month=2026-10")->assertForbidden();
+        $bank = \App\Models\SignedDocument::query()->withoutGlobalScopes()->where('kind', 'bank_letter')->firstOrFail();
+        $other = Agency::query()->create(['name' => 'Z Plus', 'code' => 'ZPS']);
+        $this->actingAs(User::factory()->create(['role' => 'admin', 'agency_id' => $other->id]));
+        $this->get("/signed-documents/{$bank->id}")->assertNotFound();
+        $this->post("/invoices/{$bills['CCRH']->id}/signed", ['signed' => $pdf('x.pdf')])->assertNotFound();
+        $this->get("/month-documents.zip?agency={$agency->id}&month=2026-10")->assertSessionHasErrors('agency');
+    }
 }

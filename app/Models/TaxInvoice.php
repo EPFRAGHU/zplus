@@ -21,6 +21,12 @@ class TaxInvoice extends Model
 
     public const STATUSES = ['draft' => 'Draft', 'submitted' => 'Submitted', 'paid' => 'Paid'];
 
+    protected static function booted(): void
+    {
+        // Signed copies go with the bill (the rows cascade in the database; their files are removed here).
+        static::deleting(fn (self $m) => SignedDocument::query()->withoutGlobalScopes()->where('tax_invoice_id', $m->id)->get()->each->delete());
+    }
+
     protected function casts(): array
     {
         $money = array_fill_keys(['taxable', 'cgst', 'sgst', 'igst', 'total', 'rounded_total'], 'decimal:2');

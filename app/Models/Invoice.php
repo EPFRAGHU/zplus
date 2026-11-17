@@ -33,6 +33,12 @@ class Invoice extends Model
 
     public const STATUSES = ['draft' => 'Draft', 'approved' => 'Approved', 'submitted' => 'Submitted', 'paid' => 'Paid'];
 
+    protected static function booted(): void
+    {
+        // Signed copies go with the bill (the rows cascade in the database; their files are removed here).
+        static::deleting(fn (self $m) => SignedDocument::query()->withoutGlobalScopes()->where('invoice_id', $m->id)->get()->each->delete());
+    }
+
     protected function casts(): array
     {
         $money = ['service_charge_includes_gst' => 'boolean'] + array_fill_keys(['wages', 'epf', 'esic', 'subtotal', 'service_charge', 'taxable', 'cgst', 'sgst', 'igst', 'total', 'rounded_total'], 'decimal:2');

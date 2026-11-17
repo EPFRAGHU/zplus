@@ -18,6 +18,7 @@ class LogAccess
         'attendance.bank-letter' => ['downloaded', 'Bank forwarding letter (bank details)'],
         'bank-letters.index' => ['viewed', 'Bank Letter (bank details of all employees)'],
         'bank-letters.pdf' => ['downloaded', 'Bank letter for the month (bank details)'],
+        'signed-documents.show' => ['downloaded', 'Signed copy (DSC)'],
         'staff.index' => ['viewed', 'Employee Management (details, payments)'],
         'attendance.certificate' => ['downloaded', 'Attendance certificate'],
         'attendance.scan' => ['downloaded', 'Signed attendance certificate'],

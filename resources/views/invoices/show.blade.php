@@ -59,4 +59,7 @@
       </div>
     </div>
   </div>
+  @can('billing')
+  @include('partials.signed-copy', ['signed' => \App\Models\SignedDocument::latestFor('sub_bill', invoiceId: $invoice->id), 'action' => route('invoices.signed', $invoice), 'changedAt' => $invoice->updated_at])
+  @endcan
 </x-layouts.app>

@@ -51,6 +51,10 @@
         <div class="alert alert-warning small m-3">The agency's own bank (name, branch, account no.) is not filled in, so the letter shows blanks. Add it under <a href="{{ route('agencies.edit', $agency) }}">Agencies → Edit</a>.</div>
       @endunless
     </form>
+    @include('partials.signed-copy', ['signed' => \App\Models\SignedDocument::latestFor('bank_letter', agencyId: $agency->id, month: $month->toDateString()),
+      'action' => route('bank-letters.signed'), 'hidden' => ['agency' => $agency->id, 'month' => $month->format('Y-m')]])
+    <div class="mt-2"><a class="btn btn-outline-secondary" href="{{ route('month-documents.zip', ['agency' => $agency->id, 'month' => $month->format('Y-m')]) }}"><i class="bi bi-file-zip me-1"></i>Download all {{ $month->format('M Y') }} PDFs (ZIP)</a>
+      <span class="small text-secondary ms-2">Sub-bills, covering letters, tax invoices and this bank letter – sign them together with the DSC token.</span></div>
     <form id="pick" method="get" action="{{ route('bank-letters.index') }}"><input type="hidden" name="agency" value="{{ $agency->id }}"><input type="hidden" name="month" value="{{ $month->format('Y-m') }}"></form>
     @endif
   @elseif($agencies->count() > 1)

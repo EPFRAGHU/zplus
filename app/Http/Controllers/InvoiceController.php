@@ -186,7 +186,7 @@ class InvoiceController extends Controller
 
     public function pdf(Invoice $invoice): Response
     {
-        return Pdf::loadView('pdf.invoice', $this->pdfData($invoice))->setPaper('a4')->stream(str_replace('/', '-', $invoice->invoice_no).'.pdf');
+        return Pdf::loadView('pdf.invoice', self::pdfData($invoice))->setPaper('a4')->stream(str_replace('/', '-', $invoice->invoice_no).'.pdf');
     }
 
     public function coveringLetter(Invoice $invoice): Response
@@ -196,11 +196,11 @@ class InvoiceController extends Controller
             ['number' => $invoice->invoice_no, 'created_by' => auth()->id()],
         );
 
-        return Pdf::loadView('pdf.covering-letter', $this->pdfData($invoice))->setPaper('a4')
+        return Pdf::loadView('pdf.covering-letter', self::pdfData($invoice))->setPaper('a4')
             ->stream('covering-letter-'.str_replace('/', '-', $invoice->invoice_no).'.pdf');
     }
 
-    private function pdfData(Invoice $invoice): array
+    public static function pdfData(Invoice $invoice): array
     {
         $invoice->load('lines', 'project.incharge', 'contract.agency', 'contract.client');
 
