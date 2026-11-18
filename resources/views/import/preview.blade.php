@@ -2,8 +2,8 @@
   <div class="row row-cols-2 row-cols-md-3 row-cols-xl-6 g-3 mb-3">
     <x-kpi label="Work orders" :value="$summary['contracts']" />
     <x-kpi label="Projects" :value="$summary['projects']" color="#1f63c4" />
-    <x-kpi label="Posts" :value="$summary['posts']" color="#1d1a1c" />
-    <x-kpi label="Sanctioned" :value="$summary['sanctioned']" color="#1d1a1c" />
+    <x-kpi label="Posts" :value="$summary['posts']" color="#172033" />
+    <x-kpi label="Sanctioned" :value="$summary['sanctioned']" color="#172033" />
     <x-kpi label="Staff found" :value="$summary['staff']" color="#1f8a4c" />
     <x-kpi label="Rows to fix" :value="$summary['must_fix']" color="#c42b3b" />
   </div>

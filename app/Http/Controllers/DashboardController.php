@@ -78,6 +78,11 @@ class DashboardController extends Controller
                 ->groupBy(fn ($i) => (int) $i->month->format('n'))
                 ->map(fn ($g) => ['billed' => (float) $g->sum('rounded_total'), 'paid' => (float) $g->where('status', 'paid')->sum('rounded_total')]),
             'compliance' => $this->compliance($contracts(), $lastMonth),
+            'pipeline' => $this->pipeline($projects(), $invoices, $contracts(), $lastMonth),
+            'waiting' => \App\Services\Approvals\Approvals::canApprove($request->user())
+                ? \App\Models\Approval::query()->with('agency', 'submitter')->where('status', 'pending')->where('submitted_by', '<>', $request->user()->id)
+                    ->when($agencyId, fn ($q) => $q->where('agency_id', $agencyId))->oldest('submitted_at')->limit(4)->get()
+                : collect(),
             'ending' => $contracts()->with('agency', 'client')->where('status', 'active')->whereNotNull('end_date')
                 ->where('end_date', '<=', now()->addDays(30)->toDateString())->orderBy('end_date')->get(),
             'overPosts' => Post::query()->whereHas('project', $byProject)->with('project.contract')->withCount('activeEmployees')->get()
@@ -85,6 +90,29 @@ class DashboardController extends Controller
             'summary' => $this->summary($agencyId, $clientId, $month),
             'projectRows' => $this->projectRows($projects(), $month),
         ]);
+    }
+
+    /**
+     * "Where the month stands" (UI redesign): how far last month has gone through the monthly flow, for the same filters
+     * as the rest of the page. Read-only counts; nothing here changes any record.
+     */
+    private function pipeline(Builder $projects, \Closure $invoices, Builder $contracts, \Carbon\CarbonInterface $month): array
+    {
+        $projectIds = $projects->pluck('id');
+        $sheets = AttendanceSheet::query()->whereIn('project_id', $projectIds)->where('month', $month->toDateString())->get();
+        $locked = $sheets->filter->isLocked();
+        $approvals = app(\App\Services\Approvals\Approvals::class);
+        $approved = $locked->filter(fn ($s) => $approvals->cleared('attendance', $s))->count();
+        $billedContracts = $invoices()->where('month', $month->toDateString())->distinct()->pluck('gem_contract_id');
+        $taxes = \App\Models\TaxInvoice::query()->whereIn('gem_contract_id', $billedContracts)->where('month', $month->toDateString())->get(['id', 'status']);
+
+        return [
+            ['label' => 'Attendance locked', 'done' => $locked->count(), 'of' => $projectIds->count(), 'url' => route('attendance.index', ['month' => $month->format('Y-m')])],
+            ['label' => 'Approved by owner', 'done' => $approved, 'of' => $projectIds->count(), 'url' => route('approvals.index')],
+            ['label' => 'Sub-bills made', 'done' => $invoices()->where('month', $month->toDateString())->count(), 'of' => $projectIds->count(), 'url' => route('invoices.index')],
+            ['label' => 'Tax invoices', 'done' => $taxes->count(), 'of' => $billedContracts->count(), 'url' => route('tax-invoices.index')],
+            ['label' => 'Submitted to client', 'done' => $taxes->whereIn('status', ['submitted', 'paid'])->count(), 'of' => $billedContracts->count(), 'url' => route('tax-invoices.index')],
+        ];
     }
 
     /**

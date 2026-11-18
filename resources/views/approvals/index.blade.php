@@ -11,6 +11,7 @@
         @endif
         <div class="px-3 py-2 border-top">
           <div class="d-flex flex-wrap gap-2 align-items-center">
+            <span class="z-stamp z-stamp-pending">Pending</span>
             <span class="badge text-bg-light border">{{ \App\Models\Approval::TYPES[$a->type] }}</span>
             @if($a->url())<a class="fw-semibold" href="{{ $a->url() }}">{{ $a->label }}</a>@else<span class="fw-semibold">{{ $a->label }}</span>@endif
             <span class="small text-secondary">sent by {{ $a->submitter?->name ?? '—' }}, {{ $a->submitted_at->timezone('Asia/Kolkata')->format('d M Y, h:i A') }}</span>
@@ -47,7 +48,7 @@
         <tr><td class="small text-nowrap">{{ $a->decided_at->timezone('Asia/Kolkata')->format('d M Y, h:i A') }}</td>
           <td class="small"><span class="badge text-bg-dark">{{ $a->agency->code }}</span> @if($a->url())<a href="{{ $a->url() }}">{{ $a->label }}</a>@else{{ $a->label }}@endif</td>
           <td class="small">{{ $a->submitter?->name }}</td>
-          <td class="small">@if($a->status === 'approved')<span class="badge text-bg-success">Approved</span>@else<span class="badge text-bg-danger">Returned</span> {{ $a->reason }}@endif by {{ $a->decider?->name }}</td></tr>
+          <td class="small">@if($a->status === 'approved')<span class="z-stamp z-stamp-approved">Approved</span>@else<span class="z-stamp z-stamp-returned">Returned</span> {{ $a->reason }}@endif by {{ $a->decider?->name }}</td></tr>
       @empty
         <tr><td colspan="4" class="text-secondary small">No decisions yet.</td></tr>
       @endforelse

@@ -9,11 +9,11 @@
   <div class="d-flex flex-wrap gap-2 align-items-center">
     <h2 class="h6 fw-bold mb-0"><i class="bi bi-person-check me-1"></i>Owner approval</h2>
     @switch($state)
-      @case('approved')<span class="badge text-bg-success">Approved ✓</span><span class="small text-secondary">by {{ $latest->decider?->name }}, {{ $latest->decided_at->timezone('Asia/Kolkata')->format('d M Y, h:i A') }}</span>@break
-      @case('pending')<span class="badge text-bg-info">Waiting for the owner</span><span class="small text-secondary">sent by {{ $latest->submitter?->name }}, {{ $latest->submitted_at->timezone('Asia/Kolkata')->format('d M Y, h:i A') }}</span>@break
-      @case('returned')<span class="badge text-bg-danger">Returned</span><span class="small">by {{ $latest->decider?->name }}: <b>{{ $latest->reason }}</b></span>@break
-      @case('changed')<span class="badge text-bg-warning">Changed after approval – send again</span>@break
-      @default<span class="badge text-bg-warning">Not sent yet</span>
+      @case('approved')<span class="z-stamp z-stamp-approved">Approved</span><span class="small text-secondary">by {{ $latest->decider?->name }}, {{ $latest->decided_at->timezone('Asia/Kolkata')->format('d M Y, h:i A') }}</span>@break
+      @case('pending')<span class="z-stamp z-stamp-pending">Waiting for the owner</span><span class="small text-secondary">sent by {{ $latest->submitter?->name }}, {{ $latest->submitted_at->timezone('Asia/Kolkata')->format('d M Y, h:i A') }}</span>@break
+      @case('returned')<span class="z-stamp z-stamp-returned">Returned</span><span class="small">by {{ $latest->decider?->name }}: <b>{{ $latest->reason }}</b></span>@break
+      @case('changed')<span class="z-stamp z-stamp-returned">Changed after approval – send again</span>@break
+      @default<span class="z-stamp z-stamp-muted">Not sent yet</span>
     @endswitch
     @if($canSend && in_array($state, ['not_sent', 'returned', 'changed'], true))
       <form method="post" action="{{ $sendAction }}" class="ms-auto">@csrf

@@ -2,21 +2,13 @@
   @php($q = array_filter(['agency' => $agencyId, 'client' => $clientId, 'contract' => $contractId, 'project' => $projectId]))
   @php($me = auth()->user())
   @php($myAgency = $me->agency)
-  <div class="z-card mb-3 d-flex align-items-center gap-3 p-3" style="border-left:5px solid var(--z-accent)">
-    @if($myAgency)
-      @if($myAgency->logo_path)<img src="{{ route('agencies.logo', $myAgency) }}" alt="" style="width:56px;height:56px;object-fit:contain">@endif
-      <div>
-        <div class="small text-secondary text-uppercase" style="letter-spacing:.06em">You are working for</div>
-        <div class="fs-4 fw-bold lh-sm">{{ $myAgency->name }}</div>
-        <div class="small text-secondary">Agency code {{ $myAgency->code }}@if($myAgency->gstin) · GSTIN {{ $myAgency->gstin }}@endif · all data you see and enter is for this agency only</div>
-      </div>
-    @else
-      <div>
-        <div class="small text-secondary text-uppercase" style="letter-spacing:.06em">You are working for</div>
-        <div class="fs-4 fw-bold lh-sm">Both agencies</div>
-        <div class="small text-secondary">{{ $agencies->pluck('name')->implode(' and ') ?: 'No agencies added yet' }} · use the Agency filter below to look at one</div>
-      </div>
-    @endif
+  <div class="d-flex flex-wrap align-items-center gap-3 mb-3">
+    @if($myAgency && $myAgency->logo_path)<img src="{{ route('agencies.logo', $myAgency) }}" alt="" style="width:48px;height:48px;object-fit:contain">@endif
+    <div>
+      <div class="small text-secondary">You are working for</div>
+      <div class="fw-bold" style="font-family:var(--z-display);font-size:1.25rem">{{ $myAgency ? $myAgency->name : 'Both agencies' }}</div>
+      <div class="small text-secondary">@if($myAgency)Agency code {{ $myAgency->code }}@if($myAgency->gstin) · GSTIN {{ $myAgency->gstin }}@endif · all data you see and enter is for this agency only @else{{ $agencies->pluck('name')->implode(' and ') ?: 'No agencies added yet' }} · use the Agency filter to look at one @endif</div>
+    </div>
     <div class="ms-auto text-end small text-secondary d-none d-md-block">{{ $me->name }}<br>{{ \App\Models\User::ROLES[$me->role] ?? $me->role }}</div>
   </div>
   <form class="z-card p-3 mb-3 d-flex gap-2 align-items-end flex-wrap">
@@ -36,15 +28,58 @@
       Showing {{ $myAgency ? $myAgency->name : ($agencyId ? $agencies->firstWhere('id', $agencyId)?->name : 'all agencies') }}{{ $clientId ? ' · '.$clients->firstWhere('id', $clientId)?->name : '' }}{{ $contractId ? ' · '.$contractOptions->firstWhere('id', $contractId)?->bid_no : '' }}{{ $projectId ? ' · '.$projectOptions->firstWhere('id', $projectId)?->name : '' }}
     </span>
   </form>
-  <div class="row row-cols-2 row-cols-md-3 row-cols-xl-6 g-3 mb-3">
-    <x-kpi label="Clients" :value="$stats['clients']" />
-    <x-kpi label="Active work orders" :value="$stats['contracts']" color="#1f63c4" />
-    <x-kpi label="Employees deployed" :value="$stats['employees']" color="#1f8a4c" />
-    <x-kpi label="Posts vacant" :value="$stats['vacant']" :meta="'of '.$stats['sanctioned'].' sanctioned'" color="#b26b00" />
-    <x-kpi label="Billed this year" :value="inr($stats['billedThisYear'])" color="#1d1a1c" />
-    <x-kpi label="Awaiting payment" :value="inr($stats['unpaid'])" meta="Approved and submitted bills" color="#5b3fd1" />
+  @php($stepClass = fn ($s) => $s['of'] > 0 && $s['done'] >= $s['of'] ? 'done' : ($s['done'] > 0 ? 'part' : ''))
+  <div class="row g-3 mb-3">
+    <div class="{{ $waiting->isNotEmpty() ? 'col-xl-8' : 'col-12' }}">
+      <section class="z-card p-4 h-100" aria-labelledby="pipe-h">
+        <div class="d-flex flex-wrap gap-2 align-items-baseline justify-content-between mb-3">
+          <h2 id="pipe-h" class="mb-0" style="font-size:1.25rem;font-weight:600">Where {{ $lastMonth->format('F Y') }} stands</h2>
+          <span class="small text-secondary">{{ $projectsTotal }} {{ \Illuminate\Support\Str::plural('project', $projectsTotal) }}{{ $q ? ' (filtered)' : '' }}</span>
+        </div>
+        <ol class="z-pipe">
+          @foreach($pipeline as $i => $s)
+            <li class="{{ $stepClass($s) }}">
+              <a href="{{ $s['url'] }}" class="text-decoration-none">
+                <div class="step"><span class="dot">{{ $i + 1 }}</span>{{ $s['label'] }}</div>
+                <div class="count text-body">{{ $s['done'] }}<small> / {{ $s['of'] }}</small></div>
+                <div class="bar" aria-hidden="true"><span style="width:{{ $s['of'] > 0 ? min(100, round($s['done'] / $s['of'] * 100)) : 0 }}%"></span></div>
+              </a>
+            </li>
+          @endforeach
+        </ol>
+      </section>
+    </div>
+    @if($waiting->isNotEmpty())
+    <div class="col-xl-4">
+      <section class="z-card p-4 h-100" aria-labelledby="wait-h">
+        <div class="d-flex justify-content-between align-items-baseline mb-2">
+          <h2 id="wait-h" class="mb-0" style="font-size:1.12rem;font-weight:600">Waiting for you</h2>
+          <a class="small fw-semibold" href="{{ route('approvals.index') }}">Open approvals</a>
+        </div>
+        <ul class="list-unstyled mb-0">
+          @foreach($waiting as $a)
+            <li class="d-flex gap-3 align-items-center py-2 {{ $loop->last ? '' : 'border-bottom' }}">
+              <span class="z-stamp z-stamp-pending">Pending</span>
+              <div class="min-w-0">
+                @if($a->url())<a class="fw-semibold text-body" href="{{ $a->url() }}">{{ $a->label }}</a>@else<span class="fw-semibold">{{ $a->label }}</span>@endif
+                <div class="small text-secondary">{{ $a->agency->code }} · sent by {{ $a->submitter?->name ?? '—' }}, {{ $a->submitted_at->diffForHumans() }}</div>
+              </div>
+            </li>
+          @endforeach
+        </ul>
+      </section>
+    </div>
+    @endif
   </div>
   @include('dashboard._reminders')
+  <div class="row row-cols-2 row-cols-md-3 row-cols-xl-6 g-3 mb-3">
+    <x-kpi label="Clients" :value="$stats['clients']" />
+    <x-kpi label="Active work orders" :value="$stats['contracts']" color="#2b4c7e" />
+    <x-kpi label="Employees deployed" :value="$stats['employees']" color="#1f7a4d" />
+    <x-kpi label="Posts vacant" :value="$stats['vacant']" :meta="'of '.$stats['sanctioned'].' sanctioned'" color="#a8730c" />
+    <x-kpi label="Billed this year" :value="inr($stats['billedThisYear'])" color="#172033" />
+    <x-kpi label="Awaiting payment" :value="inr($stats['unpaid'])" meta="Approved and submitted bills" color="#8a2557" />
+  </div>
   <div class="row g-3">
     <div class="col-xl-8">
       <div class="z-card h-100">
@@ -56,14 +91,14 @@
               @php($b = $monthly[$m]['billed'] ?? 0) @php($p = $monthly[$m]['paid'] ?? 0)
               <div class="flex-fill d-flex flex-column align-items-center gap-1 h-100 justify-content-end" title="{{ \Carbon\Carbon::create(null, $m)->format('M') }}: billed {{ inr($b) }}, paid {{ inr($p) }}">
                 <div class="d-flex align-items-end gap-1 w-100 justify-content-center" style="height:100%">
-                  <div style="width:40%;height:{{ $b / $max * 100 }}%;background:#e23d4e;border-radius:3px 3px 0 0"></div>
-                  <div style="width:40%;height:{{ $p / $max * 100 }}%;background:#1d1a1c;opacity:.75;border-radius:3px 3px 0 0"></div>
+                  <div style="width:40%;height:{{ $b / $max * 100 }}%;background:var(--z-blue);border-radius:3px 3px 0 0"></div>
+                  <div style="width:40%;height:{{ $p / $max * 100 }}%;background:var(--z-green);border-radius:3px 3px 0 0"></div>
                 </div>
                 <small class="text-secondary">{{ \Carbon\Carbon::create(null, $m)->format('M') }}</small>
               </div>
             @endforeach
           </div>
-          <div class="small text-secondary mt-2"><span class="d-inline-block me-1" style="width:10px;height:10px;background:#e23d4e"></span>Billed <span class="d-inline-block ms-3 me-1" style="width:10px;height:10px;background:#1d1a1c;opacity:.75"></span>Paid</div>
+          <div class="small text-secondary mt-2"><span class="d-inline-block me-1" style="width:10px;height:10px;background:var(--z-blue)"></span>Billed <span class="d-inline-block ms-3 me-1" style="width:10px;height:10px;background:var(--z-green)"></span>Paid</div>
         </div>
       </div>
     </div>

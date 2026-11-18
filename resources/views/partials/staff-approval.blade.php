@@ -7,7 +7,7 @@
   <h2 class="h6 fw-bold mb-1"><i class="bi bi-person-check me-1"></i>Owner approval</h2>
   @error('approval')<div class="alert alert-danger small mb-2">{{ $message }}</div>@enderror
   @foreach($open as $a)
-    <div class="mb-2"><span class="badge text-bg-info">Waiting for the owner</span> <b class="small">{{ \App\Models\Approval::TYPES[$a->type] }}</b>
+    <div class="mb-2"><span class="z-stamp z-stamp-pending">Waiting for the owner</span> <b class="small">{{ \App\Models\Approval::TYPES[$a->type] }}</b>
       <span class="small text-secondary">sent by {{ $a->submitter?->name }}, {{ $a->submitted_at->timezone('Asia/Kolkata')->format('d M Y, h:i A') }}. Until approved {{ $a->type === 'new_employee' ? 'the employee stays Inactive.' : 'the old details stay in use.' }}</span>
       @include('approvals._changes', ['a' => $a])
       @if($isOwner)@include('approvals._decide', ['a' => $a])@endif
@@ -15,7 +15,7 @@
   @endforeach
   @php($lastNew = $items->where('type', 'new_employee')->first())
   @if($lastNew && in_array($lastNew->status, ['returned', 'superseded'], true) && ! $open->contains('type', 'new_employee'))
-    <div class="d-flex flex-wrap gap-2 align-items-center mb-2"><span class="badge text-bg-danger">Returned</span>
+    <div class="d-flex flex-wrap gap-2 align-items-center mb-2"><span class="z-stamp z-stamp-returned">Returned</span>
       <span class="small">by {{ $lastNew->decider?->name }}: <b>{{ $lastNew->reason }}</b>. Correct the details with Edit, then send again.</span>
       @can('manage-masters')<form method="post" action="{{ route('employees.send-for-approval', $employee) }}" class="ms-auto">@csrf<button class="btn btn-sm btn-primary"><i class="bi bi-send-check me-1"></i>Send again for approval</button></form>@endcan
     </div>

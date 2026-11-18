@@ -10,7 +10,7 @@
   <div class="row row-cols-2 row-cols-md-4 g-3 mb-3">
     <x-kpi label="Work orders" :value="$contracts->count()" />
     <x-kpi label="Projects" :value="$contracts->sum(fn ($c) => $c->projects->count())" color="#1f63c4" />
-    <x-kpi label="Posts sanctioned" :value="$sanctioned" color="#1d1a1c" />
+    <x-kpi label="Posts sanctioned" :value="$sanctioned" color="#172033" />
     <x-kpi label="Posts filled" :value="$filled" :meta="max(0, $sanctioned - $filled).' vacant'" color="#1f8a4c" />
   </div>
   <form class="z-card p-3 mb-3 row g-2 mx-0 align-items-end">
