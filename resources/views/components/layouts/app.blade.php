@@ -63,7 +63,8 @@ body{font-size:.9rem}
       @php($apCount = \App\Services\Approvals\Approvals::canApprove(auth()->user())
           ? \App\Models\Approval::query()->where('status', 'pending')->where('submitted_by', '<>', auth()->id())->count()
           : \App\Models\Approval::query()->where('status', 'returned')->where('submitted_by', auth()->id())->where('decided_at', '>=', now()->subDays(14))->count())
-      <a class="{{ $is('approvals.*') }}" href="{{ route('approvals.index') }}"><i class="bi bi-person-check"></i>Approvals @if($apCount)<span class="badge rounded-pill text-bg-danger ms-auto">{{ $apCount }}</span>@endif</a>
+      @php($apWaiting = \App\Services\Approvals\Approvals::canApprove(auth()->user()) ? 0 : \App\Models\Approval::query()->where('status', 'pending')->count())
+      <a class="{{ $is('approvals.*') }}" href="{{ route('approvals.index') }}"><i class="bi bi-person-check"></i>Approvals @if($apWaiting || $apCount)<span class="ms-auto d-inline-flex gap-1">@if($apWaiting)<span class="badge rounded-pill text-bg-secondary" title="Sent, waiting for Super Admin approval">{{ $apWaiting }}</span>@endif @if($apCount)<span class="badge rounded-pill text-bg-danger" title="{{ \App\Services\Approvals\Approvals::canApprove(auth()->user()) ? 'Waiting for your approval' : 'Returned to you' }}">{{ $apCount }}</span>@endif</span>@endif</a>
       <div class="z-label">Masters</div>
       <a class="{{ $is('agencies.*') }}" href="{{ route('agencies.index') }}"><i class="bi bi-building"></i>Agencies</a>
       <a class="{{ $is('clients.*') }}" href="{{ route('clients.index') }}"><i class="bi bi-bank"></i>Clients</a>

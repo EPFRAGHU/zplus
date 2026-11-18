@@ -27,6 +27,31 @@
     </div>
   @endif
 
+  @unless($canApprove)
+    <div class="z-card mb-3" id="waiting">
+      <div class="z-card-h"><h2><i class="bi bi-hourglass-split me-1"></i>Sent – waiting for Super Admin approval</h2><span class="small text-secondary">{{ $waiting->count() }} {{ \Illuminate\Support\Str::plural('item', $waiting->count()) }}. Nothing to do here: a Super Admin will approve it or return it to you with a reason.</span></div>
+      @php($blk = null)
+      @forelse($waiting as $a)
+        @if($blk !== $a->agency_id)
+          @php($blk = $a->agency_id)
+          <div class="px-3 py-2 bg-secondary-subtle border-top"><b>{{ $a->agency->name }}</b> <span class="badge text-bg-dark">{{ $a->agency->code }}</span></div>
+        @endif
+        @php($days = (int) $a->submitted_at->copy()->startOfDay()->diffInDays(now()->startOfDay()))
+        <div class="px-3 py-2 border-top d-flex flex-wrap gap-2 align-items-center small">
+          <span class="badge text-bg-light border">{{ \App\Models\Approval::TYPES[$a->type] }}</span>
+          @if($a->url())<a class="fw-semibold" href="{{ $a->url() }}">{{ $a->label }}</a>@else<span class="fw-semibold">{{ $a->label }}</span>@endif
+          <span class="text-secondary">sent by {{ $a->submitter?->name ?? '—' }}, {{ $a->submitted_at->timezone('Asia/Kolkata')->format('d M Y, h:i A') }}</span>
+          @if($a->type === 'payout')<a target="_blank" href="{{ route('bank-letters.pdf', ['agency' => $a->agency_id, 'month' => $a->month->format('Y-m')]) }}">Bank letter PDF</a>@endif
+          @if($a->type === 'sub_bill' && $a->invoice_id)<a target="_blank" href="{{ route('invoices.pdf', $a->invoice_id) }}">PDF</a>@endif
+          @if($a->type === 'tax_invoice' && $a->tax_invoice_id)<a target="_blank" href="{{ route('tax-invoices.pdf', $a->tax_invoice_id) }}">PDF</a>@endif
+          <span class="badge {{ $days >= 3 ? 'text-bg-warning' : 'text-bg-secondary' }} ms-auto">Pending · {{ $days === 0 ? 'sent today' : $days.' '.\Illuminate\Support\Str::plural('day', $days).' waiting' }}</span>
+        </div>
+      @empty
+        <div class="p-3 text-secondary small border-top">Nothing is waiting. Everything you sent has been decided.</div>
+      @endforelse
+    </div>
+  @endunless
+
   <div class="z-card mb-3">
     <div class="z-card-h"><h2><i class="bi bi-arrow-return-left me-1"></i>Returned to you for correction</h2></div>
     @forelse($returned as $a)

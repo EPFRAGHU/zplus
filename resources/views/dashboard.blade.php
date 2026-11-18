@@ -19,6 +19,19 @@
     @endif
     <div class="ms-auto text-end small text-secondary d-none d-md-block">{{ $me->name }}<br>{{ \App\Models\User::ROLES[$me->role] ?? $me->role }}</div>
   </div>
+  @unless(\App\Services\Approvals\Approvals::canApprove($me))
+    @php($mkWaiting = \App\Models\Approval::query()->where('status', 'pending')->count())
+    @php($mkReturned = \App\Models\Approval::query()->where('status', 'returned')->where('submitted_by', $me->id)->where('decided_at', '>=', now()->subDays(14))->count())
+    @if($mkWaiting || $mkReturned)
+    <a href="{{ route('approvals.index') }}" class="z-card mb-3 p-3 d-flex flex-wrap gap-3 align-items-center text-decoration-none text-body" id="my-approvals">
+      <i class="bi bi-person-check fs-4"></i>
+      <span class="fw-semibold">Your approvals</span>
+      <span class="badge text-bg-secondary">{{ $mkWaiting }} waiting for Super Admin</span>
+      <span class="badge {{ $mkReturned ? 'text-bg-danger' : 'text-bg-light border' }}">{{ $mkReturned }} returned to you</span>
+      <span class="ms-auto small">Open Approvals <i class="bi bi-chevron-right"></i></span>
+    </a>
+    @endif
+  @endunless
   <form class="z-card p-3 mb-3 d-flex gap-2 align-items-end flex-wrap">
     @unless($myAgency)
     <div><label class="form-label small text-secondary mb-1" for="f-agency">Agency</label>

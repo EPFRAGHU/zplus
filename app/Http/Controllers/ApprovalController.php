@@ -28,6 +28,8 @@ class ApprovalController extends Controller
         return view('approvals.index', [
             'canApprove' => Approvals::canApprove($me),
             'pending' => $base()->where('status', 'pending')->oldest('submitted_at')->get()->sortBy(fn ($a) => $a->agency->name)->values(),
+            // Makers: what their agency sent that a Super Admin has not decided yet (agency scope keeps it to their agency).
+            'waiting' => Approvals::canApprove($me) ? collect() : $base()->where('status', 'pending')->oldest('submitted_at')->get()->sortBy(fn ($a) => $a->agency->name)->values(),
             // Returned to me, and not sent again since (for the same record).
             'returned' => $base()->where('status', 'returned')->where('submitted_by', $me->id)->latest('decided_at')->limit(30)->get()
                 ->filter(fn ($a) => ! Approval::query()->where('type', $a->type)->where('id', '>', $a->id)->where(self::sameRecord($a))->exists())->values(),

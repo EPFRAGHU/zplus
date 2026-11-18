@@ -12,6 +12,12 @@ return [
     'timezone' => 'Asia/Kolkata',      // release times are Indian Standard Time
 
     'releases' => [
+        ['version' => '2.17.0', 'date' => '2026-11-18 21:45', 'title' => 'Makers see what is waiting for approval', 'type' => 'feature', 'notes' => [
+            'Approvals page for makers (Accounts / Operator): new list "Sent – waiting for Super Admin approval" with each item, who sent it, when, and how many days it has waited (yellow after 3 days)',
+            'Sidebar: grey count of items waiting for a Super Admin, red count of items returned to you',
+            'Dashboard card for makers: "X waiting for Super Admin · Y returned to you", opens Approvals',
+            'Each maker sees only their own agency\'s items. Super Admin pages unchanged. No bill amount, number or data changes',
+        ]],
         ['version' => '2.16.1', 'date' => '2026-11-18 21:15', 'title' => 'Edit button for the second owner', 'type' => 'fix', 'notes' => [
             'Users list: the developer now sees the Edit button on the other Super Admin\'s row (to correct the name or reset the password); nobody else can open Users',
             'No bill amount, number or data changes',

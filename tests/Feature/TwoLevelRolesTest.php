@@ -111,4 +111,30 @@ class TwoLevelRolesTest extends TestCase
         $this->post(route('invoices.status', $bill), ['status' => 'submitted'])->assertSessionHasNoErrors();
         $this->assertSame('submitted', $bill->fresh()->status);
     }
+
+    public function test_maker_sees_what_their_agency_sent_that_is_still_waiting_and_not_the_other_agency(): void
+    {
+        $sheet = app(AttendanceService::class)->open($this->r['project'], CarbonImmutable::parse('2026-10-01'));
+        $this->actingAs($this->zMaker)->post(route('attendance.lock', $sheet), ['certificate' => UploadedFile::fake()->create('c.pdf', 10, 'application/pdf')])->assertRedirect();
+        $pending = Approval::query()->withoutGlobalScopes()->where('status', 'pending')->firstOrFail();
+
+        // Z Plus maker: listed on Approvals, grey count in the menu, card on the dashboard.
+        $this->actingAs($this->zMaker)->get(route('approvals.index'))->assertOk()
+            ->assertSee('Sent – waiting for Super Admin approval')->assertSee($pending->label)->assertSee('sent today')
+            ->assertSee('Sent, waiting for Super Admin approval', false);
+        $this->get('/')->assertSee('1 waiting for Super Admin');
+
+        // SWACHHA maker: does not see Z Plus's pending item.
+        $this->actingAs($this->sMaker)->get(route('approvals.index'))->assertOk()
+            ->assertSee('Nothing is waiting')->assertDontSee($pending->label);
+        $this->get('/')->assertDontSee('waiting for Super Admin');
+
+        // Super Admin: unchanged page (their own inbox, no maker section).
+        $this->actingAs($this->owner2)->get(route('approvals.index'))->assertOk()
+            ->assertSee('Waiting for your approval')->assertDontSee('Sent – waiting for Super Admin approval');
+
+        // Once decided it leaves the maker's waiting list.
+        $this->post(route('approvals.approve', $pending))->assertRedirect();
+        $this->actingAs($this->zMaker)->get(route('approvals.index'))->assertSee('Nothing is waiting');
+    }
 }
