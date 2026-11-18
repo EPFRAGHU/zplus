@@ -12,6 +12,13 @@ return [
     'timezone' => 'Asia/Kolkata',      // release times are Indian Standard Time
 
     'releases' => [
+        ['version' => '2.18.1', 'date' => '2026-11-18 23:55', 'title' => 'Error pages, health check and icon', 'type' => 'fix', 'notes' => [
+            'Error pages (not found, not allowed, page expired, too many attempts, something went wrong, maintenance) now match the app\'s design and never show technical details',
+            'New /health address for Coolify and uptime monitors; it also checks that the database answers',
+            'Real Z+ icon in the browser tab and on phones',
+            'CHANGELOG.md and a rewritten README for developers',
+            'No bill amount, number or data changes',
+        ]],
         ['version' => '2.18.0', 'date' => '2026-11-18 23:20', 'title' => 'Choose company after signing in', 'type' => 'feature', 'notes' => [
             'Logins for both agencies (the Super Admins) now choose the company after signing in: SWACHHA, M/S Z Plus Surakhya Seva or Both agencies',
             'With one company chosen, every page, list, approval and dropdown shows only that company, exactly like the agency\'s own login; header shows the company with a "Change" link, and "Change company" is in the menu',
