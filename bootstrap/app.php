@@ -10,6 +10,7 @@ return Application::configure(basePath: dirname(__DIR__))
         web: __DIR__.'/../routes/web.php',
         commands: __DIR__.'/../routes/console.php',
         health: '/up',
+        then: fn () => \Illuminate\Support\Facades\Route::get('/health', \App\Http\Controllers\HealthController::class)->name('health'),
     )
     ->withMiddleware(function (Middleware $middleware): void {
         // Behind the server's nginx (and Docker): trust its X-Forwarded-* headers so links and cookies use https.
