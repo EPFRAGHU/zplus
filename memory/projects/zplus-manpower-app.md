@@ -213,3 +213,14 @@ What moves: code (GitHub or a copy), MySQL dump, uploaded files (`zplus-storage`
   - **If the agencies pay separately:** ₹2,10,000 + ₹3,500/month each.
   - **Payment terms:** 40% on order / 40% after one month of billing / 20% after 3 months.
   - **Owner to decide:** joint or separate, GST 18% if registered. Then (on "proceed") update `docs/sales/ZPlus-Software-Costing.pdf` with current features, screenshots and prices.
+- **UI redesign (18 Nov 2026), waiting for the owner's verdict; NOT on the live branch.**
+  - **Design preview canvas:** https://claude.ai/artifact/6xZH5cg3ASguchUo5E5xXx (dashboard, approvals, employee form, phone, design system; clickable).
+  - **Look:** ink sidebar #172033, pen blue #2B4C7E actions, ledger green #1F7A4D approved, stamp red #B8322B returned/late, SWACHHA rose #8A2557; Bricolage Grotesque headings/money + Hanken Grotesk text; rubber-stamp approval marks (`.z-stamp`).
+  - **Real-app test copy:** branch `claude/ui-redesign-preview` (pushed, NOT deployed; Coolify deploys only `claude/manpower-app-foundation`).
+    - `public/css/zplus-theme.css` on Bootstrap 5 variables; inline layout styles removed
+    - sidebar grouped Each month / Records / Setup
+    - dashboard "Where <month> stands" pipeline (`DashboardController::pipeline`) + "Waiting for you"
+    - stamps in approval views; login page restyled
+    - 206 tests pass; routes, rules, figures and PDFs unchanged
+  - **Owner's local test setup:** set up on the office Lenovo (Windows, Command Prompt) at `C:\Users\USER\zplus` on that branch, with DemoSeeder sample data and a local test login (test@example.com). Home Dell is `C:\Users\Dell\zplus`.
+  - **Next:** the owner will send feedback later. On "approve the new look": merge the branch into `claude/manpower-app-foundation` at a quiet time, backup first, new version in `config/releases.php`, then apply the look screen by screen.
