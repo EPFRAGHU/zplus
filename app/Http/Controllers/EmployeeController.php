@@ -58,7 +58,7 @@ class EmployeeController extends Controller
     {
         Gate::authorize('manage-masters');
 
-        $agencyId = auth()->user()->agency_id;   // an agency login knows its prefix now; others get it when the agency is chosen
+        $agencyId = \App\Support\Agency\AgencyContext::id();   // an agency login (or the company chosen) knows its prefix now; others get it when the agency is chosen
 
         return view('employees.form', ['employee' => new Employee(['status' => 'active', 'agency_id' => $agencyId, 'emp_code' => $agencyId ? Employee::nextCode($agencyId) : null])] + $this->formData());
     }

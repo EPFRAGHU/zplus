@@ -51,7 +51,11 @@ class AuthController extends Controller
         $log($user->id, true);
         Activity::log('signed_in', null, [], null, $user, 'Sign-in');
 
-        return $user->isPi() ? redirect()->route('pi.home') : redirect()->intended(route('dashboard'));
+        if ($user->isPi()) {
+            return redirect()->route('pi.home');
+        }
+        // A login for both agencies first chooses the company to work in (owner, 18 Nov 2026).
+        return \App\Support\Agency\AgencyContext::canSwitch($user) ? redirect()->route('agency.choose') : redirect()->intended(route('dashboard'));
     }
 
     public function logout(Request $request): RedirectResponse

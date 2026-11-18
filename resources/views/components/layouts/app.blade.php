@@ -101,7 +101,11 @@ body{font-size:.9rem}
     </a>
     <div class="z-user">
       <div class="text-white fw-semibold">{{ auth()->user()->name }}</div>
-      <div>{{ \App\Models\User::ROLES[auth()->user()->role] ?? auth()->user()->role }}@unless(auth()->user()->isPi()) · {{ auth()->user()->agency?->code ?? 'Both agencies' }}@endunless</div>
+      @php($workAgency = \App\Support\Agency\AgencyContext::agency())
+      <div>{{ \App\Models\User::ROLES[auth()->user()->role] ?? auth()->user()->role }}@unless(auth()->user()->isPi()) · {{ $workAgency?->code ?? 'Both agencies' }}@endunless</div>
+      @if(\App\Support\Agency\AgencyContext::canSwitch(auth()->user()))
+        <a class="d-block small text-decoration-none mt-1" style="color:var(--z-rail-fg)" href="{{ route('agency.choose') }}"><i class="bi bi-arrow-left-right me-1"></i>Change company</a>
+      @endif
       <a class="d-block small text-decoration-none mt-1" style="color:var(--z-rail-fg)" href="{{ route('account.password') }}"><i class="bi bi-key me-1"></i>Change password</a>
       @can('delete-records')
       <form method="post" action="{{ route('delete-mode') }}" class="mt-2">@csrf
@@ -121,7 +125,8 @@ body{font-size:.9rem}
       </div>
       @unless(auth()->user()->isPi())
         <span class="badge rounded-pill text-bg-light border align-self-center fw-semibold" title="Agency you are working for">
-          <i class="bi bi-building me-1"></i>{{ auth()->user()->agency?->name ?? 'Both agencies' }}</span>
+          <i class="bi bi-building me-1"></i>{{ $workAgency?->name ?? 'Both agencies' }}</span>
+        @if(\App\Support\Agency\AgencyContext::canSwitch(auth()->user()))<a class="small align-self-center" href="{{ route('agency.choose') }}">Change</a>@endif
       @endunless
       <div class="ms-auto d-flex gap-2 flex-wrap">{{ $actions ?? '' }}</div>
     </div>
@@ -133,11 +138,11 @@ body{font-size:.9rem}
   </main>
 </div>
 <script src="{{ asset('vendor/bootstrap/bootstrap.bundle.min.js') }}"></script>
-@if(! auth()->user()->isPi() && auth()->user()->agency_id)
+@if(! auth()->user()->isPi() && \App\Support\Agency\AgencyContext::id())
 <script>
-  // Single-agency login: every agency dropdown in a form is filled with the user's own agency and locked.
+  // Single-agency login (or a both-agency login that chose one company): every agency dropdown in a form is filled with the user's own agency and locked.
   (function () {
-    const mine = '{{ auth()->user()->agency_id }}';
+    const mine = '{{ \App\Support\Agency\AgencyContext::id() }}';
     const lock = sel => {
       if (!sel || sel.dataset.agencyLocked) return;
       [...sel.options].forEach(o => { if (o.value !== mine) o.remove(); });

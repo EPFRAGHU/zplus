@@ -12,6 +12,13 @@ return [
     'timezone' => 'Asia/Kolkata',      // release times are Indian Standard Time
 
     'releases' => [
+        ['version' => '2.18.0', 'date' => '2026-11-18 23:20', 'title' => 'Choose company after signing in', 'type' => 'feature', 'notes' => [
+            'Logins for both agencies (the Super Admins) now choose the company after signing in: SWACHHA, M/S Z Plus Surakhya Seva or Both agencies',
+            'With one company chosen, every page, list, approval and dropdown shows only that company, exactly like the agency\'s own login; header shows the company with a "Change" link, and "Change company" is in the menu',
+            'GeM import and adding an agency need "Both agencies"',
+            'Agency logins (SWACHHA / Z Plus makers) are unchanged: they always see only their own agency',
+            'No bill amount, number or data changes',
+        ]],
         ['version' => '2.17.2', 'date' => '2026-11-18 22:40', 'title' => 'Own agency filled in; work orders told apart', 'type' => 'fix', 'notes' => [
             'Agency logins (SWACHHA / Z Plus): the Agency box on every list page (Employees, Attendance, Sub-bills, Tax invoices, Posts, Work orders, Clients, Project In-charge, Bank Letter) shows your own agency instead of "All agencies"',
             'Work order filters show bid no. · contract no. · client, so several contracts under the same GeM bid no longer look like duplicates',

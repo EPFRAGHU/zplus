@@ -1,7 +1,7 @@
 <x-layouts.app title="Dashboard" crumb="Admin dashboard">
   @php($q = array_filter(['agency' => $agencyId, 'client' => $clientId, 'contract' => $contractId, 'project' => $projectId]))
   @php($me = auth()->user())
-  @php($myAgency = $me->agency)
+  @php($myAgency = \App\Support\Agency\AgencyContext::agency())
   <div class="z-card mb-3 d-flex align-items-center gap-3 p-3" style="border-left:5px solid var(--z-accent)">
     @if($myAgency)
       @if($myAgency->logo_path)<img src="{{ route('agencies.logo', $myAgency) }}" alt="" style="width:56px;height:56px;object-fit:contain">@endif

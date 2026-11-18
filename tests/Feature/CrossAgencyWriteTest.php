@@ -147,6 +147,7 @@ class CrossAgencyWriteTest extends TestCase
             'set their PI on my project' => fn () => $this->put("/projects/{$this->mine['project']->id}", ['name' => 'Mine', 'code' => 'MINE', 'project_incharge_id' => $o['incharge']->id]),
             'add a login for their agency' => fn () => $this->post('/users', ['name' => 'X', 'email' => 'x@example.com', 'role' => 'supervisor', 'active' => '1', 'password' => 'Temp1234', 'agency_id' => $o['agency']->id]),
             'add a PI for their project' => fn () => $this->post('/users', ['name' => 'Y', 'email' => 'y@example.com', 'role' => 'pi', 'active' => '1', 'password' => 'Temp1234', 'projects' => [$o['project']->id]]),
+            'switch to their company' => fn () => $this->post('/choose-company', ['agency' => (string) $o['agency']->id]),
             'edit their admin login' => fn () => $this->put("/users/{$o['admin']->id}", ['name' => 'Hacked', 'email' => $o['admin']->email, 'role' => 'admin', 'active' => '0']),
         ];
     }

@@ -42,7 +42,7 @@ class ProjectInchargeController extends Controller
     {
         Gate::authorize('manage-masters');
 
-        return view('incharges.form', $this->formData(new ProjectIncharge(['agency_id' => $request->integer('agency') ?: auth()->user()->agency_id, 'status' => 'active'])));
+        return view('incharges.form', $this->formData(new ProjectIncharge(['agency_id' => $request->integer('agency') ?: \App\Support\Agency\AgencyContext::id(), 'status' => 'active'])));
     }
 
     public function store(Request $request): RedirectResponse
@@ -88,7 +88,7 @@ class ProjectInchargeController extends Controller
             'agencies' => Agency::query()->orderBy('name')->get(),
             'projects' => Project::query()->with('contract.client', 'incharge')->get()
                 ->sortBy(fn ($p) => $p->contract->contract_no.'|'.$p->name)->groupBy('gem_contract_id'),
-            'piUsers' => User::query()->where('role', 'pi')->when(auth()->user()->agency_id, fn ($q, $a) => $q->where('agency_id', $a))
+            'piUsers' => User::query()->where('role', 'pi')->when(\App\Support\Agency\AgencyContext::id(), fn ($q, $a) => $q->where('agency_id', $a))
                 ->orderBy('name')->get(['id', 'name', 'email']),
         ];
     }

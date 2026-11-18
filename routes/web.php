@@ -28,6 +28,8 @@ Route::post('/logout', [AuthController::class, 'logout'])->middleware('auth')->n
 // Every signed-in user
 Route::middleware(['auth', 'active'])->group(function () {
     Route::view('/releases', 'releases.index')->name('releases');
+    Route::get('/choose-company', [\App\Http\Controllers\AgencyChoiceController::class, 'show'])->name('agency.choose');
+    Route::post('/choose-company', [\App\Http\Controllers\AgencyChoiceController::class, 'store'])->name('agency.choose.store');
     Route::get('/account/password', [AccountController::class, 'edit'])->name('account.password');
     Route::put('/account/password', [AccountController::class, 'update'])->middleware('throttle:6,1')->name('account.password.update');
 });

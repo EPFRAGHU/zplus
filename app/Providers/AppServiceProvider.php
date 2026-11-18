@@ -29,8 +29,8 @@ class AppServiceProvider extends ServiceProvider
         Gate::define('show-delete', fn (User $u) => $u->isSuperAdmin() && (bool) session('delete_mode'));   // delete a project's month: bill + attendance
         // Developer only (owner, 19 Nov 2026): Data Upload, GeM import, Users, Activity log. Super Admins approve and delete.
         Gate::define('import', fn (User $u) => $u->isDeveloper());   // Data Upload (each agency's own data)
-        Gate::define('gem-import', fn (User $u) => $u->isDeveloper() && $u->worksForBothAgencies());   // GeM workbook covers both agencies
-        Gate::define('add-agency', fn (User $u) => $u->hasRole('admin', 'accounts') && $u->worksForBothAgencies());
+        Gate::define('gem-import', fn (User $u) => $u->isDeveloper() && $u->worksForBothAgencies() && \App\Support\Agency\AgencyContext::id() === null);   // GeM workbook covers both agencies
+        Gate::define('add-agency', fn (User $u) => $u->hasRole('admin', 'accounts') && $u->worksForBothAgencies() && \App\Support\Agency\AgencyContext::id() === null);
         Gate::define('view-bank-details', fn (User $u) => $u->hasRole('admin', 'accounts'));
         Gate::define('manage-users', fn (User $u) => $u->isDeveloper());
         Gate::define('view-activity', fn (User $u) => $u->isDeveloper());
