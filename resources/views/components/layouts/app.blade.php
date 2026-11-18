@@ -149,7 +149,15 @@ body{font-size:.9rem}
       sel.classList.add('bg-light');
       sel.title = 'You work for this agency';
     };
-    const run = () => document.querySelectorAll('form select[name="agency_id"]').forEach(lock);
+    // Filters (Agency on list pages): show the login's own agency instead of "All agencies"; the lists are that agency's anyway.
+    const fill = sel => {
+      if (!sel || sel.dataset.agencyLocked || ![...sel.options].some(o => o.value === mine)) return;
+      [...sel.options].forEach(o => { if (o.value !== mine) o.remove(); });
+      sel.value = mine;
+      sel.dataset.agencyLocked = '1'; sel.tabIndex = -1; sel.style.pointerEvents = 'none'; sel.classList.add('bg-light');
+      sel.title = 'You work for this agency';
+    };
+    const run = () => { document.querySelectorAll('form select[name="agency_id"]').forEach(lock); document.querySelectorAll('form select[name="agency"]').forEach(fill); };
     run();
     document.addEventListener('shown.bs.modal', run);
   })();

@@ -12,6 +12,11 @@ return [
     'timezone' => 'Asia/Kolkata',      // release times are Indian Standard Time
 
     'releases' => [
+        ['version' => '2.17.2', 'date' => '2026-11-18 22:40', 'title' => 'Own agency filled in; work orders told apart', 'type' => 'fix', 'notes' => [
+            'Agency logins (SWACHHA / Z Plus): the Agency box on every list page (Employees, Attendance, Sub-bills, Tax invoices, Posts, Work orders, Clients, Project In-charge, Bank Letter) shows your own agency instead of "All agencies"',
+            'Work order filters show bid no. · contract no. · client, so several contracts under the same GeM bid no longer look like duplicates',
+            'No bill amount, number or data changes',
+        ]],
         ['version' => '2.17.1', 'date' => '2026-11-18 22:10', 'title' => 'Add post: agency filled in', 'type' => 'fix', 'notes' => [
             'Add new post box: the Agency field now shows the login\'s own agency (SWACHHA or Z Plus) instead of a blank box',
             'No bill amount, number or data changes',

@@ -6,7 +6,7 @@
     <div><label class="form-label small text-secondary mb-1" for="f-client">Client</label>
       <select id="f-client" name="client" class="form-select"><option value="">All clients</option>@foreach($clients as $c)<option value="{{ $c->id }}" data-agency="{{ $c->agency_id }}" @selected($clientId === $c->id)>{{ $c->name }}</option>@endforeach</select></div>
     <div><label class="form-label small text-secondary mb-1" for="f-contract">Work order</label>
-      <select id="f-contract" name="contract" class="form-select"><option value="">All contracts</option>@foreach($pickContracts as $k)<option value="{{ $k->id }}" data-agency="{{ $k->agency_id }}" data-client="{{ $k->client_id }}" @selected(request('contract') == $k->id)>{{ $k->bid_no }}</option>@endforeach</select></div>
+      <select id="f-contract" name="contract" class="form-select"><option value="">All contracts</option>@foreach($pickContracts as $k)<option value="{{ $k->id }}" data-agency="{{ $k->agency_id }}" data-client="{{ $k->client_id }}" @selected(request('contract') == $k->id)>{{ $k->pickLabel() }}</option>@endforeach</select></div>
     <div><label class="form-label small text-secondary mb-1" for="f-project">Project</label>
       <select id="f-project" name="project" class="form-select"><option value="">All projects</option>@foreach($pickProjects as $pp)<option value="{{ $pp->id }}" data-contract="{{ $pp->gem_contract_id }}" @selected(request('project') == $pp->id)>{{ $pp->name }}{{ $pp->pi_name ? ' · '.$pp->pi_name : '' }}</option>@endforeach</select></div>
     <button class="btn btn-outline-secondary">Show</button>

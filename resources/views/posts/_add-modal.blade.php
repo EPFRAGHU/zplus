@@ -21,7 +21,7 @@
             <div class="form-check form-check-inline m-0"><input class="form-check-input" type="radio" name="contract_mode" id="qa-cm-new" value="new"><label class="form-check-label small" for="qa-cm-new">New contract</label></div>
           </div></div>
           <div class="col-12" id="qa-contract-existing"><select class="form-select" id="qa-contract" name="gem_contract_id" aria-label="Work order"><option value="">Choose contract</option>
-            @foreach($pickContracts as $k)<option value="{{ $k->id }}" data-client="{{ $k->client_id }}">{{ $k->bid_no }} · {{ $k->contract_no }}</option>@endforeach</select>
+            @foreach($pickContracts as $k)<option value="{{ $k->id }}" data-client="{{ $k->client_id }}">{{ $k->pickLabel() }}</option>@endforeach</select>
             <div class="form-text" id="qa-no-contracts" hidden>This client has no work order yet. Enter it under "New contract".</div></div>
           <div class="col-12" id="qa-contract-new" hidden><div class="row g-2">
             <div class="col-md-4"><input class="form-control mono" name="bid_no" id="qa-bid" placeholder="GeM bid no., e.g. GEM/2026/B/7972720" aria-label="GeM bid number"></div>

@@ -50,7 +50,7 @@ class EmployeeController extends Controller
             ->skip(($employees->currentPage() - 1) * $employees->perPage() - 1)->take(1)->value('agency_id');
 
         return view('employees.index', ['employees' => $employees, 'blockCounts' => $blockCounts, 'carriedAgency' => $carriedAgency, 'clientCounts' => $clientCounts, 'projects' => Project::query()->with('contract')->orderBy('name')->get(),
-            'contracts' => GemContract::query()->orderBy('bid_no')->get(['id', 'agency_id', 'client_id', 'bid_no']),
+            'contracts' => GemContract::query()->with('client:id,name,short_code')->orderBy('bid_no')->orderBy('contract_no')->get(['id', 'agency_id', 'client_id', 'bid_no', 'contract_no']),
             'agencies' => Agency::query()->orderBy('name')->get(), 'clients' => Client::query()->with('agency')->orderBy('name')->get()]);
     }
 

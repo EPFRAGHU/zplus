@@ -144,4 +144,14 @@ class TwoLevelRolesTest extends TestCase
             ->assertSee('<option value="'.$this->r['swh']->id.'" selected>SWACHHA (SWH)</option>', false)
             ->assertDontSee('Z Plus Surakhya Seva (ZPS)');
     }
+
+    public function test_work_order_filters_tell_contracts_with_the_same_bid_apart(): void
+    {
+        GemContract::query()->create(['agency_id' => $this->r['zps']->id, 'client_id' => $this->r['client']->id, 'bid_no' => 'GEM/1', 'contract_no' => 'GEMC-2',
+            'epf_percent' => '13', 'esic_percent' => '3.25', 'service_charge_percent' => '3.85', 'gst_percent' => '18']);
+        foreach (['employees.index', 'attendance.index', 'invoices.index', 'posts.index', 'dashboard'] as $route) {
+            $this->actingAs($this->zMaker)->get(route($route))->assertOk()
+                ->assertSee('GEM/1 · GEMC-1 · ICMR</option>', false)->assertSee('GEM/1 · GEMC-2 · ICMR</option>', false);
+        }
+    }
 }

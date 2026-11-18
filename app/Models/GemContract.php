@@ -99,4 +99,10 @@ class GemContract extends Model
 
         return str_contains($s, '.') ? rtrim(rtrim($s, '0'), '.') : $s;
     }
+
+    /** Dropdown text that tells work orders apart: one GeM bid can have several contracts. */
+    public function pickLabel(): string
+    {
+        return collect([$this->bid_no, $this->contract_no, $this->client?->short_code ?: $this->client?->name])->filter()->implode(' · ');
+    }
 }
