@@ -91,6 +91,7 @@ class TwoLevelRolesTest extends TestCase
         foreach (['/users', '/activity', '/data-upload', '/import'] as $url) {
             $this->actingAs($this->developer)->get($url)->assertOk();
         }
+        $this->get('/users')->assertSee(route('users.edit', $this->owner2), false);   // Edit button on the second owner's row
         $this->get(route('users.edit', $this->owner2))->assertOk();
         $this->put(route('users.update', $this->owner2), ['name' => 'Second owner', 'email' => $this->owner2->email, 'role' => 'admin', 'active' => 1, 'password' => 'NewTemp123'])
             ->assertSessionHasNoErrors();

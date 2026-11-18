@@ -12,6 +12,10 @@ return [
     'timezone' => 'Asia/Kolkata',      // release times are Indian Standard Time
 
     'releases' => [
+        ['version' => '2.16.1', 'date' => '2026-11-18 21:15', 'title' => 'Edit button for the second owner', 'type' => 'fix', 'notes' => [
+            'Users list: the developer now sees the Edit button on the other Super Admin\'s row (to correct the name or reset the password); nobody else can open Users',
+            'No bill amount, number or data changes',
+        ]],
         ['version' => '2.16.0', 'date' => '2026-11-18 20:34', 'title' => 'Two levels: makers and Super Admins', 'type' => 'feature', 'notes' => [
             'Two levels only: the maker of each agency (an Accounts login) enters staff, attendance, bills and salaries and sends them; a Super Admin approves, returns or deletes',
             'Two Super Admins for both agencies (the owner and the second owner). Nobody approves what they sent themselves',

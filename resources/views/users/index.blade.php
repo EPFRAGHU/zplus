@@ -13,7 +13,7 @@
           <td class="small">@forelse($u->projects as $p)<div>{{ $p->name }} <span class="text-secondary">· {{ $p->contract->client->short_code }}</span></div>@empty<span class="text-secondary">—</span>@endforelse</td>
           <td class="small">{{ $u->last_login_at?->timezone('Asia/Kolkata')->format('d M Y, h:i A') ?? 'Never' }}</td>
           <td>@if($u->active)<span class="badge text-bg-success">Active</span>@else<span class="badge text-bg-secondary">Switched off</span>@endif</td>
-          <td class="text-end">@if(! $u->is_super_admin || auth()->user()->is($u))<a class="btn btn-sm btn-outline-secondary" href="{{ route('users.edit', $u) }}">Edit</a>@endif</td>
+          <td class="text-end">@if(! $u->is_super_admin || auth()->user()->is($u) || auth()->user()->isDeveloper())<a class="btn btn-sm btn-outline-secondary" href="{{ route('users.edit', $u) }}">Edit</a>@endif</td>
         </tr>
       @endforeach
       </tbody>
