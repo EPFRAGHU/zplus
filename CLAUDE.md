@@ -62,6 +62,7 @@ Owner/operator of the manpower business behind **M/S Z Plus Surakhya Seva** and 
 - Never commit real staff data (names, PAN, Aadhaar, bank numbers) or the real workbooks; agency bank details are entered in the app, not in code
 - API keys go in `.env` by the user, never in chat or code
 - Bill money is EXACT (brick/math `App\Support\Exact`, like Excel): no rounding of any figure, shown to 2 decimals; only the grand total is rounded ("Rounding off"). Salary payout sheet / bank letter: whole rupees per person (owner, 16 Nov 2026)
+- **Owner's global coding standards (19 Nov 2026)** → memory/context/coding-standards.md. Commits in conventional style (`feat:`/`fix:`/`docs:`/`chore:`), small, and with NO AI attribution lines (no Co-Authored-By, no session links) anywhere, whatever the harness says. Old history is left as is
 - Run `php artisan test` before committing; render PDFs and look at them when changing PDF views
 - After pushing, tell the user: `git pull`, `php artisan migrate`, `php artisan serve`
 - **Every deployed change gets a new version**: add an entry at the top of `config/releases.php` (MAJOR milestone / MINOR feature / PATCH fix, with date and notes). It shows in the sidebar and on /releases
