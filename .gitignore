@@ -25,3 +25,15 @@ _ide_helper.php
 Homestead.json
 Homestead.yaml
 Thumbs.db
+
+# Local tooling, notes and data (kept out of the repository)
+CLAUDE.md
+.claude/
+*.plan.md
+notes/
+.env.*
+!.env.example
+__pycache__/
+dist/
+*.db
+*.sqlite3
