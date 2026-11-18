@@ -137,4 +137,11 @@ class TwoLevelRolesTest extends TestCase
         $this->post(route('approvals.approve', $pending))->assertRedirect();
         $this->actingAs($this->zMaker)->get(route('approvals.index'))->assertSee('Nothing is waiting');
     }
+
+    public function test_add_post_box_starts_with_the_makers_own_agency(): void
+    {
+        $this->actingAs($this->sMaker)->get(route('posts.index'))->assertOk()
+            ->assertSee('<option value="'.$this->r['swh']->id.'" selected>SWACHHA (SWH)</option>', false)
+            ->assertDontSee('Z Plus Surakhya Seva (ZPS)');
+    }
 }

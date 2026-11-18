@@ -11,7 +11,7 @@
         <div class="alert alert-danger small py-2" id="qa-errors" hidden></div>
         <div class="row g-3">
           <div class="col-md-6"><label class="form-label small fw-semibold text-secondary mb-1" for="qa-agency">Agency *</label>
-            <select class="form-select" id="qa-agency" name="agency_id" required><option value="">Choose agency</option>@foreach($agencies as $a)<option value="{{ $a->id }}">{{ $a->name }} ({{ $a->code }})</option>@endforeach</select></div>
+            <select class="form-select" id="qa-agency" name="agency_id" required><option value="">Choose agency</option>@foreach($agencies as $a)<option value="{{ $a->id }}" @selected($agencies->count() === 1)>{{ $a->name }} ({{ $a->code }})</option>@endforeach</select></div>
           <div class="col-md-6"><label class="form-label small fw-semibold text-secondary mb-1" for="qa-client">Client *</label>
             <select class="form-select" id="qa-client" name="client_id" required><option value="">Choose client</option>@foreach($clients as $c)<option value="{{ $c->id }}" data-agency="{{ $c->agency_id }}">{{ $c->name }}</option>@endforeach</select></div>
 
@@ -91,7 +91,10 @@
   $('addPostModal').addEventListener('show.bs.modal', e => {
     // A button may carry data-agency / data-client (Posts page client blocks); otherwise use the employee form's fields.
     const btn = e.relatedTarget, ea = document.getElementById('f-agency_id'), ec = document.getElementById('f-client_id');
-    const a = (btn && btn.dataset.agency) || (ea && ea.value) || '';
+    // A login for one agency always gets that agency; a value not in the list is never left showing blank.
+    const real = [...agency.options].filter(o => o.value);
+    let a = (btn && btn.dataset.agency) || (ea && ea.value) || '';
+    if (!real.some(o => o.value === String(a))) a = real.length === 1 ? real[0].value : '';
     const c = (btn && btn.dataset.client) || (ec && ec.value) || '';
     agency.value = a; refresh();
     client.value = c;

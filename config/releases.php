@@ -12,6 +12,10 @@ return [
     'timezone' => 'Asia/Kolkata',      // release times are Indian Standard Time
 
     'releases' => [
+        ['version' => '2.17.1', 'date' => '2026-11-18 22:10', 'title' => 'Add post: agency filled in', 'type' => 'fix', 'notes' => [
+            'Add new post box: the Agency field now shows the login\'s own agency (SWACHHA or Z Plus) instead of a blank box',
+            'No bill amount, number or data changes',
+        ]],
         ['version' => '2.17.0', 'date' => '2026-11-18 21:45', 'title' => 'Makers see what is waiting for approval', 'type' => 'feature', 'notes' => [
             'Approvals page for makers (Accounts / Operator): new list "Sent – waiting for Super Admin approval" with each item, who sent it, when, and how many days it has waited (yellow after 3 days)',
             'Sidebar: grey count of items waiting for a Super Admin, red count of items returned to you',
