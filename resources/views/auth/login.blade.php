@@ -1,6 +1,8 @@
 <!doctype html>
 <html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Sign in · ZPlus Manpower</title>
+<meta name="description" content="Manpower records, attendance, GeM billing and payroll.">
+@include('partials.favicon')
 <link href="{{ asset('vendor/bootstrap/bootstrap.min.css') }}" rel="stylesheet">
 <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700&display=swap" rel="stylesheet">
 <style>body{font-family:"Plus Jakarta Sans",system-ui,sans-serif;background:#1f1a1d;min-height:100vh;display:grid;place-items:center;padding:16px}.btn-primary{--bs-btn-bg:#e23d4e;--bs-btn-border-color:#e23d4e;--bs-btn-hover-bg:#c92e40;--bs-btn-hover-border-color:#c92e40}</style>

@@ -4,6 +4,8 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>{{ $title ?? 'Dashboard' }} · ZPlus Manpower</title>
+<meta name="description" content="Manpower records, attendance, GeM billing and payroll.">
+@include('partials.favicon')
 <link href="{{ asset('vendor/bootstrap/bootstrap.min.css') }}" rel="stylesheet">
 <link href="{{ asset('vendor/bootstrap-icons/bootstrap-icons.min.css') }}" rel="stylesheet">
 <link rel="preconnect" href="https://fonts.googleapis.com">
