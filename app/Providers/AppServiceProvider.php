@@ -27,11 +27,12 @@ class AppServiceProvider extends ServiceProvider
         // Super Admin deletes of unused records and of bills (except paid); the buttons show only with "Show delete options" on.
         Gate::define('delete-records', fn (User $u) => $u->isSuperAdmin());
         Gate::define('show-delete', fn (User $u) => $u->isSuperAdmin() && (bool) session('delete_mode'));   // delete a project's month: bill + attendance
-        Gate::define('import', fn (User $u) => $u->hasRole('admin'));   // Data Upload (each agency's own data)
-        Gate::define('gem-import', fn (User $u) => $u->hasRole('admin') && $u->worksForBothAgencies());   // GeM workbook covers both agencies
+        // Developer only (owner, 19 Nov 2026): Data Upload, GeM import, Users, Activity log. Super Admins approve and delete.
+        Gate::define('import', fn (User $u) => $u->isDeveloper());   // Data Upload (each agency's own data)
+        Gate::define('gem-import', fn (User $u) => $u->isDeveloper() && $u->worksForBothAgencies());   // GeM workbook covers both agencies
         Gate::define('add-agency', fn (User $u) => $u->hasRole('admin', 'accounts') && $u->worksForBothAgencies());
         Gate::define('view-bank-details', fn (User $u) => $u->hasRole('admin', 'accounts'));
-        Gate::define('manage-users', fn (User $u) => $u->hasRole('admin'));
-        Gate::define('view-activity', fn (User $u) => $u->isSuperAdmin());
+        Gate::define('manage-users', fn (User $u) => $u->isDeveloper());
+        Gate::define('view-activity', fn (User $u) => $u->isDeveloper());
     }
 }

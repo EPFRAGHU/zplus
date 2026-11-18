@@ -185,6 +185,7 @@ class OwnerChangesTest extends TestCase
         $mph = $other->projects()->create(['name' => 'MPH', 'code' => 'MPH']);
         $hta = Project::query()->where('code', 'HTA')->firstOrFail();
         $login = User::factory()->create(['role' => 'pi', 'agency_id' => $agency->id]);
+        $this->makeDeveloper($this->admin);   // linking a PI login is the developer's (19 Nov 2026)
 
         $this->post('/incharges', ['agency_id' => $agency->id, 'name' => 'Dr. D. Sample', 'designation' => 'Scientist-E', 'mobile' => '9876543210',
             'email' => 'pi@example.com', 'status' => 'active', 'user_id' => $login->id, 'projects' => [$hta->id, $mph->id]])->assertSessionHasNoErrors();

@@ -1,4 +1,4 @@
-@php($next = ['draft' => ['approved', 'Approve'], 'approved' => ['submitted', 'Mark submitted to client'], 'submitted' => ['paid', 'Mark paid']][$invoice->status] ?? null)
+@php($next = ['draft' => ['submitted', 'Mark submitted to client'], 'approved' => ['submitted', 'Mark submitted to client'], 'submitted' => ['paid', 'Mark paid']][$invoice->status] ?? null)
 <x-layouts.app :title="'Sub-bill '.$invoice->invoice_no" :crumb="'Billing / <a href=\''.route('invoices.index').'\'>Bills</a>'">
   <x-slot:actions>
     <a class="btn btn-outline-secondary" href="{{ route('invoices.covering-letter', $invoice) }}" target="_blank"><i class="bi bi-envelope-paper me-1"></i>Covering letter</a>

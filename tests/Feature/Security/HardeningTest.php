@@ -22,7 +22,7 @@ class HardeningTest extends TestCase
     {
         parent::setUp();
         $this->owner = User::factory()->create(['role' => 'admin']);
-        $this->owner->forceFill(['is_super_admin' => true])->save();
+        $this->makeDeveloper($this->owner);
         $this->actingAs($this->owner);
         $agency = Agency::query()->create(['code' => 'SWH', 'name' => 'SWACHHA']);
         $client = Client::query()->create(['agency_id' => $agency->id, 'name' => 'ICMR', 'short_code' => 'ICMR']);

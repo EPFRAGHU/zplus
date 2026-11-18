@@ -45,7 +45,7 @@ class WebFlowTest extends TestCase
     public function test_every_page_renders_for_admin(): void
     {
         $this->seed(DemoSeeder::class);
-        $admin = $this->user('admin');
+        $admin = $this->makeDeveloper($this->user('admin'));   // '/import' is the developer's (19 Nov 2026)
         $employee = Employee::query()->first();
 
         foreach (['/', '/agencies', '/agencies/create', '/clients', '/clients/create', '/contracts', '/contracts/create', '/contracts/1',
@@ -82,9 +82,9 @@ class WebFlowTest extends TestCase
         $this->get('/invoices/1/pdf')->assertOk()->assertHeader('content-type', 'application/pdf');
         $this->get('/invoices/1/covering-letter')->assertOk()->assertHeader('content-type', 'application/pdf');
 
-        // Draft -> approved -> submitted -> paid; skipping a step is refused.
+        // Two levels only (19 Nov 2026): draft -> submitted -> paid; skipping a step or the old internal approve is refused.
         $this->post('/invoices/1/status', ['status' => 'paid'])->assertSessionHasErrors('status');
-        $this->post('/invoices/1/status', ['status' => 'approved'])->assertSessionHasNoErrors();
+        $this->post('/invoices/1/status', ['status' => 'approved'])->assertSessionHasErrors('status');
         $this->post('/invoices/1/status', ['status' => 'submitted'])->assertSessionHasNoErrors();
         $this->post('/invoices/1/status', ['status' => 'paid', 'paid_on' => '2026-12-10'])->assertSessionHasNoErrors();
         $this->assertSame('paid', $invoice->fresh()->status);

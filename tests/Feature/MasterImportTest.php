@@ -26,7 +26,7 @@ class MasterImportTest extends TestCase
     {
         parent::setUp();
         Storage::fake('local');
-        $this->actingAs(User::factory()->create(['role' => 'admin']));
+        $this->actingAs($this->makeDeveloper(User::factory()->create(['role' => 'admin'])));
     }
 
     /** Fill the blank template of $type with rows (values by heading, without the *), and return it as an upload. */

@@ -94,7 +94,7 @@ class AttackSimulationTest extends TestCase
         $this->post("/attendance/{$z['sheet']->id}/reset", ['confirm' => 'RESET'])->assertForbidden();
         $this->get('/activity')->assertForbidden();
         $this->get('/activity/export')->assertForbidden();
-        $this->post("/invoices/{$z['invoice']->id}/status", ['status' => 'approved'])->assertForbidden();
+        $this->post("/invoices/{$z['invoice']->id}/status", ['status' => 'submitted'])->assertForbidden();
         $this->delete("/employees/{$z['employee']->id}")->assertForbidden();
         $this->get("/attendance/{$z['sheet']->id}/salary-payouts")->assertForbidden();
         $this->get("/documents/{$z['doc']->id}")->assertForbidden();

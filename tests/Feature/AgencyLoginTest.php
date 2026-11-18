@@ -43,7 +43,7 @@ class AgencyLoginTest extends TestCase
         $this->zps = Agency::query()->where('code', 'ZPS')->firstOrFail();
         $this->swh = Agency::query()->where('code', 'SWH')->firstOrFail();
         $this->owner = User::factory()->create(['role' => 'admin', 'name' => 'Owner']);
-        $this->owner->forceFill(['is_super_admin' => true])->save();
+        $this->makeDeveloper($this->owner);
 
         // A SWACHHA contract with one project, post, employee, locked month and bill.
         $swhClient = Client::query()->where('agency_id', $this->swh->id)->firstOrFail();
@@ -73,7 +73,7 @@ class AgencyLoginTest extends TestCase
         $this->get('/attendance?month=2026-10')->assertOk()->assertDontSee('SWHPROJ');
         $this->get('/posts')->assertOk()->assertDontSee('Field Worker');
         $this->get('/')->assertOk()->assertDontSee('SWHPROJ')->assertSee('Admin · ZPS')->assertSee('You are working for')->assertSee('M/S Z Plus Surakhya Seva');
-        $this->get('/data-upload/employees/template?data=1')->assertOk();
+        $this->get('/data-upload/employees/template?data=1')->assertForbidden();   // Data Upload: developer only (19 Nov 2026)
 
         foreach (["/employees/{$this->swhEmployee->id}", "/contracts/{$this->swhContract->id}", "/agencies/{$this->swh->id}/edit",
             "/invoices/{$this->swhInvoice->id}", "/invoices/{$this->swhInvoice->id}/pdf", "/attendance/{$this->swhInvoice->attendance_sheet_id}"] as $url) {
@@ -106,21 +106,21 @@ class AgencyLoginTest extends TestCase
 
     public function test_agency_admin_manages_only_their_own_agencys_logins(): void
     {
+        // Owner, 19 Nov 2026: only the developer manages logins; agency Admins and the second Super Admin cannot.
         $zpsAdmin = $this->agencyAdmin($this->zps);
         $swhAdmin = $this->agencyAdmin($this->swh);
-        $this->actingAs($zpsAdmin)->get('/users')->assertOk()->assertSee('ZPS Admin')->assertDontSee('SWH Admin')->assertDontSee('Owner');
-        $this->get("/users/{$swhAdmin->id}/edit")->assertNotFound();
+        $this->actingAs($zpsAdmin)->get('/users')->assertForbidden();
+        $this->post('/users', ['name' => 'Ravi', 'email' => 'ravi@example.com', 'role' => 'supervisor', 'active' => '1', 'password' => 'Temp1234'])->assertForbidden();
+        $second = User::factory()->create(['role' => 'admin']);
+        $second->forceFill(['is_super_admin' => true])->save();
+        $this->actingAs($second)->get('/users')->assertForbidden();
+        $this->assertNull(User::query()->where('email', 'ravi@example.com')->first());
 
-        $this->post('/users', ['name' => 'Ravi', 'email' => 'ravi@example.com', 'role' => 'supervisor', 'active' => '1', 'password' => 'Temp1234'])->assertRedirect('/users');
-        $this->assertSame($this->zps->id, User::query()->where('email', 'ravi@example.com')->value('agency_id'));
-        $this->post('/users', ['name' => 'X', 'email' => 'x@example.com', 'role' => 'supervisor', 'active' => '1', 'password' => 'Temp1234', 'agency_id' => $this->swh->id])
-            ->assertNotFound();
-
-        // A both-agency Admin who is not the Super Admin must pick one agency.
-        $other = User::factory()->create(['role' => 'admin']);
-        $this->actingAs($other)->post('/users', ['name' => 'Y', 'email' => 'y@example.com', 'role' => 'accounts', 'active' => '1', 'password' => 'Temp1234'])
-            ->assertSessionHasErrors('agency_id');
-        // The Super Admin can create a login for both agencies.
+        // The developer creates a maker for one agency, and a login for both agencies.
+        $this->actingAs($this->owner)->post('/users', ['name' => 'Z Plus maker', 'email' => 'maker@example.com', 'role' => 'accounts', 'active' => '1', 'password' => 'Temp1234', 'agency_id' => $this->zps->id])
+            ->assertRedirect('/users');
+        $this->assertSame($this->zps->id, User::query()->where('email', 'maker@example.com')->value('agency_id'));
+        $this->get("/users/{$swhAdmin->id}/edit")->assertOk();
         $this->actingAs($this->owner)->post('/users', ['name' => 'Both', 'email' => 'both@example.com', 'role' => 'accounts', 'active' => '1', 'password' => 'Temp1234'])
             ->assertRedirect('/users');
         $this->assertNull(User::query()->where('email', 'both@example.com')->value('agency_id'));
@@ -128,7 +128,8 @@ class AgencyLoginTest extends TestCase
 
     public function test_data_upload_and_new_codes_respect_the_other_agency(): void
     {
-        $this->actingAs($this->agencyAdmin($this->zps));
+        // Data Upload is the developer's (19 Nov 2026); a developer working for one agency still cannot touch the other.
+        $this->actingAs($this->makeDeveloper($this->agencyAdmin($this->zps)));
         $upload = function (string $type, array $row) {
             $book = app(\App\Services\MasterImport\MasterImporter::class)->template($type);
             $ws = $book->getSheet(0);

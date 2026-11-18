@@ -1,7 +1,7 @@
 # ZPlus Manpower app
 
 **Repo:** epfraghu/zplus, branch `claude/manpower-app-foundation`
-**Status:** Live. Version **2.15.1** committed (2026-11-17 08:21 IST). Coolify AUTO-DEPLOYS on every push to the branch (seen 16 Nov: v2.4.0 went live by itself) – pushing = going live. 206 tests passing. Project started **01 Nov 2026, 04:01 PM IST**.
+**Status:** Live. Version **2.16.0** committed (2026-11-17 08:21 IST). Coolify AUTO-DEPLOYS on every push to the branch (seen 16 Nov: v2.4.0 went live by itself) – pushing = going live. 210 tests passing. Project started **01 Nov 2026, 04:01 PM IST**.
 **Live URL:** https://zplus.epf-dashboard.online (admin: the owner's Gmail; password was shown in chat once, owner told to change it via tinker)
 
 ## Stack
@@ -224,3 +224,11 @@ What moves: code (GitHub or a copy), MySQL dump, uploaded files (`zplus-storage`
     - 206 tests pass; routes, rules, figures and PDFs unchanged
   - **Owner's local test setup:** set up on the office Lenovo (Windows, Command Prompt) at `C:\Users\USER\zplus` on that branch, with DemoSeeder sample data and a local test login (test@example.com). Home Dell is `C:\Users\Dell\zplus`.
   - **Next:** the owner will send feedback later. On "approve the new look": merge the branch into `claude/manpower-app-foundation` at a quiet time, backup first, new version in `config/releases.php`, then apply the look screen by screen.
+- **Two-level roles (v2.16.0, 2026-11-18)**:
+  - **Who:** makers = Accounts logins per agency (zplussurakhyaseva@gmail.com Z Plus, hr.swachha@gmail.com SWACHHA). Checkers = Super Admins raghu.epf@gmail.com + krushnachandraswain.swain@gmail.com, both agencies, approve/return/delete.
+  - **Developer:** raghu only. Migration `2026_11_19_000100` adds `users.is_developer` and marks the Super Admin existing at deploy time (raghu). Gates `manage-users`, `view-activity`, `import`, `gem-import` = `isDeveloper()`. Making Super Admins = developer only. Developer can edit other Super Admins' logins.
+  - **Command:** `users:super-admin` now moves the developer role and keeps other Super Admins.
+  - **Sub-bills:** NEXT draft→submitted (internal approve removed; approved→submitted kept).
+  - **Tests:** `TwoLevelRolesTest`; `TestCase::makeDeveloper()`.
+  - **Owner creates the logins in Users after the deploy:** Krushna = Admin, both agencies, then tick Make Super Admin; makers = Accounts with their agency; temporary passwords.
+

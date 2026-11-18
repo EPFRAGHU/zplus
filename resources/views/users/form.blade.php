@@ -55,7 +55,7 @@
         @endforeach
       </div>
     </div>
-    @if($editing && auth()->user()->isSuperAdmin() && ! $user->is_super_admin)
+    @if($editing && auth()->user()->isDeveloper() && ! $user->is_super_admin)
     <div class="alert alert-warning small mt-4 mb-0">
       <div class="form-check"><input class="form-check-input" type="checkbox" name="make_super_admin" value="1" id="f-super" @checked(old('make_super_admin'))>
         <label class="form-check-label" for="f-super"><b>Make this login a Super Admin (owner)</b>: approves or returns attendance, bills and salary payouts of both agencies,

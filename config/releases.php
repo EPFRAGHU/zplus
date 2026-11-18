@@ -12,6 +12,13 @@ return [
     'timezone' => 'Asia/Kolkata',      // release times are Indian Standard Time
 
     'releases' => [
+        ['version' => '2.16.0', 'date' => '2026-11-18 20:34', 'title' => 'Two levels: makers and Super Admins', 'type' => 'feature', 'notes' => [
+            'Two levels only: the maker of each agency (an Accounts login) enters staff, attendance, bills and salaries and sends them; a Super Admin approves, returns or deletes',
+            'Two Super Admins for both agencies (the owner and the second owner). Nobody approves what they sent themselves',
+            'The app\'s developer (the owner) alone keeps Users, making Super Admins, the Activity log, Data Upload and GeM import; the developer can reset the second owner\'s login',
+            'Sub-bills: the extra internal "Approve" step is removed: draft → (owner approval) → submitted → paid. Bills already marked approved continue to submitted',
+            'No bill amount, number or data changes',
+        ]],
         ['version' => '2.15.1', 'date' => '2026-11-17 20:46', 'title' => 'Security hardening', 'type' => 'fix', 'notes' => [
             'Security check of the whole app; no bill, amount, number or approval changes',
             'Closed a way to hide script in a project name (Delete project pop-ups); browser security policy (CSP) added on every page',

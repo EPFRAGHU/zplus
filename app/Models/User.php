@@ -36,6 +36,7 @@ class User extends Authenticatable
             'active' => 'boolean',
             'must_change_password' => 'boolean',
             'is_super_admin' => 'boolean',
+            'is_developer' => 'boolean',
             'last_login_at' => 'datetime',
         ];
     }
@@ -54,6 +55,12 @@ class User extends Authenticatable
     public function isSuperAdmin(): bool
     {
         return (bool) $this->is_super_admin && $this->role === 'admin';
+    }
+
+    /** The app's developer (owner, 19 Nov 2026): a Super Admin who also keeps Users, the Activity log and imports. */
+    public function isDeveloper(): bool
+    {
+        return (bool) $this->is_developer && $this->isSuperAdmin();
     }
 
     public function isPi(): bool

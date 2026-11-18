@@ -69,7 +69,7 @@ class UserController extends Controller
         }
         if ($request->boolean('make_super_admin') && ! $user->is_super_admin) {
             // Only a Super Admin can make another owner a Super Admin (owner, 17 Nov 2026: a second owner approves too).
-            abort_unless($request->user()->isSuperAdmin(), 403);
+            abort_unless($request->user()->isDeveloper(), 403);   // only the developer makes Super Admins (owner, 19 Nov 2026)
             if ($data['role'] !== 'admin' || ! empty($data['agency_id']) || ! $data['active']) {
                 return back()->withErrors(['role' => 'A Super Admin must be an active Admin working for both agencies.'])->withInput();
             }
@@ -87,7 +87,8 @@ class UserController extends Controller
     /** Only the Super Admin can change the Super Admin's account; an agency Admin only reaches their own agency's logins. */
     private function guardOwner(Request $request, User $user): void
     {
-        abort_if($user->is_super_admin && ! $request->user()->is($user), 403, 'Only the Super Admin can change this account.');
+        // A Super Admin's own login can be changed by that person or by the developer (e.g. to reset the second owner's password).
+        abort_if($user->is_super_admin && ! $request->user()->is($user) && ! $request->user()->isDeveloper(), 403, 'Only the Super Admin can change this account.');
         $mine = $request->user()->agency_id;
         abort_if($mine && (int) $user->agency_id !== (int) $mine, 404);
     }

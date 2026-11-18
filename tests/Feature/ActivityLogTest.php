@@ -29,7 +29,7 @@ class ActivityLogTest extends TestCase
         Storage::fake('local');
         $this->seed(DemoSeeder::class);
         $this->owner = User::factory()->create(['role' => 'admin', 'name' => 'Owner']);
-        $this->owner->forceFill(['is_super_admin' => true])->save();
+        $this->makeDeveloper($this->owner);
     }
 
     public function test_only_the_super_admin_sees_the_activity_log(): void
@@ -87,9 +87,10 @@ class ActivityLogTest extends TestCase
         app(AttendanceService::class)->lock($sheet, $this->owner, null);
         $this->assertTrue(ActivityLog::query()->where('section', 'Attendance')->where('action', 'status')->exists());
         $invoice = app(InvoiceGenerator::class)->generate($sheet->fresh(), $this->owner);
-        $this->post("/invoices/{$invoice->id}/status", ['status' => 'approved']);
+        config(['approvals.start' => '2100-01-01']);   // owner approval is tested in ApprovalTest; here only the log entry matters
+        $this->post("/invoices/{$invoice->id}/status", ['status' => 'submitted']);
         $status = ActivityLog::query()->where('section', 'Sub-bill')->where('action', 'status')->latest('id')->firstOrFail();
-        $this->assertSame(['draft', 'approved'], $status->changes['status']);
+        $this->assertSame(['draft', 'submitted'], $status->changes['status']);
     }
 
     public function test_views_downloads_and_sign_ins_are_logged(): void
@@ -142,7 +143,8 @@ class ActivityLogTest extends TestCase
         $admin = User::factory()->create(['role' => 'admin', 'email' => 'second@example.com']);
         $this->actingAs($admin)->get("/users/{$this->owner->id}/edit")->assertForbidden();
         $this->put("/users/{$this->owner->id}", ['name' => 'x', 'email' => $this->owner->email, 'role' => 'admin', 'active' => '0'])->assertForbidden();
-        $this->get('/users')->assertSee('Super Admin');
+        $this->get('/users')->assertForbidden();                          // Users is for the developer only (19 Nov 2026)
+        $this->actingAs($this->owner)->get('/users')->assertSee('Super Admin');
 
         $this->artisan('users:super-admin', ['email' => 'second@example.com'])->assertSuccessful();
         $this->assertTrue($admin->fresh()->is_super_admin);

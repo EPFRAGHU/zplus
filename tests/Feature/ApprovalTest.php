@@ -38,7 +38,7 @@ class ApprovalTest extends TestCase
         parent::setUp();
         Storage::fake('local');
         $this->owner = User::factory()->create(['role' => 'admin', 'name' => 'Owner One']);
-        $this->owner->forceFill(['is_super_admin' => true])->save();
+        $this->makeDeveloper($this->owner);
         $this->owner2 = User::factory()->create(['role' => 'admin', 'name' => 'Owner Two']);
         $this->owner2->forceFill(['is_super_admin' => true])->save();
         $this->operator = User::factory()->create(['role' => 'supervisor', 'name' => 'Operator']);

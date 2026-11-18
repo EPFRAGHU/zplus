@@ -22,7 +22,9 @@ use Symfony\Component\HttpFoundation\Response;
 
 class InvoiceController extends Controller
 {
-    private const NEXT = ['draft' => 'approved', 'approved' => 'submitted', 'submitted' => 'paid'];
+    // Two levels only (owner, 19 Nov 2026): the maker sends the bill to the owner; no internal "Approve" step any more.
+    // Bills already marked approved simply continue to submitted.
+    private const NEXT = ['draft' => 'submitted', 'approved' => 'submitted', 'submitted' => 'paid'];
 
     public function index(Request $request): View
     {

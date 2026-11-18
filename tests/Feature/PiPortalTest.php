@@ -32,7 +32,7 @@ class PiPortalTest extends TestCase
         parent::setUp();
         Storage::fake('local');
         $this->seed(DemoSeeder::class);
-        $this->admin = User::factory()->create(['role' => 'admin']);
+        $this->admin = $this->makeDeveloper(User::factory()->create(['role' => 'admin']));   // adds PI logins: developer (19 Nov 2026)
         $this->mph = Project::query()->where('code', 'MPH')->firstOrFail();
         $this->other = $this->mph->contract->projects()->create(['name' => 'OTHER', 'code' => 'OTH', 'pi_name' => 'Dr. Other']);
     }

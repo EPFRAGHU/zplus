@@ -76,7 +76,7 @@
           @php($submittedByPi = \App\Models\AttendanceSheet::query()->where('status', 'submitted')->count())
           <li class="list-group-item d-flex justify-content-between"><span>Submitted by PIs, to check</span><b>@if($submittedByPi)<span class="badge text-bg-info">{{ $submittedByPi }}</span>@else 0 @endif</b></li>
           <li class="list-group-item d-flex justify-content-between"><span>Bills made</span><b>{{ $projectsBilled }}</b></li>
-          <li class="list-group-item d-flex justify-content-between"><span>Draft bills to approve</span><b>{{ $drafts }}</b></li>
+          <li class="list-group-item d-flex justify-content-between"><span>Draft bills (not yet sent)</span><b>{{ $drafts }}</b></li>
           <li class="list-group-item d-flex justify-content-between align-items-center"><span>Staff with missing bank details</span>
             <a class="badge text-bg-{{ $bankProblems ? 'danger' : 'success' }} text-decoration-none" href="{{ route('employees.index', ['bank' => 'problem'] + $q) }}">{{ $bankProblems }}</a></li>
         </ul>
