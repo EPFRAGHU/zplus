@@ -12,6 +12,11 @@ return [
     'timezone' => 'Asia/Kolkata',      // release times are Indian Standard Time
 
     'releases' => [
+        ['version' => '2.35.0', 'date' => '2026-11-23 21:00', 'title' => 'Project In-charge page in the Work Orders style', 'type' => 'feature', 'notes' => [
+            'Project In-charge page now has the same design, colours and fonts as Work Orders: a heading with an icon, five figure boxes (In-charges, projects allotted, staff under them, with PI portal login, projects without PI), tabs All / Active / Inactive, Agency and Project In-charge dropdowns, and a search box',
+            'Each Project In-charge is a card that opens to show their projects, the staff under each and the latest sub-bills; Edit / allot projects and Delete stay on the card',
+            'The Work Orders styles now live in the shared stylesheet so both pages stay alike; no data changes',
+        ]],
         ['version' => '2.34.1', 'date' => '2026-11-23 20:00', 'title' => 'Contract number instead of bid number in post lists', 'type' => 'fix', 'notes' => [
             'Employee form (GeM post list and "Add new post"), attendance sheet heading, Make tax invoice, the Dashboard\'s recent bills and the Sub-bills waiting lists now show the GeM contract number (GEMC-…) instead of the bid number',
             'No data changes',

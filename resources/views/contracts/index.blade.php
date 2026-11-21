@@ -1,5 +1,4 @@
 <x-layouts.app title="Work Orders" crumb="Masters / <span class='text-danger'>Work Orders</span>" :quiet-title="true">
-  <x-slot:head>@include('contracts._index-style')</x-slot:head>
   @php
     $q = request()->except('page');
     $tabUrl = fn ($t) => route('contracts.index', array_filter(['tab' => $t === 'all' ? null : $t] + $q, fn ($v) => $v !== null && $v !== ''));

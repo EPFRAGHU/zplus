@@ -32,10 +32,16 @@ class ProjectInchargeController extends Controller
             ->when($request->string('q')->trim()->value(), fn ($q, $s) => $q->where(fn ($w) => $w->where('name', 'like', "%{$s}%")
                 ->orWhere('mobile', 'like', "%{$s}%")->orWhere('email', 'like', "%{$s}%")))
             ->get()->sortBy(fn ($i) => $i->agency->name.'|'.$i->name)->values();
+        $counts = ['all' => $incharges->count(), 'active' => $incharges->where('status', 'active')->count(), 'inactive' => $incharges->where('status', '!=', 'active')->count()];
+        $tab = in_array($request->input('tab'), ['active', 'inactive'], true) ? $request->input('tab') : 'all';
+        if ($tab !== 'all') {
+            $incharges = $incharges->filter(fn ($i) => ($i->status === 'active') === ($tab === 'active'))->values();
+        }
         $unallotted = Project::query()->with('contract.agency')->whereNull('project_incharge_id')
             ->when($agencyId, fn ($q) => $q->whereHas('contract', fn ($c) => $c->where('agency_id', $agencyId)))->get();
 
         return view('incharges.index', ['incharges' => $incharges, 'unallotted' => $request->integer('pi') ? collect() : $unallotted, 'agencyId' => $agencyId,
+            'counts' => $counts, 'tab' => $tab, 'workingAgency' => \App\Support\Agency\AgencyContext::agency(),
             'agencies' => Agency::query()->orderBy('name')->get(), 'piId' => $request->integer('pi') ?: null,
             'piOptions' => ProjectIncharge::query()->with('agency')->when($agencyId, fn ($q) => $q->where('agency_id', $agencyId))->orderBy('name')->get(['id', 'name', 'agency_id'])]);
     }

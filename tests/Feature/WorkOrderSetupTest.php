@@ -186,4 +186,16 @@ class WorkOrderSetupTest extends TestCase
         $this->post(route('projects.move', $other), ['gem_contract_id' => $real->id])->assertSessionHasErrors('move');
         $this->assertSame($dummy->id, $other->fresh()->gem_contract_id);
     }
+
+    public function test_project_in_charge_page_has_figures_tabs_and_cards(): void
+    {
+        ProjectIncharge::query()->create(['agency_id' => $this->swh->id, 'name' => 'Dr. On', 'status' => 'active']);
+        ProjectIncharge::query()->create(['agency_id' => $this->swh->id, 'name' => 'Dr. Off', 'status' => 'inactive']);
+        $this->actingAs($this->maker)->get(route('incharges.index'))->assertOk()
+            ->assertSee('Project In-charge – SWACHHA')->assertSee('All (2)')->assertSee('Active (1)')->assertSee('Inactive (1)')
+            ->assertSee('Projects allotted')->assertSee('class="collapse" id="pi-', false);
+        $html = $this->get(route('incharges.index', ['tab' => 'inactive']))->getContent();
+        $this->assertStringContainsString('<span class="wo-no">Dr. Off</span>', $html);
+        $this->assertStringNotContainsString('<span class="wo-no">Dr. On</span>', $html);
+    }
 }
