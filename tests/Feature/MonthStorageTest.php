@@ -34,7 +34,7 @@ class MonthStorageTest extends TestCase
         $admin = User::factory()->create(['role' => 'admin']);
         $this->actingAs($admin)->post('/attendance', ['project_id' => 1, 'month' => '2026-10']);
 
-        $this->get('/attendance?month=2026-10')->assertSee('Open sheet')->assertDontSee('Not started');
+        $this->get('/attendance?month=2026-10')->assertSee('Open sheet')->assertDontSee('<span class="badge text-bg-light border">Not started</span>', false)->assertSee('Not started (0)');
     }
 
     public function test_bill_month_filter_finds_the_bill(): void

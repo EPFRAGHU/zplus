@@ -32,8 +32,13 @@ class EmployeeController extends Controller
                 ->where('name', 'like', "%{$s}%")->orWhere('emp_code', 'like', "%{$s}%")->orWhere('mobile', 'like', "%{$s}%")))
             ->when($request->integer('contract'), fn ($q, $id) => $q->whereHas('post.project', fn ($p) => $p->where('gem_contract_id', $id)))
             ->when($request->integer('project'), fn ($q, $id) => $q->whereHas('post', fn ($p) => $p->where('project_id', $id)))
-            ->when($request->string('status')->value(), fn ($q, $s) => $q->where('status', $s))
             ->when($request->string('bank')->value() === 'problem', fn ($q) => $q->where(fn ($w) => $w->whereNull('ifsc')->orWhereNull('account_last4')));
+        // Figures and status tabs in the Work Orders style (owner, 23 Nov 2026), counted before the status tab is applied.
+        $statusCounts = (clone $filtered)->selectRaw('status, count(*) as total')->groupBy('status')->pluck('total', 'status');
+        $figures = ['total' => (int) $statusCounts->sum(), 'active' => (int) ($statusCounts['active'] ?? 0), 'notice' => (int) ($statusCounts['notice'] ?? 0),
+            'placed' => (clone $filtered)->whereNotNull('post_id')->count(),
+            'bank' => (clone $filtered)->where(fn ($w) => $w->whereNull('ifsc')->orWhereNull('account_last4'))->count()];
+        $filtered->when($request->string('status')->value(), fn ($q, $s) => $q->where('status', $s));
 
         // One block per agency (ZPS, SWH, ...): sort by agency name, then client, then employee name.
         $agencyName = Agency::query()->select('name')->whereColumn('agencies.id', 'employees.agency_id');
@@ -49,7 +54,7 @@ class EmployeeController extends Controller
             ->orderByRaw('agency_id is null')->orderBy($agencyName)->orderBy($clientName)->orderBy('name')
             ->skip(($employees->currentPage() - 1) * $employees->perPage() - 1)->take(1)->value('agency_id');
 
-        return view('employees.index', ['employees' => $employees, 'blockCounts' => $blockCounts, 'carriedAgency' => $carriedAgency, 'clientCounts' => $clientCounts, 'projects' => Project::query()->with('contract')->orderBy('name')->get(),
+        return view('employees.index', ['figures' => $figures, 'statusCounts' => $statusCounts, 'workingAgency' => \App\Support\Agency\AgencyContext::agency(), 'employees' => $employees, 'blockCounts' => $blockCounts, 'carriedAgency' => $carriedAgency, 'clientCounts' => $clientCounts, 'projects' => Project::query()->with('contract')->orderBy('name')->get(),
             'contracts' => GemContract::query()->with('client:id,name,short_code')->orderBy('bid_no')->orderBy('contract_no')->get(['id', 'agency_id', 'client_id', 'bid_no', 'contract_no']),
             'agencies' => Agency::query()->orderBy('name')->get(), 'clients' => Client::query()->with('agency')->orderBy('name')->get()]);
     }

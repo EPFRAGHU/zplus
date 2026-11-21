@@ -68,8 +68,10 @@ class EmployeePlacementTest extends TestCase
         $swh = Agency::query()->where('code', 'SWH')->firstOrFail();
         Employee::query()->create(['emp_code' => 'EMP-3001', 'name' => 'Swachha Person', 'agency_id' => $swh->id]);
 
-        $this->actingAs($admin)->get('/employees')->assertSee('<th>Agency</th><th>Client</th>', false)
-            ->assertSee('id="f-agency"', false)->assertSee('data-agency=', false)->assertSee('Not assigned yet');
+        $this->actingAs($admin)->get('/employees')->assertSee('<th>Employee</th><th>Post · project</th><th>Work order</th>', false)
+            ->assertSee('id="f-agency"', false)->assertSee('data-agency=', false)->assertSee('Not assigned to a client yet');
+        $this->get('/employees')->assertSee('Total employees')->assertSee('Bank details missing')->assertSee('Active (3)')->assertSee('Inactive (0)');
+        $this->get('/employees?status=inactive')->assertSee('No employees match these filters.')->assertSee('Active (3)');
         $this->get('/employees?agency='.$swh->id)->assertSee('Swachha Person')->assertDontSee('Amit Kumar (sample)');
         $zpsIcmr = Client::query()->whereHas('agency', fn ($q) => $q->where('code', 'ZPS'))->firstOrFail();
         $this->get('/employees?client='.$zpsIcmr->id)->assertSee('Amit Kumar (sample)')->assertDontSee('Swachha Person');
@@ -94,7 +96,7 @@ class EmployeePlacementTest extends TestCase
         Employee::query()->create(['emp_code' => 'EMP-3002', 'name' => 'Unplaced Person', 'agency_id' => $swh->id]);
 
         $this->actingAs($admin)->get('/employees')->assertOk()
-            ->assertSee('<th>Work order</th><th>Project</th><th>Post</th>', false)
+            ->assertSee('<th>Post · project</th><th>Work order</th>', false)
             ->assertSee('GEMC-511687731718030</a>', false)->assertSee('PI: Dr. S. Kanungo')
             ->assertSee('Not placed on a post')->assertSee('id="f-contract"', false);
         $this->get('/employees')->assertDontSee('@else')->assertDontSee('@endif');   // no stray template code
@@ -111,8 +113,9 @@ class EmployeePlacementTest extends TestCase
         }
 
         $html = $this->actingAs(User::factory()->create(['role' => 'admin']))->get('/employees')->assertOk()->getContent();
-        $zpsHead = strpos($html, '<b class="fs-6">M/S Z Plus Surakhya Seva</b>');
-        $swhHead = strpos($html, '<b class="fs-6">SWACHHA</b>');
+        // Work Orders style (owner, 23 Nov 2026): a light group row per agency › client inside one table.
+        $zpsHead = strpos($html, '<b>M/S Z Plus Surakhya Seva</b> <span class="wo-type off">ZPS</span>');
+        $swhHead = strpos($html, '<b>SWACHHA</b> <span class="wo-type off">SWH</span>');
         $this->assertNotFalse($zpsHead);
         $this->assertNotFalse($swhHead);
         $this->assertStringContainsString('2 employees', $html);
@@ -121,6 +124,6 @@ class EmployeePlacementTest extends TestCase
         $this->assertGreaterThan($zpsHead, strpos($html, 'Amit Kumar (sample)'));
         $this->assertLessThan($swhHead, strpos($html, 'Ritu Panda (sample)'));
         $this->assertGreaterThan($swhHead, strpos($html, 'Aaron Swachha'));
-        $this->assertSame(1, substr_count($html, '<b class="fs-6">SWACHHA</b>'));
+        $this->assertSame(1, substr_count($html, '<b>SWACHHA</b> <span class="wo-type off">SWH</span>'));
     }
 }

@@ -38,14 +38,36 @@ class AttendanceController extends Controller
             ->get()
             ->sortBy(fn ($p) => $p->contract->agency->name.'|'.$p->contract->client->name.'|'.$p->name)->values();
 
+        // Tabs in the Work Orders style (owner, 23 Nov 2026): where each project's sheet stands this month.
+        $state = fn ($p) => self::sheetState($sheets[$p->id] ?? null);
+        $counts = ['all' => $projects->count()] + collect(['not_started', 'draft', 'submitted', 'locked'])
+            ->mapWithKeys(fn ($t) => [$t => $projects->filter(fn ($p) => $state($p) === $t)->count()])->all();
+        $listed = $sheets->only($projects->pluck('id')->all());
+        $figures = ['projects' => $projects->count(), 'staff' => $projects->sum(fn ($p) => $sheets[$p->id]?->entries_count ?? $p->employees_count),
+            'locked' => $listed->where('status', 'locked')->count(), 'billed' => $listed->filter(fn ($sh) => $sh->invoice)->count()];
+        $tab = array_key_exists((string) $request->input('tab'), $counts) ? $request->input('tab') : 'all';
+        $shown = $tab === 'all' ? $projects : $projects->filter(fn ($p) => $state($p) === $tab)->values();
+
         return view('attendance.index', [
-            'month' => $month, 'sheets' => $sheets, 'projects' => $projects,
+            'month' => $month, 'sheets' => $sheets, 'projects' => $projects, 'shown' => $shown,
+            'counts' => $counts, 'tab' => $tab, 'figures' => $figures, 'workingAgency' => \App\Support\Agency\AgencyContext::agency(),
             'agencies' => Agency::query()->orderBy('name')->get(),
             'clients' => Client::query()->with('agency')->orderBy('name')->get(),
             'agencyId' => $agencyId, 'clientId' => $clientId,
             'contracts' => GemContract::query()->with('client:id,name,short_code')->orderBy('bid_no')->orderBy('contract_no')->get(['id', 'agency_id', 'client_id', 'bid_no', 'contract_no']),
             'allProjects' => Project::query()->with('contract:id,agency_id,client_id')->orderBy('name')->get(['id', 'gem_contract_id', 'name', 'pi_name']),
         ]);
+    }
+
+    /** Where a project's sheet stands for the month: not_started, draft, submitted (by the PI) or locked (billed counts as locked). */
+    public static function sheetState(?AttendanceSheet $sheet): string
+    {
+        return match (true) {
+            ! $sheet => 'not_started',
+            $sheet->isLocked() || (bool) $sheet->invoice => 'locked',
+            $sheet->isSubmitted() => 'submitted',
+            default => 'draft',
+        };
     }
 
     public function open(Request $request): RedirectResponse

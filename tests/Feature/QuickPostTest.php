@@ -88,12 +88,12 @@ class QuickPostTest extends TestCase
     {
         $this->seed(DemoSeeder::class);
         $this->actingAs(User::factory()->create(['role' => 'admin']))->get('/posts')->assertOk()
-            ->assertSee('<th>Agency</th><th>Client</th>', false)
-            ->assertSee('<b class="fs-6">M/S Z Plus Surakhya Seva</b> <span class="badge text-bg-dark">ZPS</span>', false)
-            ->assertSee('2 posts · 2 sanctioned · 2 filled · 1 contract')
-            ->assertSee('client-block', false)->assertSee('<b>ICMR-NIHR (RMRCBB), Bhubaneswar</b>', false)
-            ->assertSee('1 contract · 1 project · 2 posts · 2 sanctioned · 2 filled')
-            ->assertSee('Add post for this client');
+            // Work Orders style (owner, 23 Nov 2026): figures on top, one card per project naming its agency and client.
+            ->assertSee('Total posts')->assertSee('All posts (2)')->assertSee('2/2 Filled')
+            ->assertSee('Agency: <b>M/S Z Plus Surakhya Seva (ZPS)</b>', false)
+            ->assertSee('Client: <b>ICMR-NIHR (RMRCBB), Bhubaneswar</b>', false)
+            ->assertSee('<th>Designation</th><th class="num">Sanctioned</th>', false)
+            ->assertSee('data-bs-target="#addPostModal" data-agency=', false);
     }
 
     public function test_posts_page_filters_by_contract_and_project(): void
@@ -105,8 +105,9 @@ class QuickPostTest extends TestCase
 
         $this->actingAs(User::factory()->create(['role' => 'admin']))->get('/posts')->assertOk()
             ->assertSee('id="f-contract"', false)->assertSee('id="f-project"', false)
-            ->assertSee('<th>Work order</th><th>Project</th>', false)->assertSee('PI: Dr. Other')
-            ->assertSee('GEMC-511687731718030</a>', false);
+            ->assertSee('Work order: <b>GEMC-511687731718030</b>', false)->assertSee('PI: <b>Dr. Other</b>', false)
+            ->assertSee('Vacant (1)');
+        $this->get('/posts?tab=vacant')->assertSee('Field Worker')->assertDontSee('Academic Programme Manager</td>', false);
         $this->get('/posts?project='.$other->id)->assertSee('Field Worker')->assertDontSee('Academic Programme Manager</td>', false);
         $this->get('/posts?contract='.$contract->id)->assertSee('Field Worker')->assertSee('Academic Programme Manager');
     }

@@ -159,8 +159,8 @@ class WebFlowTest extends TestCase
 
         $this->actingAs($admin)->get('/attendance?month=2026-10')->assertOk()
             ->assertSee('id="f-agency"', false)->assertSee('id="f-client"', false)->assertSee('MPH')->assertSee('ZPS');
-        $this->get('/attendance?month=2026-10&agency='.$swh->id)->assertOk()->assertDontSee('<td class="fw-semibold">MPH</td>', false);
-        $this->get('/attendance?month=2026-10&agency='.$zps->id)->assertOk()->assertSee('<td class="fw-semibold">MPH</td>', false);
+        $this->get('/attendance?month=2026-10&agency='.$swh->id)->assertOk()->assertDontSee('<span class="wo-no">MPH</span>', false);
+        $this->get('/attendance?month=2026-10&agency='.$zps->id)->assertOk()->assertSee('<span class="wo-no">MPH</span>', false);
 
         $this->post('/attendance', ['project_id' => 1, 'month' => '2026-10']);
         $this->get('/attendance/1')->assertSee('Agency:')->assertSee('M/S Z Plus Surakhya Seva')->assertSee('ICMR-NIHR (RMRCBB), Bhubaneswar');
@@ -273,12 +273,12 @@ class WebFlowTest extends TestCase
         $other = $contract->projects()->create(['name' => 'Second Project', 'code' => 'SECOND']);
 
         $this->actingAs($admin)->get('/attendance?month=2026-10')->assertOk()
-            ->assertSee('<th>Work order</th><th>Project</th><th>PI</th>', false)
+            ->assertSee('Work order: <a class="mono', false)->assertSee('PI: <b>', false)
             ->assertSee('id="f-contract"', false)->assertSee('id="f-project"', false)
             ->assertSee('Second Project')->assertSee('GEMC-511687731718030</a>', false);
         $this->get('/attendance?month=2026-10&contract='.$contract->id)->assertSee('Second Project');
         $mph = Project::query()->where('code', 'MPH')->firstOrFail();
-        $this->get('/attendance?month=2026-10&project='.$mph->id)->assertDontSee('<td class="fw-semibold">Second Project</td>', false);
+        $this->get('/attendance?month=2026-10&project='.$mph->id)->assertDontSee('<span class="wo-no">Second Project</span>', false);
     }
 
     public function test_attendance_locked_count_only_covers_listed_projects(): void
@@ -345,15 +345,16 @@ class WebFlowTest extends TestCase
         $service->lock($sheet, $admin, null);
 
         $html = $this->actingAs($admin)->get('/attendance?month=2026-10')->assertOk()->getContent();
-        $zpsHead = strpos($html, '<b class="fs-6">M/S Z Plus Surakhya Seva</b>');
-        $swhHead = strpos($html, '<b class="fs-6">SWACHHA</b>');
-        $this->assertNotFalse($zpsHead);
-        $this->assertNotFalse($swhHead);
-        $this->assertStringContainsString('1 project · 1 locked · 0 billed for October', $html);   // Z Plus block
-        $this->assertStringContainsString('1 project · 0 locked · 0 billed for October', $html);   // SWACHHA block
-        $this->assertGreaterThan($swhHead, strpos($html, '<td class="fw-semibold">AAA Swachha Project</td>'));   // table row, not the filter list
-        $this->assertStringContainsString('client-block', $html);
-        $this->assertStringContainsString('1 project · 1 locked · 0 billed for October', $html);   // Z Plus's ICMR client block
+        // Work Orders style (owner, 23 Nov 2026): one card per project, agencies in order, each card naming its agency and client.
+        $mph = strpos($html, '<span class="wo-no">MPH</span>');
+        $aaa = strpos($html, '<span class="wo-no">AAA Swachha Project</span>');
+        $this->assertNotFalse($mph);
+        $this->assertGreaterThan($mph, $aaa);   // M/S Z Plus before SWACHHA
+        $this->assertStringContainsString('Agency: <b>SWACHHA (SWH)</b>', $html);
+        $this->assertStringContainsString('Agency: <b>M/S Z Plus Surakhya Seva (ZPS)</b>', $html);
+        $this->assertStringContainsString('1 of 2 projects locked', $html);
+        $this->assertStringContainsString('Locked (1)', $html);
+        $this->assertStringContainsString('Not started (1)', $html);
     }
 
     public function test_bills_are_split_into_agency_blocks(): void
@@ -410,10 +411,10 @@ class WebFlowTest extends TestCase
 
         foreach (['/agencies', '/clients', '/contracts', '/posts', '/employees', '/attendance?month=2026-10', '/invoices'] as $url) {
             $html = $this->actingAs($admin)->get($url)->assertOk()->getContent();
-            if (! in_array($url, ['/agencies', '/contracts'], true)) {   // these two show agency details / projects instead (owner, 21 Nov 2026)
+            if (! in_array($url, ['/agencies', '/contracts', '/posts', '/employees', '/attendance?month=2026-10'], true)) {   // agency details / Work Orders style cards instead (owner, 21 and 23 Nov 2026)
                 $this->assertStringContainsString('client-block', $html, "No client block on {$url}");
             }
-            if ($url !== '/contracts') {   // the redesigned Work Orders page names the agency on each contract instead (owner, 22 Nov 2026)
+            if (! in_array($url, ['/contracts', '/posts', '/employees', '/attendance?month=2026-10'], true)) {   // Work Orders style pages name the agency on each card or group row instead (owner, 22 and 23 Nov 2026)
                 $this->assertStringContainsString('<span class="badge text-bg-dark">ZPS</span>', $html, "No agency block on {$url}");
             }
             $this->assertDoesNotMatchRegularExpression('/@(else|endif|endforeach|endcan)\b/', strip_tags($html), "Stray template code on {$url}");

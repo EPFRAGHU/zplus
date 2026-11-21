@@ -1,6 +1,18 @@
-<x-layouts.app title="Employee Management" crumb="Masters / <span class='text-danger'>Employee Management</span>">
-  <form method="get" class="z-card p-3 mb-3 d-flex gap-2 flex-wrap align-items-end">
-    <div class="flex-grow-1 position-relative" style="min-width:280px"><label class="form-label small text-secondary mb-1" for="emp-search">Employee</label>
+<x-layouts.app title="Employee Management" crumb="Masters / <span class='text-danger'>Employee Management</span>" :quiet-title="true">
+  <div class="wo">
+  <div class="wo-head">
+    <div class="wo-head-icon"><i class="bi bi-person-lines-fill"></i></div>
+    <div class="me-auto"><h1>Employee Management – {{ \App\Support\Agency\AgencyContext::agency()?->name ?? 'Both agencies' }}</h1><p>Choose an employee to see everything about them: post, KYC, bank, statutory switches and month-wise attendance and pay.</p></div>
+  </div>
+  <div class="wo-kpis">
+    <div class="wo-kpi k-blue"><i class="bi bi-people"></i><div><div class="l">Total employees</div><div class="v">{{ $employees->count() }}</div></div></div>
+    <div class="wo-kpi k-green"><i class="bi bi-person-check"></i><div><div class="l">Active</div><div class="v">{{ $employees->where('status', 'active')->count() }}</div></div></div>
+    <div class="wo-kpi k-violet"><i class="bi bi-shield-check"></i><div><div class="l">EPF on</div><div class="v">{{ $employees->where('pf_applicable', true)->count() }}</div></div></div>
+    <div class="wo-kpi k-amber"><i class="bi bi-heart-pulse"></i><div><div class="l">ESIC on</div><div class="v">{{ $employees->where('esic_applicable', true)->count() }}</div></div></div>
+    <div class="wo-kpi k-red"><i class="bi bi-bank"></i><div><div class="l">Bank details missing</div><div class="v">{{ $employees->filter(fn ($e) => ! $e->ifsc || ! $e->account_last4)->count() }}</div></div></div>
+  </div>
+  <form method="get" class="wo-bar">
+    <div class="wo-search position-relative" style="min-width:280px"><i class="bi bi-search" style="z-index:2"></i><label class="visually-hidden" for="emp-search">Employee</label>
       {{-- Type part of the name, Emp ID, post or project: matching employees drop down; click one (or Enter) to open their details.
            The plain list below stays as the fallback when JavaScript is off. --}}
       <input id="emp-search" type="search" class="form-control d-none" autocomplete="off" role="combobox" aria-expanded="false" aria-controls="emp-results" aria-autocomplete="list"
@@ -49,15 +61,16 @@
       });
     })();
     </script>
-    <button class="btn btn-outline-secondary">Show</button>
+    <button class="btn wo-btn-primary">Show</button>
+    @if($employee)<a class="btn btn-link px-1" href="{{ route('staff.index') }}">Clear</a>@endif
   </form>
 
   @if($employee)
     <div class="row g-3 mb-3">
-      <div class="col-lg-6"><div class="z-card p-3 h-100">
+      <div class="col-lg-6"><div class="wo-card p-3 h-100 mb-0">
         <div class="d-flex align-items-start justify-content-between">
-          <div><div class="fs-5 fw-bold">{{ $employee->name }}</div><div class="mono text-secondary">{{ $employee->emp_code }}</div></div>
-          <div class="d-flex gap-2"><x-status :value="$employee->status" /><a class="btn btn-sm btn-outline-secondary" href="{{ route('employees.show', $employee) }}">Open record</a></div>
+          <div class="d-flex align-items-center gap-3"><div class="wo-head-icon"><i class="bi bi-person"></i></div><div><div class="wo-no fs-5">{{ $employee->name }}</div><div class="mono text-secondary">{{ $employee->emp_code }}</div></div></div>
+          <div class="d-flex gap-2 align-items-center"><x-status :value="$employee->status" /><a class="btn btn-sm wo-btn-blue" href="{{ route('employees.show', $employee) }}"><i class="bi bi-box-arrow-up-right me-1"></i>Open record</a></div>
         </div>
         <dl class="row small mb-0 mt-2">
           <dt class="col-sm-4 text-secondary fw-normal">Agency</dt><dd class="col-sm-8">{{ $employee->agency?->name ?? '—' }}</dd>
@@ -71,8 +84,8 @@
           <dt class="col-sm-4 text-secondary fw-normal">Address</dt><dd class="col-sm-8">{{ $employee->address ?? '—' }}</dd>
         </dl>
       </div></div>
-      <div class="col-lg-6"><div class="z-card p-3 h-100">
-        <h2 class="h6 fw-bold">KYC, bank and statutory</h2>
+      <div class="col-lg-6"><div class="wo-card p-3 h-100 mb-0">
+        <h2 class="h6 fw-bold"><i class="bi bi-shield-lock me-1 text-primary"></i>KYC, bank and statutory</h2>
         <dl class="row small mb-2">
           <dt class="col-sm-4 text-secondary fw-normal">Bank</dt><dd class="col-sm-8">{{ $employee->bank_name ?? '—' }} · <span class="mono">{{ $showBank ? ($employee->account_number ?? '—') : ($employee->maskedAccount() ?? '—') }}</span> · <span class="mono">{{ $employee->ifsc ?? '—' }}</span>
             @if(! $employee->ifsc || ! $employee->account_last4)<span class="badge text-bg-danger">Incomplete</span>@endif</dd>
@@ -88,9 +101,9 @@
       </div></div>
     </div>
 
-    <div class="z-card mb-3">
-      <div class="z-card-h"><h2>Month-wise attendance and payments</h2><span class="small text-secondary">Net pay = earned − employee EPF 12% − ESIC 0.75% (when switched on) − TDS 2%, as on the salary payout sheet and bank letter</span></div>
-      <div class="table-responsive"><table class="table">
+    <div class="wo-card mb-3">
+      <div class="wo-row border-bottom"><b><i class="bi bi-calendar3 me-1 text-primary"></i>Month-wise attendance and payments</b><span class="small text-secondary">Net pay = earned − employee EPF 12% − ESIC 0.75% (when switched on) − TDS 2%, as on the salary payout sheet and bank letter</span></div>
+      <div class="table-responsive"><table class="table align-middle wo-table m-0">
         <thead><tr><th>Month</th><th>Project</th><th>Attendance</th><th class="num">Paid days</th><th class="num">Earned</th><th class="num">EPF</th><th class="num">ESIC</th><th class="num">TDS 2%</th><th class="num">Net paid to bank</th><th>Paid to</th><th>Sub-bill</th></tr></thead>
         <tbody>
         @forelse($months as $m)
@@ -121,18 +134,18 @@
     </div>
   @endif
 
-  <div class="z-card">
-    <div class="z-card-h"><h2>All employees</h2><span class="small text-secondary">{{ $employees->count() }} in total</span></div>
-    <div class="table-responsive"><table class="table table-hover">
+  <div class="wo-card">
+    <div class="wo-row border-bottom"><b><i class="bi bi-people me-1 text-primary"></i>All employees</b><span class="wo-meta">{{ $employees->count() }} in total · click a name to see their details</span></div>
+    <div class="table-responsive"><table class="table table-hover align-middle wo-table m-0">
       <thead><tr><th><a class="text-reset text-decoration-none text-nowrap" href="{{ $sortLinks['emp_code']['url'] }}" title="{{ $sortLinks['emp_code']['title'] }}">Emp ID <i class="bi {{ $sortLinks['emp_code']['icon'] }}"></i></a></th><th><a class="text-reset text-decoration-none text-nowrap" href="{{ $sortLinks['name']['url'] }}" title="{{ $sortLinks['name']['title'] }}">Name <i class="bi {{ $sortLinks['name']['icon'] }}"></i></a></th><th>Agency</th><th><a class="text-reset text-decoration-none text-nowrap" href="{{ $sortLinks['pi']['url'] }}" title="{{ $sortLinks['pi']['title'] }}">Project In-charge <i class="bi {{ $sortLinks['pi']['icon'] }}"></i></a></th><th><a class="text-reset text-decoration-none text-nowrap" href="{{ $sortLinks['post']['url'] }}" title="{{ $sortLinks['post']['title'] }}">Post · project <i class="bi {{ $sortLinks['post']['icon'] }}"></i></a></th><th>Mobile</th><th>Bank</th><th>EPF / ESIC / TDS</th><th>Status</th></tr></thead>
       <tbody>
       @foreach($employees as $e)
         <tr @class(['table-active' => $employee?->id === $e->id])>
           <td class="mono"><a href="{{ route('staff.index', array_filter(['employee' => $e->id, 'sort' => $sort, 'dir' => $sort ? $dir : null])) }}">{{ $e->emp_code }}</a></td>
           <td><a href="{{ route('staff.index', array_filter(['employee' => $e->id, 'sort' => $sort, 'dir' => $sort ? $dir : null])) }}">{{ $e->name }}</a></td>
-          <td><span class="badge text-bg-light border">{{ $e->agency?->code }}</span></td>
+          <td><span class="wo-type off">{{ $e->agency?->code }}</span></td>
           <td class="small">{{ \App\Http\Controllers\StaffController::inchargeName($e) ?? '—' }}</td>
-          <td class="small">{{ $e->post ? $e->post->designation.' · '.$e->post->project->code : '—' }}</td>
+          <td class="small">@if($e->post){{ $e->post->designation }} <span class="wo-code">{{ $e->post->project->code }}</span>@else—@endif</td>
           <td class="small">{{ $e->mobile ?? '—' }}</td>
           <td class="small">{{ $e->bank_name ?? '—' }} <span class="mono">{{ $e->maskedAccount() }}</span></td>
           <td class="small">{{ $e->pf_applicable ? 'EPF' : '—' }} / {{ $e->esic_applicable ? 'ESIC' : '—' }} / {{ $e->tds_applicable ? 'TDS' : '—' }}</td>
@@ -141,5 +154,6 @@
       @endforeach
       </tbody>
     </table></div>
+  </div>
   </div>
 </x-layouts.app>

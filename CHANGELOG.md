@@ -2,6 +2,15 @@
 
 Versions follow MAJOR.MINOR.PATCH. Dates are Indian Standard Time.
 
+## 2.36.0 (2026-11-23): Posts, Employees, Employee Management and Attendance in the Work Orders style
+
+- Same design, colours and fonts as Work Orders on four more pages: a heading with an icon, five figure boxes, tabs, filter dropdowns in one bar
+- Posts: figures (posts, projects, sanctioned, filled, vacant), tabs All / Vacant / Fully filled, and one card per project with its posts, filled count, Add post and Open work order
+- Employees: figures (total, active, placed on posts, on notice, bank details missing), status tabs, search, and the list in one table with a light agency › client row; EPF / ESIC / TDS switches, Edit and Delete as before
+- Attendance: figures for the month (projects, staff, waiting, locked, billed), tabs Not started / In progress / Submitted by PI / Locked, and one card per project with Start sheet or Open sheet (and the sub-bill once billed)
+- Employee Management: figures (total, active, EPF on, ESIC on, bank details missing) and the details, month-wise pay and all-employees tables in the new cards
+- Look only: no amounts, numbers or data change
+
 ## 2.35.0 (2026-11-23): Project In-charge page in the Work Orders style
 
 - Project In-charge page now has the same design, colours and fonts as Work Orders: a heading with an icon, five figure boxes (In-charges, projects allotted, staff under them, with PI portal login, projects without PI), tabs All / Active / Inactive, Agency and Project In-charge dropdowns, and a search box

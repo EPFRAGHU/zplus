@@ -35,7 +35,18 @@ class PostController extends Controller
 
         $designations = Post::query()->pluck('designation')->groupBy(fn ($d) => self::postKey($d))->map->first()->sort()->values();
 
+        // Tabs in the Work Orders style (owner, 23 Nov 2026): all posts, posts with vacancies, fully filled posts.
+        $counts = ['all' => $posts->count(), 'vacant' => $posts->filter(fn ($p) => $p->active_employees_count < $p->sanctioned_qty)->count()];
+        $counts['filled'] = $counts['all'] - $counts['vacant'];
+        $tab = in_array($request->input('tab'), ['vacant', 'filled'], true) ? $request->input('tab') : 'all';
+        $figures = ['posts' => $posts->count(), 'projects' => $posts->pluck('project_id')->unique()->count(),
+            'sanctioned' => $posts->sum('sanctioned_qty'), 'filled' => $posts->sum(fn ($p) => min($p->active_employees_count, $p->sanctioned_qty))];
+        if ($tab !== 'all') {
+            $posts = $posts->filter(fn ($p) => ($p->active_employees_count < $p->sanctioned_qty) === ($tab === 'vacant'))->values();
+        }
+
         return view('posts.index', ['posts' => $posts, 'agencyId' => $agencyId, 'clientId' => $clientId, 'designations' => $designations,
+            'counts' => $counts, 'tab' => $tab, 'figures' => $figures, 'workingAgency' => \App\Support\Agency\AgencyContext::agency(),
             'post' => $request->string('post')->trim()->value()] + self::pickerData());
     }
 

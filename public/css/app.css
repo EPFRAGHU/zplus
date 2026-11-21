@@ -110,8 +110,9 @@ div.client-block{background:#f2f7ff!important;border-color:#dbe6fb!important;bor
 .wo-tabs a.on{background:var(--wo-blue);color:#fff;font-weight:600}
 .wo-dot{display:inline-block;width:8px;height:8px;border-radius:50%;margin-right:6px;vertical-align:1px}
 .wo-pick{display:flex;align-items:center;border:1px solid var(--wo-line);border-radius:10px;background:#fff;padding-left:12px}
-.wo-pick span{color:var(--wo-muted);font-size:.86rem;white-space:nowrap}
-.wo-pick select{border:0;box-shadow:none;background-color:transparent;font-weight:500;font-size:.88rem;min-width:110px}
+.wo-pick > span{color:var(--wo-muted);font-size:.86rem;white-space:nowrap}
+.wo-pick select{border:0;box-shadow:none;background-color:transparent;font-weight:500;font-size:.88rem;min-width:110px;max-width:300px}
+.wo-pick .z-month .form-select{border:0;box-shadow:none;background-color:transparent;font-weight:500;font-size:.88rem;min-width:150px}
 .wo-search{flex:1 1 220px;position:relative}
 .wo-search i{position:absolute;left:12px;top:50%;transform:translateY(-50%);color:var(--wo-muted)}
 .wo-search input{padding-left:36px;border-radius:10px;border-color:var(--wo-line)}
@@ -155,3 +156,10 @@ div.client-block{background:#f2f7ff!important;border-color:#dbe6fb!important;bor
 .wo-pick,.wo-search{flex:1 1 100%}
 .wo-head .wo-actions{width:100%}
 }
+/* Group rows inside Work Orders style tables (agency › client) */
+.wo-group td{background:#f3f7ff!important;color:var(--wo-text);font-size:.88rem;padding-top:9px;padding-bottom:9px;border-color:var(--wo-line)}
+.wo-list-table{margin:0}
+.wo-list-table thead th{border-top:0}
+.wo-card > .table-responsive{border-radius:14px}
+.wo-head > .me-auto{flex:1 1 320px;min-width:0}
+.wo-row .wo-code{min-width:54px;text-align:center}
