@@ -10,6 +10,10 @@
     <div class="mb-2"><span class="badge text-bg-info">Waiting for the owner</span> <b class="small">{{ \App\Models\Approval::TYPES[$a->type] }}</b>
       <span class="small text-secondary">sent by {{ $a->submitter?->name }}, {{ $a->submitted_at->timezone('Asia/Kolkata')->format('d M Y, h:i A') }}. Until approved {{ $a->type === 'new_employee' ? 'the employee stays Inactive.' : 'the old details stay in use.' }}</span>
       @include('approvals._changes', ['a' => $a])
+      @if($a->type === 'new_employee' && ($stale = app(\App\Services\Approvals\StaffChanges::class)->changedFields($a, $employee)))
+        <div class="alert alert-warning small py-2 my-2 d-flex flex-wrap gap-2 align-items-center"><span><i class="bi bi-exclamation-triangle me-1"></i>Details changed after sending: <b>{{ implode(', ', $stale) }}</b>. Send it again so the owner approves the current details.</span>
+          @can('manage-masters')<form method="post" action="{{ route('employees.send-for-approval', $employee) }}" class="ms-auto">@csrf<button class="btn btn-sm btn-primary"><i class="bi bi-send-check me-1"></i>Send again for approval</button></form>@endcan</div>
+      @endif
       @if($isOwner)@include('approvals._decide', ['a' => $a])@endif
     </div>
   @endforeach

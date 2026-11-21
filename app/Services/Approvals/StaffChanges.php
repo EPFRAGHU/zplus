@@ -67,9 +67,16 @@ final class StaffChanges
             return [];
         }
         if ($this->awaitingFirstApproval($employee)) {
-            // Not yet approved: still Inactive, so details may be corrected freely; the owner approves the latest version.
+            // Not yet approved: still Inactive, so details may be corrected freely; the owner approves the latest version,
+            // so a waiting request is brought up to date with the correction (owner, 23 Nov 2026).
             unset($data['status']);
-            $employee->update($data);
+            DB::transaction(function () use ($employee, $data, $maker) {
+                $employee->update($data);
+                $pending = Approval::query()->where('type', 'new_employee')->where('employee_id', $employee->id)->where('status', 'pending')->exists();
+                if ($pending && $this->changedSinceSending($employee->refresh())) {
+                    $this->sendNew($employee, $maker);
+                }
+            });
 
             return [];
         }
@@ -146,8 +153,8 @@ final class StaffChanges
         return match ($approval->type) {
             'new_employee' => (function () use ($approval) {
                 $employee = $approval->employee;
-                if ($this->newHash($employee) !== $approval->fingerprint && ! $this->unchangedApartFromDefaults($approval, $employee)) {
-                    throw new RuntimeException('The employee\'s details were changed after sending. Ask for it to be sent again.');
+                if ($changed = $this->changedFields($approval, $employee)) {
+                    throw new RuntimeException('The employee\'s details were changed after sending ('.implode(', ', $changed).'). Return it, or ask for it to be sent again with the employee\'s "Send again for approval" button.');
                 }
                 $employee->forceFill(['status' => 'active'])->save();
 
@@ -173,6 +180,32 @@ final class StaffChanges
                 return "New rate of {$post->designation} applied.";
             })(),
         };
+    }
+
+    /** Is the waiting "new employee" request of this employee out of date with the saved details? */
+    public function changedSinceSending(Employee $employee): bool
+    {
+        $open = Approval::query()->where('type', 'new_employee')->where('employee_id', $employee->id)->where('status', 'pending')->latest('id')->first();
+
+        return $open !== null && $this->changedFields($open, $employee) !== [];
+    }
+
+    /** Labels of the watched details that differ from what was sent; [] when unchanged. */
+    public function changedFields(Approval $approval, Employee $employee): array
+    {
+        if ($this->newHash($employee) === $approval->fingerprint || $this->unchangedApartFromDefaults($approval, $employee)) {
+            return [];
+        }
+        $sent = is_array($approval->changes) ? $approval->changes : [];
+        $labels = self::LABELS + ['name' => 'Name', 'emp_code' => 'Employee ID'];
+        $out = [];
+        foreach ($this->snapshot($employee) as $field => $now) {
+            if (($sent[$field] ?? null) !== $now) {
+                $out[] = $labels[$field] ?? $field;
+            }
+        }
+
+        return $out ?: ['details'];
     }
 
     /**

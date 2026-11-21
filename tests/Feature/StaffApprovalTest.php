@@ -169,4 +169,36 @@ class StaffApprovalTest extends TestCase
         $this->post(route('approvals.approve', $changedApproval))->assertSessionHasErrors();
         $this->assertSame('inactive', $changed->fresh()->status);
     }
+
+    public function test_correcting_a_waiting_new_employee_updates_the_request_so_it_can_be_approved(): void
+    {
+        // Owner, 23 Nov 2026: the maker switched EPF on while the new employee was waiting; approving then failed.
+        $this->actingAs($this->accounts)->post('/employees', $this->form())->assertSessionHasNoErrors();
+        $e = Employee::query()->where('name', 'New Staff')->firstOrFail();
+        $this->patch("/employees/{$e->id}/statutory", ['pf_applicable' => '1'])->assertRedirect();
+        $this->assertTrue($e->fresh()->pf_applicable);
+        $open = Approval::query()->where('employee_id', $e->id)->where('status', 'pending')->sole();
+        $this->assertSame('1', $open->changes['pf_applicable']);   // the owner sees the corrected details
+
+        $this->actingAs($this->owner)->post(route('approvals.approve', $open))->assertSessionHasNoErrors();
+        $this->assertSame('active', $e->fresh()->status);
+    }
+
+    public function test_a_request_already_out_of_date_shows_what_changed_and_can_be_sent_again(): void
+    {
+        $this->actingAs($this->accounts)->post('/employees', $this->form())->assertSessionHasNoErrors();
+        $e = Employee::query()->where('name', 'New Staff')->firstOrFail();
+        $e->forceFill(['esic_applicable' => true])->save();   // changed the old way, without updating the request
+        $old = Approval::query()->where('employee_id', $e->id)->where('status', 'pending')->sole();
+
+        $this->actingAs($this->owner)->post(route('approvals.approve', $old))->assertSessionHasErrors();
+        $this->get(route('approvals.index'))->assertSee('Changed after sending: <b>ESIC</b>', false);
+        $this->actingAs($this->accounts)->get(route('employees.show', $e))->assertSee('Details changed after sending: <b>ESIC</b>', false)->assertSee('Send again for approval');
+        $this->post(route('employees.send-for-approval', $e))->assertSessionHasNoErrors();
+        $this->assertSame('superseded', $old->fresh()->status);
+
+        $new = Approval::query()->where('employee_id', $e->id)->where('status', 'pending')->sole();
+        $this->actingAs($this->owner)->post(route('approvals.approve', $new))->assertSessionHasNoErrors();
+        $this->assertSame('active', $e->fresh()->status);
+    }
 }

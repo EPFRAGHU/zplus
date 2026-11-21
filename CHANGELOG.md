@@ -2,6 +2,12 @@
 
 Versions follow MAJOR.MINOR.PATCH. Dates are Indian Standard Time.
 
+## 2.32.2 (2026-11-23): New staff corrected while waiting: approval kept up to date
+
+- Correcting a new employee while the approval is waiting (EPF / ESIC / TDS switch on the list, bank, post, rate) now updates the waiting request, so the Super Admin approves the latest details instead of getting "changed after sending"
+- A request that is already out of date says exactly what changed (on the Approvals page and the employee page), and the employee page now has "Send again for approval" for it
+- No data changes
+
 ## 2.32.1 (2026-11-23): Approving new staff: false "changed after sending" fixed
 
 - Approving a new employee could fail with "The employee's details were changed after sending" although nothing was changed: staff saved without the EPF / ESIC (or older imports without TDS) switch were recorded as blank, while the database stored "off"
