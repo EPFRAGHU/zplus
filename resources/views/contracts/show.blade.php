@@ -150,4 +150,11 @@
     <div class="text-end mt-3"><button class="btn btn-primary">Save projects, posts and staff</button></div>
   </form>
   @endcan
+  <script>
+    // "Edit" on the Work orders and Posts lists jumps here and opens that project's or post's edit form.
+    window.addEventListener('load', function () {
+      const target = /^#edit-(p|post)\d+$/.test(location.hash) && document.querySelector(location.hash);
+      if (target && window.bootstrap) { bootstrap.Collapse.getOrCreateInstance(target).show(); target.scrollIntoView({block: 'center'}); }
+    });
+  </script>
 </x-layouts.app>

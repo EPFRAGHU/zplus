@@ -145,7 +145,7 @@ class ProjectInchargeController extends Controller
     /** Super Admin: deletes a Project In-charge only when nothing depends on it (owner, 17 Nov 2026). */
     public function destroy(ProjectIncharge $incharge): RedirectResponse
     {
-        \Illuminate\Support\Facades\Gate::authorize('delete-records');
+        \Illuminate\Support\Facades\Gate::authorize('delete-masters');
         if ($why = \App\Support\SafeDelete::incharge($incharge)) {
             return back()->withErrors(['delete' => $why]);
         }

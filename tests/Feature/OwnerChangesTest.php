@@ -541,10 +541,10 @@ class OwnerChangesTest extends TestCase
         $this->get('/attendance?month=2026-10')->assertSee('Delete this empty project');
         $this->get("/contracts/{$contract->id}")->assertSee('Delete project');
 
-        // Not for projects with staff (HTA) or attendance; not for Accounts / Operator.
+        // Not for projects with staff (HTA) or attendance; not for Operator or an ordinary Admin. Accounts makers may (owner, 22 Nov 2026).
         $hta = Project::query()->where('code', 'HTA')->firstOrFail();
         $this->delete("/projects/{$hta->id}")->assertSessionHasErrors('project');
-        foreach (['accounts', 'supervisor', 'admin'] as $role) {   // an ordinary Admin cannot either
+        foreach (['supervisor', 'admin'] as $role) {   // an ordinary Admin cannot either
             $this->actingAs(User::factory()->create(['role' => $role, 'agency_id' => $agency->id]));
             $this->delete("/projects/{$a->id}")->assertForbidden();
             $this->get('/attendance?month=2026-10')->assertDontSee('Delete this empty project');

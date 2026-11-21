@@ -255,7 +255,7 @@ class EmployeeController extends Controller
     /** Super Admin: deletes an employee entered by mistake (no attendance, bills or letters) only when nothing depends on it (owner, 17 Nov 2026). */
     public function destroy(Employee $employee): RedirectResponse
     {
-        \Illuminate\Support\Facades\Gate::authorize('delete-records');
+        \Illuminate\Support\Facades\Gate::authorize('delete-masters');
         if ($why = \App\Support\SafeDelete::employee($employee)) {
             return back()->withErrors(['delete' => $why]);
         }

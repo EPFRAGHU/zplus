@@ -77,7 +77,7 @@ Route::middleware(['auth', 'active', 'role:admin,accounts,supervisor', \App\Http
     Route::get('staff', [\App\Http\Controllers\StaffController::class, 'index'])->name('staff.index');
     Route::post('contracts/{contract}/projects', [ProjectController::class, 'store'])->name('projects.store');
     Route::post('delete-mode', function (\Illuminate\Http\Request $request) {
-        \Illuminate\Support\Facades\Gate::authorize('delete-records');
+        \Illuminate\Support\Facades\Gate::authorize('delete-masters');
         $request->session()->put('delete_mode', ! $request->session()->get('delete_mode'));
 
         return back()->with('status', $request->session()->get('delete_mode') ? 'Delete options shown. Switch them off when you are done.' : 'Delete options hidden.');

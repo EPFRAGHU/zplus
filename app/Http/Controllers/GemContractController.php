@@ -247,7 +247,7 @@ class GemContractController extends Controller
     /** Super Admin: deletes a work order only when nothing depends on it (owner, 17 Nov 2026). */
     public function destroy(GemContract $contract): RedirectResponse
     {
-        \Illuminate\Support\Facades\Gate::authorize('delete-records');
+        \Illuminate\Support\Facades\Gate::authorize('delete-masters');
         if ($why = \App\Support\SafeDelete::contract($contract)) {
             return back()->withErrors(['delete' => $why]);
         }

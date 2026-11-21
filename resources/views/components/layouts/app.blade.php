@@ -110,9 +110,9 @@ body{font-size:.9rem}
         <a class="d-block small text-decoration-none mt-1" style="color:var(--z-rail-fg)" href="{{ route('agency.choose') }}"><i class="bi bi-arrow-left-right me-1"></i>Change company</a>
       @endif
       <a class="d-block small text-decoration-none mt-1" style="color:var(--z-rail-fg)" href="{{ route('account.password') }}"><i class="bi bi-key me-1"></i>Change password</a>
-      @can('delete-records')
+      @can('delete-masters')
       <form method="post" action="{{ route('delete-mode') }}" class="mt-2">@csrf
-        <div class="form-check form-switch small mb-0" style="color:var(--z-rail-fg)" title="Super Admin: show the Delete buttons on lists and pages">
+        <div class="form-check form-switch small mb-0" style="color:var(--z-rail-fg)" title="Show the Delete buttons on lists and pages (only unused records can be deleted)">
           <input class="form-check-input" type="checkbox" role="switch" id="delete-mode" onchange="this.form.submit()" @checked(session('delete_mode'))>
           <label class="form-check-label" for="delete-mode">Show delete options</label></div></form>
       @endcan

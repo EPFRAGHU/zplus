@@ -46,18 +46,20 @@
           @if($c->isDaily())<span class="badge text-bg-light border">Daily rate × days + EPF/ESIC</span>@endif
           <span class="badge rounded-pill text-bg-{{ $f < $s ? 'warning' : 'success' }}">{{ $f }}/{{ $s }} filled</span>
           @can('manage-masters')<a class="btn btn-sm btn-outline-primary" href="{{ route('contracts.show', $c) }}#add-project" title="Add another project using this bid and contract number"><i class="bi bi-plus-lg"></i> Add project</a>@endcan
+          @can('manage-masters')<a class="btn btn-sm btn-primary" href="{{ route('contracts.edit', $c) }}"><i class="bi bi-pencil me-1"></i>Edit</a>@endcan
           <a class="btn btn-sm btn-outline-secondary" href="{{ route('contracts.show', $c) }}">Open</a>
         </div>
       </div>
       <div class="table-responsive"><table class="table table-sm mb-0 small">
-        <thead><tr><th style="width:14%">Project</th><th>Project name</th><th>Project In-charge</th><th class="num">Posts filled</th></tr></thead>
+        <thead><tr><th style="width:14%">Project</th><th>Project name</th><th>Project In-charge</th><th class="num">Posts filled</th><th></th></tr></thead>
         <tbody>
         @forelse($c->projects as $p)
           @php($pp = $p->posts)
           <tr><td><span class="badge text-bg-primary mono">{{ $p->code }}</span></td><td>{{ $p->name }}</td><td>{{ $p->incharge?->name ?? $p->pi_name ?? '—' }}</td>
-            <td class="num">{{ $pp->sum('active_employees_count') }} / {{ $pp->sum('sanctioned_qty') }}</td></tr>
+            <td class="num">{{ $pp->sum('active_employees_count') }} / {{ $pp->sum('sanctioned_qty') }}</td>
+            <td class="text-end">@can('manage-masters')<a class="btn btn-sm btn-link py-0" href="{{ route('contracts.show', $c) }}#edit-p{{ $p->id }}">Edit project</a>@endcan</td></tr>
         @empty
-          <tr><td colspan="4" class="text-secondary">No projects yet. Use <b>Add project</b>.</td></tr>
+          <tr><td colspan="5" class="text-secondary">No projects yet. Use <b>Add project</b>.</td></tr>
         @endforelse
         </tbody></table></div>
     </div>

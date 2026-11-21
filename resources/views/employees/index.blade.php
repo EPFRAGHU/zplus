@@ -16,7 +16,7 @@
     <div class="col-md-2 d-flex gap-2"><button class="btn btn-outline-secondary flex-fill">Show</button>@if(request()->query())<a class="btn btn-link px-1" href="{{ route('employees.index') }}">Clear</a>@endif</div>
   </form>
   <div class="z-card"><div class="table-responsive"><table class="table table-hover">
-    <thead><tr><th>Employee</th><th>Agency</th><th>Client</th><th>Work order</th><th>Project</th><th>Post</th><th class="num">Rate</th><th>EPF / ESIC</th><th>Bank</th><th>Status</th></tr></thead>
+    <thead><tr><th>Employee</th><th>Agency</th><th>Client</th><th>Work order</th><th>Project</th><th>Post</th><th class="num">Rate</th><th>EPF / ESIC</th><th>Bank</th><th>Status</th><th></th></tr></thead>
     <tbody>
     @php($block = false)
     @forelse ($employees as $e)
@@ -24,7 +24,7 @@
         @php($clientBlock = false)
         @php($starts = $block === false && $carriedAgency !== false && $carriedAgency === $e->agency_id)
         @php($block = $e->agency_id)
-        <tr class="table-secondary"><td colspan="10" class="py-2">
+        <tr class="table-secondary"><td colspan="11" class="py-2">
           @if($e->agency)
             <b class="fs-6">{{ $e->agency->name }}</b> <span class="badge text-bg-dark">{{ $e->agency->code }}</span>
           @else
@@ -36,7 +36,7 @@
       @if($clientBlock === false || $clientBlock !== $e->client_id)
         @php($clientBlock = $e->client_id)
         @php($cc = $clientCounts[$e->agency_id.'-'.$e->client_id] ?? null)
-        <x-client-block :client="$e->client" colspan="10" :meta="$cc ? $cc->total.' '.\Illuminate\Support\Str::plural('employee', $cc->total).' · '.$cc->placed.' placed on posts' : null" />
+        <x-client-block :client="$e->client" colspan="11" :meta="$cc ? $cc->total.' '.\Illuminate\Support\Str::plural('employee', $cc->total).' · '.$cc->placed.' placed on posts' : null" />
       @endif
       <tr>
         <td><a class="fw-semibold text-decoration-none" href="{{ route('employees.show', $e) }}">{{ $e->name }}</a><div class="mono text-secondary">{{ $e->emp_code }}</div></td>
@@ -74,9 +74,11 @@
         <td>@if($e->account_last4 && $e->ifsc)<span class="mono">{{ $e->maskedAccount() }}</span> <span class="badge text-bg-{{ $e->bank_verified_at ? 'success' : 'light border' }}">{{ $e->bank_verified_at ? 'Verified' : 'Not verified' }}</span>
             @else<span class="badge text-bg-danger">{{ $e->account_last4 ? 'IFSC missing' : 'No account' }}</span>@endif</td>
         <td><x-status :value="$e->status" /></td>
+        <td class="text-end text-nowrap">@can('manage-masters')<a class="btn btn-sm btn-primary" href="{{ route('employees.edit', $e) }}"><i class="bi bi-pencil me-1"></i>Edit</a>@endcan
+          @can('show-delete')<x-delete-button :action="route('employees.destroy', $e)" :blocked="\App\Support\SafeDelete::employee($e)" :confirm="'Delete employee '.$e->name.' ('.$e->emp_code.')? Only possible while they are on no attendance, bill or payout.'" />@endcan</td>
       </tr>
     @empty
-      <tr><td colspan="10" class="text-center text-secondary py-4">No employees match these filters.</td></tr>
+      <tr><td colspan="11" class="text-center text-secondary py-4">No employees match these filters.</td></tr>
     @endforelse
     </tbody></table></div></div>
   <div class="mt-3">{{ $employees->links() }}</div>

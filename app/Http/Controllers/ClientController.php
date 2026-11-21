@@ -121,7 +121,7 @@ class ClientController extends Controller
     /** Super Admin: deletes a client only when nothing depends on it (owner, 17 Nov 2026). */
     public function destroy(Client $client): RedirectResponse
     {
-        \Illuminate\Support\Facades\Gate::authorize('delete-records');
+        \Illuminate\Support\Facades\Gate::authorize('delete-masters');
         if ($why = \App\Support\SafeDelete::client($client)) {
             return back()->withErrors(['delete' => $why]);
         }

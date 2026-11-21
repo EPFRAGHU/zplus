@@ -12,6 +12,11 @@ return [
     'timezone' => 'Asia/Kolkata',      // release times are Indian Standard Time
 
     'releases' => [
+        ['version' => '2.28.0', 'date' => '2026-11-22 16:00', 'title' => 'Edit buttons everywhere; makers can delete unused records', 'type' => 'feature', 'notes' => [
+            'Edit buttons: on each work order and each of its projects (Work orders list), on each post (Posts list, opens the post\'s edit form on its work order page) and on each employee (Employees list); clients and Project In-charge already had them',
+            'Accounts logins (SWACHHA / Z Plus makers) can now switch on "Show delete options" and delete records that are not in use: work orders, projects, posts, clients, Project In-charge and employees of their own agency',
+            'Deleting bills, tax invoices and agencies stays with the Super Admins; paid or used records can never be deleted; every delete is in the Activity log',
+        ]],
         ['version' => '2.27.0', 'date' => '2026-11-22 15:00', 'title' => 'Post-wise filter and post-wise sub-bills', 'type' => 'feature', 'notes' => [
             'Posts: new "Post" filter; choosing a post (e.g. Project Technical Support-II) lists it in every project, with a summary of the projects, sanctioned and filled',
             'Sub-bills → "Post-wise sub-bills": for a month (and optionally one post and agency), each post with the projects, sub-bill numbers, rates, staff, days paid and wages billed, with totals; PDF for your own records (marked not for submission)',

@@ -23,10 +23,14 @@ class AppServiceProvider extends ServiceProvider
         Gate::define('unlock-attendance', fn (User $u) => $u->hasRole('admin'));
         Gate::define('reset-month', fn (User $u) => $u->hasRole('admin'));
         // Only the Super Admin (the owner) may delete a project, and only an empty one (no attendance, bills or staff). Owner, 17 Nov 2026.
-        Gate::define('delete-project', fn (User $u) => $u->isSuperAdmin());
+        // Unused records (work orders, projects, posts, clients, PIs, employees): Super Admins and the Accounts makers (owner, 22 Nov 2026).
+        Gate::define('delete-masters', fn (User $u) => $u->isSuperAdmin() || $u->hasRole('accounts'));
+        Gate::define('delete-project', fn (User $u) => Gate::forUser($u)->allows('delete-masters'));
         // Super Admin deletes of unused records and of bills (except paid); the buttons show only with "Show delete options" on.
         Gate::define('delete-records', fn (User $u) => $u->isSuperAdmin());
-        Gate::define('show-delete', fn (User $u) => $u->isSuperAdmin() && (bool) session('delete_mode'));   // delete a project's month: bill + attendance
+        Gate::define('show-delete', fn (User $u) => Gate::forUser($u)->allows('delete-masters') && (bool) session('delete_mode'));
+        // Bills, tax invoices and agencies stay with the Super Admins.
+        Gate::define('show-delete-bills', fn (User $u) => $u->isSuperAdmin() && (bool) session('delete_mode'));   // delete a project's month: bill + attendance
         // Developer only (owner, 19 Nov 2026): Data Upload, GeM import, Users, Activity log. Super Admins approve and delete.
         Gate::define('import', fn (User $u) => $u->isDeveloper());   // Data Upload (each agency's own data)
         Gate::define('gem-import', fn (User $u) => $u->isDeveloper() && $u->worksForBothAgencies() && \App\Support\Agency\AgencyContext::id() === null);   // GeM workbook covers both agencies

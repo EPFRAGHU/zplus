@@ -64,8 +64,8 @@ class TwoLevelRolesTest extends TestCase
         foreach (['/users', '/activity', '/data-upload', '/import'] as $url) {
             $this->get($url)->assertForbidden();
         }
-        $this->post(route('delete-mode'))->assertForbidden();
-        $this->get('/')->assertDontSee('Activity log')->assertDontSee('Show delete options');
+        $this->get('/')->assertDontSee('Activity log')->assertSee('Show delete options');   // makers delete unused records (owner, 22 Nov 2026)
+        $this->post(route('delete-mode'))->assertRedirect();
         // The SWACHHA maker cannot even see the Z Plus month.
         $this->actingAs($this->sMaker)->get(route('attendance.show', $sheet))->assertNotFound();
     }
@@ -153,5 +153,30 @@ class TwoLevelRolesTest extends TestCase
             $this->actingAs($this->zMaker)->get(route($route))->assertOk()
                 ->assertSee('GEM/1 · GEMC-1 · ICMR</option>', false)->assertSee('GEM/1 · GEMC-2 · ICMR</option>', false);
         }
+    }
+
+    public function test_maker_deletes_unused_records_of_own_agency_but_not_bills(): void
+    {
+        $empty = $this->r['contract']->projects()->create(['name' => 'Empty', 'code' => 'EMP']);
+        $this->actingAs($this->zMaker)->post(route('delete-mode'));
+        $this->delete(route('projects.destroy', $empty))->assertRedirect()->assertSessionHasNoErrors();
+        $this->assertNull(\App\Models\Project::query()->find($empty->id));
+        $this->delete(route('contracts.destroy', $this->r['contract']))->assertSessionHasErrors();   // still in use (project with staff)
+
+        $other = $this->r['contract']->projects()->create(['name' => 'Other', 'code' => 'OTH']);
+        $this->actingAs($this->sMaker)->post(route('delete-mode'));
+        $this->delete(route('projects.destroy', $other))->assertNotFound();   // the other agency's records cannot be reached
+        $this->assertFalse(\Illuminate\Support\Facades\Gate::forUser($this->zMaker)->allows('show-delete-bills'));
+    }
+
+    public function test_edit_buttons_on_work_orders_posts_and_employees(): void
+    {
+        $this->actingAs($this->zMaker);
+        $contract = $this->r['contract'];
+        $post = $this->r['project']->posts()->first();
+        $this->get(route('contracts.index'))->assertSee(route('contracts.edit', $contract))->assertSee('#edit-p'.$this->r['project']->id, false);
+        $this->get(route('posts.index'))->assertSee(route('contracts.show', $contract).'#edit-post'.$post->id, false);
+        $this->get(route('employees.index'))->assertSee(route('employees.edit', Employee::query()->first()));
+        $this->get(route('contracts.show', $contract))->assertSee('id="edit-post'.$post->id.'"', false);
     }
 }

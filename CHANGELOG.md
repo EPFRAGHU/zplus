@@ -2,6 +2,12 @@
 
 Versions follow MAJOR.MINOR.PATCH. Dates are Indian Standard Time.
 
+## 2.28.0 (2026-11-22): Edit buttons everywhere; makers can delete unused records
+
+- Edit buttons: on each work order and each of its projects (Work orders list), on each post (Posts list, opens the post's edit form on its work order page) and on each employee (Employees list); clients and Project In-charge already had them
+- Accounts logins (SWACHHA / Z Plus makers) can now switch on "Show delete options" and delete records that are not in use: work orders, projects, posts, clients, Project In-charge and employees of their own agency
+- Deleting bills, tax invoices and agencies stays with the Super Admins; paid or used records can never be deleted; every delete is in the Activity log
+
 ## 2.27.0 (2026-11-22): Post-wise filter and post-wise sub-bills
 
 - Posts: new "Post" filter; choosing a post (e.g. Project Technical Support-II) lists it in every project, with a summary of the projects, sanctioned and filled

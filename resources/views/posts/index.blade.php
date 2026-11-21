@@ -59,7 +59,7 @@
         <td class="num">{{ $p->sanctioned_qty }}</td>
         <td class="num">@if($p->active_employees_count < $p->sanctioned_qty)<span class="text-warning-emphasis">{{ $p->active_employees_count }}</span>@else{{ $p->active_employees_count }}@endif</td>
         <td class="num">{{ inr($p->rate) }}{{ $k->billing_type === 'daily' ? '/day' : '' }}</td>
-        <td class="text-end"><a class="btn btn-sm btn-outline-secondary" href="{{ route('contracts.show', $k) }}">Open contract</a></td>
+        <td class="text-end text-nowrap">@can('manage-masters')<a class="btn btn-sm btn-primary" href="{{ route('contracts.show', $k) }}#edit-post{{ $p->id }}"><i class="bi bi-pencil me-1"></i>Edit</a>@endcan <a class="btn btn-sm btn-outline-secondary" href="{{ route('contracts.show', $k) }}">Open contract</a></td>
       </tr>
     @empty
       <tr><td colspan="9" class="text-center text-secondary py-4">No posts yet. Click <b>Add post</b> to enter the first one.</td></tr>

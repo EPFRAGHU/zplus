@@ -11,7 +11,7 @@
         @can('manage-masters')
           <div class="ms-auto d-flex gap-2">
             <a class="btn btn-sm btn-primary" href="{{ route('agencies.edit', $a) }}"><i class="bi bi-pencil me-1"></i>Edit</a>
-            @can('show-delete')<x-delete-button :action="route('agencies.destroy', $a)" :blocked="\App\Support\SafeDelete::agency($a)" :confirm="'Delete agency '.$a->name.'? It has no clients, staff, bills or logins.'" />@endcan
+            @can('show-delete-bills')<x-delete-button :action="route('agencies.destroy', $a)" :blocked="\App\Support\SafeDelete::agency($a)" :confirm="'Delete agency '.$a->name.'? It has no clients, staff, bills or logins.'" />@endcan
           </div>
         @endcan
       </div>
