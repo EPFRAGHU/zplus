@@ -14,8 +14,8 @@
     <div class="d-flex align-items-center mb-2"><b class="small text-uppercase text-secondary wo-title">Project</b>
       <button type="button" class="btn btn-sm btn-link text-danger ms-auto wo-remove-project">Remove project</button></div>
     <div class="row g-2">
-      <div class="col-md-2"><label class="form-label small mb-1">Short project name *</label><input class="form-control form-control-sm mono text-uppercase" data-f="code" maxlength="12" placeholder="e.g. MPH"></div>
-      <div class="col-md-4"><label class="form-label small mb-1">Project name *</label><input class="form-control form-control-sm" data-f="name" maxlength="255" placeholder="e.g. MPH Academic Programme"></div>
+      <div class="col-md-3"><label class="form-label small mb-1">Short project name *</label><input class="form-control form-control-sm mono text-uppercase" data-f="code" maxlength="20" placeholder="e.g. MPH"></div>
+      <div class="col-md-3"><label class="form-label small mb-1">Project name *</label><input class="form-control form-control-sm" data-f="name" maxlength="255" placeholder="e.g. MPH Academic Programme"></div>
       <div class="col-md-3"><label class="form-label small mb-1">Project In-charge</label>
         <select class="form-select form-select-sm wo-pi" data-f="project_incharge_id"><option value="">New PI (type below) / none</option></select></div>
       <div class="col-md-3 wo-pi-new"><label class="form-label small mb-1">New PI name and mobile</label>

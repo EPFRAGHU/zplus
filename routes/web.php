@@ -115,6 +115,7 @@ Route::middleware(['auth', 'active', 'role:admin,accounts,supervisor', \App\Http
     Route::get('attendance/{sheet}/bank-letter', [AttendanceController::class, 'bankLetter'])->name('attendance.bank-letter');
     Route::get('bank-letters', [\App\Http\Controllers\BankLetterController::class, 'index'])->name('bank-letters.index');
     Route::get('bank-letters/pdf', [\App\Http\Controllers\BankLetterController::class, 'pdf'])->name('bank-letters.pdf');
+    Route::get('bank-letters/excel', [\App\Http\Controllers\BankLetterController::class, 'excel'])->middleware('throttle:20,1')->name('bank-letters.excel');
     Route::get('month-documents.zip', [\App\Http\Controllers\SignedDocumentController::class, 'zip'])->middleware('throttle:20,1')->name('month-documents.zip');
     Route::post('invoices/{invoice}/signed', [\App\Http\Controllers\SignedDocumentController::class, 'storeForInvoice'])->name('invoices.signed');
     Route::post('tax-invoices/{taxInvoice}/signed', [\App\Http\Controllers\SignedDocumentController::class, 'storeForTaxInvoice'])->name('tax-invoices.signed');

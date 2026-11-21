@@ -132,15 +132,16 @@ class OwnerChangesTest extends TestCase
         $this->get('/employees/create')->assertOk()->assertSee('SW-1004');   // the next one
     }
 
-    public function test_codes_accept_slash_and_hyphen_and_letter_code_has_16_characters(): void
+    public function test_codes_take_special_characters_up_to_20(): void
     {
         $agency = Agency::query()->create(['name' => 'SWACHHA', 'code' => 'SWH']);
         $base = ['agency_id' => $agency->id, 'name' => 'C', 'state_code' => '21', 'district' => 'Khordha', 'payment_term_days' => 30, 'status' => 'active'];
-        $this->post('/clients', $base + ['short_code' => 'ICMR/NIHR-01', 'letter_code' => 'NIHR/RMRC-BBSR16'])->assertSessionHasNoErrors();
-        $this->assertSame('NIHR/RMRC-BBSR16', Client::query()->value('letter_code'));
-        $this->post('/clients', $base + ['short_code' => 'X2', 'letter_code' => 'NIHR/RMRC-BBSR-17'])->assertSessionHasErrors('letter_code');
-        $this->post('/clients', $base + ['short_code' => 'X 3'])->assertSessionHasErrors('short_code');
-        $this->post('/clients', array_merge($base, ['short_code' => 'X4', 'state_code' => '99']))->assertSessionHasErrors('state_code');
+        $this->post('/clients', $base + ['short_code' => 'ICMR/NIHR-01', 'letter_code' => 'NIHR (RMRC) & BBSR-1'])->assertSessionHasNoErrors();   // owner, 22 Nov 2026
+        $this->assertSame('NIHR (RMRC) & BBSR-1', Client::query()->value('letter_code'));
+        $this->post('/clients', $base + ['short_code' => 'X2', 'letter_code' => 'NIHR/RMRC-BBSR-ODISHA'])->assertSessionHasErrors('letter_code');   // 21 characters
+        $this->post('/clients', $base + ['short_code' => 'X "3"'])->assertSessionHasErrors('short_code');                                        // quotes stay out
+        $this->post('/clients', $base + ['short_code' => 'X<4>'])->assertSessionHasErrors('short_code');
+        $this->post('/clients', array_merge($base, ['short_code' => 'X5', 'state_code' => '99']))->assertSessionHasErrors('state_code');
         $this->get('/clients/create')->assertOk()->assertSee('Odisha (21)')->assertSee('district-list', false)->assertSee('Khordha');
     }
 

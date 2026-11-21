@@ -37,6 +37,57 @@ class BankLetterController extends Controller
 
     public function pdf(Request $request): Response
     {
+        $data = $this->approvedLetter($request);
+
+        return Pdf::loadView('pdf.bank-letter', $data)->setPaper('a4')
+            ->stream('bank-letter-'.$data['agency']->numberPrefix().'-'.$data['month']->format('Y-m').'.pdf');
+    }
+
+    /** The same letter as an Excel file (owner, 22 Nov 2026): one sheet for SBI accounts, one for NEFT, one for missing bank details. */
+    public function excel(Request $request): Response
+    {
+        $data = $this->approvedLetter($request);
+        $book = new \PhpOffice\PhpSpreadsheet\Spreadsheet;
+        $book->removeSheetByIndex(0);
+        $sheets = ['SBI' => $data['sbi'], 'NEFT' => $data['neft'], 'Missing bank details' => $data['missing']];
+        foreach ($sheets as $title => $lines) {
+            $ws = $book->createSheet()->setTitle($title);
+            $ws->fromArray([[$data['agency']->name.' · salary for '.$data['month']->format('F Y').' · '.$title], ['Ref: '.$data['reference']]], null, 'A1');
+            $ws->fromArray([['Sl.', 'Emp ID', 'Name as per bank', 'Project', 'Bank', 'IFSC', 'Account no.', 'Net salary (Rs.)']], null, 'A4');
+            $row = 5;
+            foreach ($lines->values() as $i => $l) {
+                $e = $l['employee'];
+                $cells = [$i + 1, $e->emp_code, $e->account_holder ?: $e->name, $l['project']->code, $e->bank_name, $e->ifsc, (string) $e->account_number];
+                foreach ($cells as $c => $value) {
+                    // Text, never a formula or a number in scientific form (account numbers, names typed by users).
+                    $ws->setCellValueExplicit([$c + 1, $row], (string) $value, \PhpOffice\PhpSpreadsheet\Cell\DataType::TYPE_STRING);
+                }
+                $ws->setCellValue([8, $row], $l['net'] / 100);
+                $row++;
+            }
+            if ($lines->isNotEmpty()) {
+                $ws->setCellValue([7, $row], 'Total');
+                $ws->setCellValue([8, $row], $lines->sum('net') / 100);
+                $ws->getStyle("A{$row}:H{$row}")->getFont()->setBold(true);
+            }
+            $ws->getStyle('A4:H4')->getFont()->setBold(true);
+            $ws->getStyle('A1')->getFont()->setBold(true);
+            $ws->getStyle('H5:H'.max(5, $row))->getNumberFormat()->setFormatCode('#,##0.00');
+            foreach (range('A', 'H') as $col) {
+                $ws->getColumnDimension($col)->setAutoSize(true);
+            }
+        }
+        $book->setActiveSheetIndex(0);
+        $file = tempnam(sys_get_temp_dir(), 'bank');
+        (new \PhpOffice\PhpSpreadsheet\Writer\Xlsx($book))->save($file);
+
+        return response()->download($file, 'bank-letter-'.$data['agency']->numberPrefix().'-'.$data['month']->format('Y-m').'.xlsx',
+            ['Content-Type' => 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'])->deleteFileAfterSend();
+    }
+
+    /** Bank details leave the app only after the owner has approved the month's salary payout. */
+    private function approvedLetter(Request $request): array
+    {
         Gate::authorize('view-bank-details');
         $request->validate(['agency' => ['required', new \App\Rules\ExistsInMyAgency(Agency::class)], 'month' => ['required', 'date_format:Y-m'],
             'projects' => ['nullable', 'array'], 'projects.*' => ['integer']]);
@@ -47,10 +98,8 @@ class BankLetterController extends Controller
         $approvals = app(\App\Services\Approvals\Approvals::class);
         abort_unless(\App\Services\Approvals\Approvals::canApprove($request->user()) || $locked->every(fn ($s) => $approvals->payoutClearedFor($s)), 403,
             'The salary payout for this month is not approved by the owner yet. Use "Send for approval" on the Bank Letter page.');
-        $data = $this->letters->build($agency, $month, $locked);
 
-        return Pdf::loadView('pdf.bank-letter', $data)->setPaper('a4')
-            ->stream('bank-letter-'.$agency->numberPrefix().'-'.$month->format('Y-m').'.pdf');
+        return $this->letters->build($agency, $month, $locked);
     }
 
     private function month(?string $value): CarbonImmutable

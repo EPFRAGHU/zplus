@@ -9,7 +9,7 @@
         :hint="($hasContracts ?? false) ? 'This client has work orders, so its agency cannot be changed.' : (\App\Support\Agency\AgencyContext::id() ? 'Clients you add belong to your agency.' : 'Works with both agencies? Save this one, then add the client again for the other agency.')" />
       <div class="col-md-6"></div>
       <x-field name="name" label="Client name" :value="$client->name" required hint="e.g. ICMR-NIHR (RMRCBB), Bhubaneswar" />
-      <x-field name="letter_code" label="Letter code" :value="$client->letter_code" col="col-md-3" maxlength="16" hint="For appointment letters; / and - allowed, up to 16. e.g. NIHR" />
+      <x-field name="letter_code" label="Letter code" :value="$client->letter_code" col="col-md-4" maxlength="20" hint="For appointment letters, up to 20 characters. e.g. NIHR" />
       <x-field name="addressee" label="Bills addressed to" :value="$client->addressee" hint="e.g. The Administrative Officer" />
       <x-field name="contact_person" label="Contact person" :value="$client->contact_person" col="col-md-3" />
       <x-field name="phone" label="Contact number" :value="$client->phone" col="col-md-3" />

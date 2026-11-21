@@ -118,7 +118,7 @@ class EmployeeController extends Controller
         if (! $doc->number) {
             $yy = ($employee->joining_date ?? now())->format('y');
             $prefix = implode('/', [$contract->agency->code, $contract->client->letter_code ?: $contract->client->short_code, $project->code]);
-            $doc->update(['number' => sprintf('%s/%02d/%s', $prefix, DocumentSequence::next("appointment:{$prefix}:{$yy}"), $yy)]);
+            $doc->update(['number' => sprintf('%s/%03d/%s', $prefix, DocumentSequence::next("appointment:{$prefix}:{$yy}"), $yy)]);
         }
 
         return Pdf::loadView('pdf.appointment-letter', self::appointmentLetterData($employee, $doc->number))->setPaper('a4')->stream("appointment-".\App\Support\Codes::fileSafe($employee->emp_code).".pdf");

@@ -102,7 +102,7 @@ class GemContractController extends Controller
         $request->merge(['setup' => $projects]);
         $validated = $request->validate([
             'setup' => ['array', 'max:30'],
-            'setup.*.code' => ['required', \App\Support\Codes::PATTERN, 'max:12', 'distinct:ignore_case'],
+            'setup.*.code' => ['required', \App\Support\Codes::PATTERN, 'max:20', 'distinct:ignore_case'],
             'setup.*.name' => ['required', 'string', 'max:255'],
             'setup.*.project_incharge_id' => ['nullable', new \App\Rules\ExistsInMyAgency(\App\Models\ProjectIncharge::class)],
             'setup.*.pi_name' => ['nullable', 'string', 'max:255'],

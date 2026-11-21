@@ -2,6 +2,13 @@
 
 Versions follow MAJOR.MINOR.PATCH. Dates are Indian Standard Time.
 
+## 2.29.0 (2026-11-22): Bank letter in Excel, appointment no. 001, longer codes
+
+- Bank Letter: new "Excel" button next to "Bank letter PDF": one sheet for SBI accounts, one for NEFT and one for staff with missing bank details (only after the salary payout is approved, like the PDF)
+- Appointment letter numbers now have three digits: SWH/NIHR/<short project name>/001/26 (new letters; letters already numbered keep their number)
+- Short project name, client code and letter code: up to 20 characters, and may contain spaces and / - . _ ( ) & + # , ; the boxes are wider
+- No bill amount or data changes
+
 ## 2.28.0 (2026-11-22): Edit buttons everywhere; makers can delete unused records
 
 - Edit buttons: on each work order and each of its projects (Work orders list), on each post (Posts list, opens the post's edit form on its work order page) and on each employee (Employees list); clients and Project In-charge already had them

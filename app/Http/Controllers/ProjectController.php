@@ -73,7 +73,7 @@ class ProjectController extends Controller
     {
         $data = $request->validate([
             'name' => ['required', 'string', 'max:255'],
-            'code' => ['required', \App\Support\Codes::PATTERN, 'max:12'],
+            'code' => ['required', \App\Support\Codes::PATTERN, 'max:20'],
             'title' => ['nullable', 'string', 'max:2000'],
             'project_incharge_id' => ['nullable', new \App\Rules\ExistsInMyAgency(\App\Models\ProjectIncharge::class)],
             'pi_name' => ['nullable', 'string', 'max:255'],

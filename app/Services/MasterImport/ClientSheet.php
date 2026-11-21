@@ -66,8 +66,8 @@ final class ClientSheet extends MasterSheet
         $code = strtoupper((string) $v['short_code']);
         $v['gstin'] = $v['gstin'] ? strtoupper($v['gstin']) : null;
         $errors = $this->validate($v, [
-            'short_code' => ['nullable', \App\Support\Codes::PATTERN, 'max:16'],
-            'letter_code' => ['nullable', \App\Support\Codes::PATTERN, 'max:16'],
+            'short_code' => ['nullable', \App\Support\Codes::PATTERN, 'max:20'],
+            'letter_code' => ['nullable', \App\Support\Codes::PATTERN, 'max:20'],
             'email' => ['nullable', 'email'],
             'state_code' => ['nullable', \App\Support\IndianStates::rule()],
             'gstin' => ['nullable', 'regex:/^\d{2}[A-Z]{5}\d{4}[A-Z][A-Z\d]Z[A-Z\d]$/'],

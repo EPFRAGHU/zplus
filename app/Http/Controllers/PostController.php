@@ -60,7 +60,7 @@ class PostController extends Controller
             'project_mode' => ['required', Rule::in(['existing', 'new'])],
             'project_id' => ['required_if:project_mode,existing', 'nullable', new \App\Rules\ExistsInMyAgency(\App\Models\Project::class)],
             'project_name' => ['required_if:project_mode,new', 'nullable', 'string', 'max:255'],
-            'project_code' => ['nullable', \App\Support\Codes::PATTERN, 'max:12'],
+            'project_code' => ['nullable', \App\Support\Codes::PATTERN, 'max:20'],
             'pi_name' => ['nullable', 'string', 'max:255'],
             'designation' => ['required', 'string', 'max:255'],
             'sanctioned_qty' => ['required', 'integer', 'min:1', 'max:999'],

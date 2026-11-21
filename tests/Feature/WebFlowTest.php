@@ -136,7 +136,7 @@ class WebFlowTest extends TestCase
 
         $this->actingAs($admin)->get("/employees/{$employee->id}/appointment-letter")->assertOk()->assertHeader('content-type', 'application/pdf');
         $this->get("/employees/{$employee->id}/appointment-letter")->assertOk();
-        $this->get("/employees/{$employee->id}")->assertSee('ZPS/NIHR/MPH/01/26');
+        $this->get("/employees/{$employee->id}")->assertSee('ZPS/NIHR/MPH/001/26');   // three-digit serial (owner, 22 Nov 2026)
         $this->assertSame(1, GeneratedDocument::query()->count());
     }
 
@@ -241,7 +241,7 @@ class WebFlowTest extends TestCase
         $text = preg_replace('/\s+/', ' ', (new \Smalot\PdfParser\Parser)->parseContent($pdf)->getText());
 
         $this->assertStringContainsString('APPOINTMENT ORDER', $text);
-        $this->assertStringContainsString('No. ZPS/NIHR/MPH/01/26', $text);
+        $this->assertStringContainsString('No. ZPS/NIHR/MPH/001/26', $text);
         $this->assertStringContainsString('M/S Z Plus Surakhya Seva', $text);          // agency
         $this->assertStringContainsString('ICMR-NIHR (RMRCBB), Bhubaneswar', $text);   // client
         $this->assertMatchesRegularExpression('/EPF, employee share @ 12%.*Applicable 1,800/', $text);   // 12% of 15,000
@@ -249,7 +249,7 @@ class WebFlowTest extends TestCase
         $this->assertMatchesRegularExpression('/TDS @ 2% Applicable 500/', $text);
         $this->assertStringContainsString('22,700', $text);                             // net for a full month
         $this->assertStringContainsString('ACCEPTANCE OF APPOINTMENT', $text);
-        $this->assertStringContainsString('Your Appointment Order No. ZPS/NIHR/MPH/01/26', $text);
+        $this->assertStringContainsString('Your Appointment Order No. ZPS/NIHR/MPH/001/26', $text);
         $this->assertStringContainsString('(Signature of the appointee)', $text);
     }
 

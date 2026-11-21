@@ -79,9 +79,9 @@ class ClientController extends Controller
         $data = $request->validate([
             'agency_id' => ['required', new \App\Rules\ExistsInMyAgency(\App\Models\Agency::class)],
             'name' => ['required', 'string', 'max:255'],
-            'short_code' => ['nullable', \App\Support\Codes::PATTERN, 'max:16',
+            'short_code' => ['nullable', \App\Support\Codes::PATTERN, 'max:20',
                 Rule::unique('clients')->where('agency_id', $request->input('agency_id'))->ignore($client)],
-            'letter_code' => ['nullable', \App\Support\Codes::PATTERN, 'max:16'],
+            'letter_code' => ['nullable', \App\Support\Codes::PATTERN, 'max:20'],
             'addressee' => ['nullable', 'string', 'max:255'],
             'billing_address' => ['nullable', 'string', 'max:1000'],
             'contact_person' => ['nullable', 'string', 'max:255'],

@@ -12,6 +12,12 @@ return [
     'timezone' => 'Asia/Kolkata',      // release times are Indian Standard Time
 
     'releases' => [
+        ['version' => '2.29.0', 'date' => '2026-11-22 17:30', 'title' => 'Bank letter in Excel, appointment no. 001, longer codes', 'type' => 'feature', 'notes' => [
+            'Bank Letter: new "Excel" button next to "Bank letter PDF": one sheet for SBI accounts, one for NEFT and one for staff with missing bank details (only after the salary payout is approved, like the PDF)',
+            'Appointment letter numbers now have three digits: SWH/NIHR/<short project name>/001/26 (new letters; letters already numbered keep their number)',
+            'Short project name, client code and letter code: up to 20 characters, and may contain spaces and / - . _ ( ) & + # , ; the boxes are wider',
+            'No bill amount or data changes',
+        ]],
         ['version' => '2.28.0', 'date' => '2026-11-22 16:00', 'title' => 'Edit buttons everywhere; makers can delete unused records', 'type' => 'feature', 'notes' => [
             'Edit buttons: on each work order and each of its projects (Work orders list), on each post (Posts list, opens the post\'s edit form on its work order page) and on each employee (Employees list); clients and Project In-charge already had them',
             'Accounts logins (SWACHHA / Z Plus makers) can now switch on "Show delete options" and delete records that are not in use: work orders, projects, posts, clients, Project In-charge and employees of their own agency',

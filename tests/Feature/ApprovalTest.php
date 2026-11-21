@@ -167,6 +167,7 @@ class ApprovalTest extends TestCase
         $sheet = $this->approvedBill()->sheet;
         $pdf = ['agency' => $this->r['agency']->id, 'month' => '2026-10'];
         $this->actingAs($this->accounts)->get(route('bank-letters.pdf', $pdf))->assertForbidden();
+        $this->actingAs($this->accounts)->get(route('bank-letters.excel', $pdf))->assertForbidden();   // the Excel file follows the same rule
         $this->actingAs($this->accounts)->get(route('attendance.payouts', $sheet))->assertForbidden();
         $this->actingAs($this->accounts)->get(route('attendance.bank-letter', $sheet))->assertForbidden();
         $this->actingAs($this->owner)->get(route('bank-letters.pdf', $pdf))->assertOk();   // the owner may look at it to approve
@@ -175,6 +176,11 @@ class ApprovalTest extends TestCase
         $this->actingAs($this->accounts)->post(route('approvals.send.payout'), $pdf)->assertSessionHas('status');
         $this->actingAs($this->owner)->post(route('approvals.approve', Approval::query()->where('type', 'payout')->sole()))->assertSessionHasNoErrors();
         $this->actingAs($this->accounts)->get(route('bank-letters.pdf', $pdf))->assertOk();
+        $xlsx = $this->actingAs($this->accounts)->get(route('bank-letters.excel', $pdf))->assertOk()->baseResponse->getFile()->getPathname();
+        $book = \PhpOffice\PhpSpreadsheet\IOFactory::load($xlsx);
+        $this->assertSame(['SBI', 'NEFT', 'Missing bank details'], $book->getSheetNames());
+        $rows = collect($book->getSheetByName('SBI')->toArray())->concat($book->getSheetByName('NEFT')->toArray())->filter(fn ($r) => ($r[1] ?? null) === $this->r['employee']->emp_code);
+        $this->assertCount(1, $rows);
         $this->actingAs($this->accounts)->get(route('attendance.payouts', $sheet))->assertOk();
 
         $this->r['employee']->update(['account_number' => '99999999999']);   // bank account changed after approval
