@@ -71,7 +71,7 @@ final class EmployeeSheet extends MasterSheet
             new Column('esic_ip', 'ESIC IP no.', help: '10 to 17 digits', width: 18, asText: true),
             new Column('pf_applicable', 'EPF', type: 'bool', help: 'Yes = deduct EPF and bill employer EPF. Blank on new staff = No.', example: 'Yes', width: 7),
             new Column('esic_applicable', 'ESIC', type: 'bool', help: 'Yes = deduct ESIC and bill employer ESIC. Blank on new staff = No.', example: 'No', width: 7),
-            new Column('tds_applicable', 'TDS', type: 'bool', help: 'Yes = deduct TDS 2% from salary. Blank on new staff = Yes.', example: 'Yes', width: 7),
+            new Column('tds_applicable', 'TDS', type: 'bool', help: 'Yes = deduct TDS 2% from salary. Blank on new staff = No.', example: 'No', width: 7),
         ];
     }
 
@@ -177,7 +177,7 @@ final class EmployeeSheet extends MasterSheet
 
     protected function newModel(): Model
     {
-        return new Employee(['status' => 'active', 'pf_applicable' => false, 'esic_applicable' => false, 'tds_applicable' => true]);
+        return new Employee(['status' => 'active', 'pf_applicable' => false, 'esic_applicable' => false, 'tds_applicable' => false]);
     }
 
     public function save(RowResult $r): Model

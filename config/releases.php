@@ -12,6 +12,11 @@ return [
     'timezone' => 'Asia/Kolkata',      // release times are Indian Standard Time
 
     'releases' => [
+        ['version' => '2.30.1', 'date' => '2026-11-22 19:30', 'title' => 'TDS off by default for new staff', 'type' => 'fix', 'notes' => [
+            'New employees (employee form, one-page work order entry, Data Upload, GeM import) now start with TDS switched off; switch it on per person where TDS applies',
+            'Existing employees keep their current TDS switch',
+            'Changes salary payouts only for new staff whose TDS is left off (no 2% deduction)',
+        ]],
         ['version' => '2.30.0', 'date' => '2026-11-22 19:00', 'title' => 'New look for Work Orders (Contracts)', 'type' => 'feature', 'notes' => [
             'Work Orders page redesigned: heading "Contracts – <agency>" with Add Contract and Export (Excel of the list), figure cards (contracts, projects, posts, filled and open posts with percentages)',
             'Tabs All / Active / Completed / Draft (no projects yet), Agency, Status (open posts, fully filled, ending within 30 days), Sort, search across contract, bid, project and PI, list or grid view, 10 work orders per page',

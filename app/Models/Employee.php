@@ -26,6 +26,9 @@ class Employee extends Model
         'appointment_signed' => 'Signed appointment letter', 'medical' => 'Medical fitness',
     ];
 
+    /** New staff start with TDS off (owner, 22 Nov 2026); EPF and ESIC are off by default in the database. */
+    protected $attributes = ['tds_applicable' => false];
+
     protected function casts(): array
     {
         return [

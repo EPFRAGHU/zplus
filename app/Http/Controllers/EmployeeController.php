@@ -226,7 +226,7 @@ class EmployeeController extends Controller
         if ($request->has('statutory_form')) {
             $data['tds_applicable'] = $request->boolean('tds_applicable');   // the employee form always shows the TDS switch
         } elseif (! $employee) {
-            $data['tds_applicable'] = true;                                   // new staff: TDS on unless switched off
+            $data['tds_applicable'] = false;                                  // new staff: TDS off unless switched on (owner, 22 Nov 2026)
         }
 
         // Sensitive numbers are never sent back to the browser; a blank field keeps what is stored.

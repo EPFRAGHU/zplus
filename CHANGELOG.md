@@ -2,6 +2,12 @@
 
 Versions follow MAJOR.MINOR.PATCH. Dates are Indian Standard Time.
 
+## 2.30.1 (2026-11-22): TDS off by default for new staff
+
+- New employees (employee form, one-page work order entry, Data Upload, GeM import) now start with TDS switched off; switch it on per person where TDS applies
+- Existing employees keep their current TDS switch
+- Changes salary payouts only for new staff whose TDS is left off (no 2% deduction)
+
 ## 2.30.0 (2026-11-22): New look for Work Orders (Contracts)
 
 - Work Orders page redesigned: heading "Contracts – <agency>" with Add Contract and Export (Excel of the list), figure cards (contracts, projects, posts, filled and open posts with percentages)

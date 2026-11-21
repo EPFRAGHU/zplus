@@ -102,7 +102,7 @@
             <label class="form-check-label" for="pf"><b>EPF</b>: deduct 12% from salary and add the employer's EPF to the bill (worked out on wages up to ₹15,000)</label></div>
           <div class="form-check form-switch mt-1"><input class="form-check-input" type="checkbox" role="switch" name="esic_applicable" value="1" id="esi" @checked(old('esic_applicable', $employee->esic_applicable))>
             <label class="form-check-label" for="esi"><b>ESIC</b>: deduct 0.75% from salary and add the employer's ESIC to the bill (normally for wages up to ₹21,000)</label></div>
-          <div class="form-check form-switch mt-1"><input class="form-check-input" type="checkbox" role="switch" name="tds_applicable" value="1" id="tds" @checked(old('tds_applicable', $employee->tds_applicable ?? true))>
+          <div class="form-check form-switch mt-1"><input class="form-check-input" type="checkbox" role="switch" name="tds_applicable" value="1" id="tds" @checked(old('tds_applicable', $employee->tds_applicable ?? false))>
             <label class="form-check-label" for="tds"><b>TDS</b>: deduct {{ \App\Support\Statutory::TDS_PERCENT }}% of the earned salary on the salary payout sheet and bank letter (not on the bill)</label></div>
           <div class="form-text">Bills and salary sheets made after a change use the new setting; bills already made keep their figures.</div>
         </div></div>

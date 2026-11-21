@@ -479,6 +479,7 @@ class OwnerChangesTest extends TestCase
             $service->lock($service->open(Project::query()->where('code', $code)->firstOrFail(), CarbonImmutable::parse('2026-10-01')), $this->admin, null);
         }
         $service->open($mph, CarbonImmutable::parse('2026-10-01'));   // not locked yet
+        Employee::query()->update(['tds_applicable' => true]);       // TDS off by default since 22 Nov 2026; these staff have it on
 
         $this->get('/')->assertSee('Bank Letter');
         $page = $this->get("/bank-letters?agency={$agency->id}&month=2026-10")->assertOk()
@@ -512,7 +513,8 @@ class OwnerChangesTest extends TestCase
         $sheet = $service->open(Project::query()->where('code', 'HTA')->firstOrFail(), CarbonImmutable::parse('2026-10-01'));
         $service->lock($sheet, $this->admin, null);
         $hta = $people['HTA'];
-        $this->assertTrue($hta->fresh()->tds_applicable);                     // on by default
+        $this->assertFalse($hta->fresh()->tds_applicable);                    // off by default (owner, 22 Nov 2026)
+        $hta->update(['tds_applicable' => true]);
         $net = fn () => app(\App\Services\Payroll\SalaryPayoutSheet::class)->lines($sheet->fresh())->first(fn ($l) => $l['employee']->id === $hta->id);
         $this->assertSame([160800, 7879200], [$net()['tds'], $net()['net']]);   // 80,400 − 1,608 TDS
 
@@ -522,11 +524,11 @@ class OwnerChangesTest extends TestCase
         $this->assertSame([0, 8040000], [$net()['tds'], $net()['net']]);
         $this->get('/employees')->assertSee('TDS');
 
-        // Switch on again from the employee form; a new employee starts with TDS on.
+        // Switch on again from the employee form; a new employee starts with TDS off.
         $this->patch("/employees/{$hta->id}/statutory", ['tds_applicable' => '1']);
         $this->assertTrue($hta->fresh()->tds_applicable);
         $this->post('/employees', ['agency_id' => $agency->id, 'name' => 'New Joiner', 'status' => 'active'])->assertSessionHasNoErrors();
-        $this->assertTrue(Employee::query()->where('name', 'New Joiner')->value('tds_applicable'));
+        $this->assertFalse(Employee::query()->where('name', 'New Joiner')->value('tds_applicable'));
         $this->get('/employees/create')->assertSee('name="tds_applicable"', false);
     }
 

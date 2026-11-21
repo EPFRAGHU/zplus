@@ -34,7 +34,7 @@ class SalaryPayoutTest extends TestCase
     public function test_payout_lines_deduct_epf_and_esic_from_earned_salary(): void
     {
         $sheet = $this->sheet();
-        Employee::query()->update(['pf_applicable' => true]);
+        Employee::query()->update(['pf_applicable' => true, 'tds_applicable' => true]);   // TDS is off by default for new staff (owner, 22 Nov 2026)
         $lines = app(SalaryPayoutSheet::class)->lines($sheet->fresh())->keyBy(fn ($l) => $l['employee']->post->designation);
 
         $apm = $lines['Academic Programme Manager'];   // 55,000 for the full month

@@ -44,7 +44,7 @@
     <td><select class="form-select form-select-sm wo-post-pick" aria-label="Post"></select><input type="hidden" data-f="post"></td>
     <td><input class="form-control form-control-sm" type="date" data-f="joining_date"></td>
     <td><input class="form-control form-control-sm" data-f="mobile" inputmode="numeric" maxlength="10"></td>
-    <td class="text-nowrap small"><label class="me-1"><input type="checkbox" class="form-check-input" data-f="pf" value="1"> EPF</label><label class="me-1"><input type="checkbox" class="form-check-input" data-f="esic" value="1"> ESI</label><label><input type="checkbox" class="form-check-input" data-f="tds" value="1" checked> TDS</label></td>
+    <td class="text-nowrap small"><label class="me-1"><input type="checkbox" class="form-check-input" data-f="pf" value="1"> EPF</label><label class="me-1"><input type="checkbox" class="form-check-input" data-f="esic" value="1"> ESI</label><label><input type="checkbox" class="form-check-input" data-f="tds" value="1"> TDS</label></td>
     <td><button type="button" class="btn btn-sm btn-link text-danger wo-remove" aria-label="Remove staff"><i class="bi bi-x-lg"></i></button></td></tr>
 </template>
 
