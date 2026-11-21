@@ -12,6 +12,11 @@ return [
     'timezone' => 'Asia/Kolkata',      // release times are Indian Standard Time
 
     'releases' => [
+        ['version' => '2.27.0', 'date' => '2026-11-22 15:00', 'title' => 'Post-wise filter and post-wise sub-bills', 'type' => 'feature', 'notes' => [
+            'Posts: new "Post" filter; choosing a post (e.g. Project Technical Support-II) lists it in every project, with a summary of the projects, sanctioned and filled',
+            'Sub-bills → "Post-wise sub-bills": for a month (and optionally one post and agency), each post with the projects, sub-bill numbers, rates, staff, days paid and wages billed, with totals; PDF for your own records (marked not for submission)',
+            'No bill amount, number or data changes',
+        ]],
         ['version' => '2.26.0', 'date' => '2026-11-22 12:30', 'title' => 'Acceptance letter with every appointment order', 'type' => 'feature', 'notes' => [
             'Every appointment order now has a second page: the appointee\'s "Acceptance of Appointment" letter to SWACHHA / Z Plus, set out like a government letter (From, Employee ID, Date, To, Sub, Ref to the order no. and date, numbered paragraphs, particulars table, enclosures, Yours faithfully, Copy to, office-use line)',
             'It states the post, project, place and joining date, the EPF / ESI / TDS that apply, and has boxes for bank, IFSC, UAN, ESI IP and nominee; the appointee signs it and returns it with the listed documents',

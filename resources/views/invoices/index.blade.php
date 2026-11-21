@@ -1,4 +1,5 @@
 <x-layouts.app title="Sub-bills" crumb="Billing / <span class='text-danger'>Sub-bills</span>">
+  <x-slot:actions>@can('billing')<a class="btn btn-outline-primary" href="{{ route('reports.post-wise', array_filter(['month' => substr((string) request('month'), 0, 7) ?: null])) }}"><i class="bi bi-diagram-3 me-1"></i>Post-wise sub-bills</a>@endcan</x-slot:actions>
   <div class="alert alert-light border small">One sub-bill per project per month. Combine a client's sub-bills into one GST <a href="{{ route('tax-invoices.index') }}">tax invoice</a> with <b>Make tax invoice</b> on the client's block.</div>
   @can('billing')
   @php($outdated = \App\Services\Billing\InvoiceGenerator::outdated()->get(['id', 'invoice_no'])

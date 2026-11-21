@@ -9,9 +9,21 @@
       <select id="f-contract" name="contract" class="form-select"><option value="">All contracts</option>@foreach($pickContracts as $k)<option value="{{ $k->id }}" data-agency="{{ $k->agency_id }}" data-client="{{ $k->client_id }}" @selected(request('contract') == $k->id)>{{ $k->pickLabel() }}</option>@endforeach</select></div>
     <div><label class="form-label small text-secondary mb-1" for="f-project">Project</label>
       <select id="f-project" name="project" class="form-select"><option value="">All projects</option>@foreach($pickProjects as $pp)<option value="{{ $pp->id }}" data-contract="{{ $pp->gem_contract_id }}" @selected(request('project') == $pp->id)>{{ $pp->name }}{{ $pp->pi_name ? ' · '.$pp->pi_name : '' }}</option>@endforeach</select></div>
+    <div><label class="form-label small text-secondary mb-1" for="f-post">Post</label>
+      <select id="f-post" name="post" class="form-select"><option value="">All posts</option>@foreach($designations as $d)<option value="{{ $d }}" @selected($post && \App\Http\Controllers\PostController::postKey($post) === \App\Http\Controllers\PostController::postKey($d))>{{ $d }}</option>@endforeach</select></div>
     <button class="btn btn-outline-secondary">Show</button>
     <span class="small text-secondary ms-md-2">Each post sits under a project, and each project under a work order. Use <b>Add post</b> to enter one; you can create the contract and project in the same window.</span>
   </form>
+  @if($post)
+    @php($inProjects = $posts->map(fn ($p) => $p->project)->unique('id'))
+    <div class="alert alert-info d-flex flex-wrap gap-2 align-items-center" id="post-summary">
+      <b>{{ $posts->first()?->designation ?? $post }}</b>
+      <span>in {{ $inProjects->count() }} {{ \Illuminate\Support\Str::plural('project', $inProjects->count()) }}:</span>
+      @foreach($inProjects as $pj)<span class="badge text-bg-primary mono">{{ $pj->code }}</span>@endforeach
+      <span class="ms-md-2">{{ $posts->sum('sanctioned_qty') }} sanctioned · {{ $posts->sum('active_employees_count') }} filled</span>
+      <a class="ms-auto btn btn-sm btn-outline-primary" href="{{ route('reports.post-wise', ['post' => $posts->first()?->designation ?? $post]) }}"><i class="bi bi-receipt me-1"></i>Post-wise sub-bills</a>
+    </div>
+  @endif
   <div class="z-card"><div class="table-responsive"><table class="table table-hover">
     <thead><tr><th>Agency</th><th>Client</th><th>Work order</th><th>Project</th><th>Designation</th><th class="num">Sanctioned</th><th class="num">Filled</th><th class="num">Rate</th><th></th></tr></thead>
     <tbody>

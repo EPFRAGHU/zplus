@@ -29,9 +29,20 @@ class PostController extends Controller
             ->when($request->integer('contract'), fn ($q, $id) => $q->whereHas('project', fn ($p) => $p->where('gem_contract_id', $id)))
             ->when($request->integer('project'), fn ($q, $id) => $q->where('project_id', $id))
             ->get()
+            // Post-wise filter (owner, 22 Nov 2026): one designation across every project, spaces and case ignored.
+            ->when($request->string('post')->trim()->value(), fn ($c, $d) => $c->filter(fn ($p) => self::postKey($p->designation) === self::postKey($d)))
             ->sortBy(fn ($p) => $p->project->contract->agency->name.'|'.$p->project->contract->client->name.'|'.$p->project->name.'|'.$p->designation)->values();
 
-        return view('posts.index', ['posts' => $posts, 'agencyId' => $agencyId, 'clientId' => $clientId] + self::pickerData());
+        $designations = Post::query()->pluck('designation')->groupBy(fn ($d) => self::postKey($d))->map->first()->sort()->values();
+
+        return view('posts.index', ['posts' => $posts, 'agencyId' => $agencyId, 'clientId' => $clientId, 'designations' => $designations,
+            'post' => $request->string('post')->trim()->value()] + self::pickerData());
+    }
+
+    /** Same post whatever the spacing or capitals, e.g. "Project Technical Support-II" and "project technical  support-II". */
+    public static function postKey(string $designation): string
+    {
+        return mb_strtoupper(preg_replace('/\s+/', ' ', trim($designation)));
     }
 
     /** "Add new post" window: creates the contract and project too when asked. Answers JSON for the window, or redirects. */
