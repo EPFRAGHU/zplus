@@ -2,6 +2,13 @@
   <form method="post" action="{{ $contract->exists ? route('contracts.update', $contract) : route('contracts.store') }}" class="z-card p-3">
     @csrf @if($contract->exists) @method('put') @endif
     <div class="row g-3">
+      <div class="col-12"><h2 class="h6 fw-bold mb-0"><span class="badge rounded-pill text-bg-dark me-1">1</span>GeM contract / work order number</h2></div>
+      <x-select name="contract_type" label="Contract" :options="\App\Models\GemContract::TYPES" :value="$contract->contract_type ?? 'online'" required col="col-md-3" />
+      <x-field name="bid_no" label="GeM bid no." :value="$contract->bid_no" col="col-md-4" class="mono" hint="e.g. GEM/2026/B/7972720 (needed for online contracts)" />
+      <x-field name="contract_no" label="Contract no. (GeM or work order)" :value="$contract->contract_no" required col="col-md-5" class="mono" hint="e.g. GEMC-511687731718030" />
+      <div class="col-12" id="already-saved" hidden><div class="alert alert-info small py-2 mb-0"><i class="bi bi-info-circle me-1"></i>
+        <span id="already-text"></span> <a id="already-link" href="#" class="fw-semibold">Open it and add your project there</a> instead of entering it again.</div></div>
+      <div class="col-12 mt-4"><h2 class="h6 fw-bold mb-0"><span class="badge rounded-pill text-bg-dark me-1">2</span>Contract details</h2></div>
       @php($agencyId = (string) old('agency_id', $contract->agency_id))
       @php($clientId = (string) old('client_id', $contract->client_id))
       <div class="col-md-4">
@@ -23,11 +30,6 @@
         <div class="form-text">Only clients of the selected agency are listed.</div>
       </div>
       <x-select name="status" label="Status" :options="['active' => 'Active', 'closed' => 'Closed']" :value="$contract->status ?? 'active'" required col="col-md-2" />
-      <x-select name="contract_type" label="Contract" :options="\App\Models\GemContract::TYPES" :value="$contract->contract_type ?? 'online'" required col="col-md-2" />
-      <x-field name="bid_no" label="GeM bid no." :value="$contract->bid_no" col="col-md-4" class="mono" hint="e.g. GEM/2026/B/7972720 (needed for online contracts)" />
-      <x-field name="contract_no" label="Contract no. (GeM or work order)" :value="$contract->contract_no" required col="col-md-4" class="mono" hint="e.g. GEMC-511687731718030" />
-      <div class="col-12" id="already-saved" hidden><div class="alert alert-info small py-2 mb-0"><i class="bi bi-info-circle me-1"></i>
-        <span id="already-text"></span> <a id="already-link" href="#" class="fw-semibold">Open it and add your project there</a> instead of entering it again.</div></div>
       <x-field name="contract_date" label="Contract date" type="date" :value="$contract->contract_date?->toDateString()" col="col-md-4" />
       <x-field name="start_date" label="Service start date" type="date" :value="$contract->start_date?->toDateString()" col="col-md-4" hint="From the GeM contract, e.g. 01-Oct-2026" />
       <x-field name="end_date" label="Service end date" type="date" :value="$contract->end_date?->toDateString()" col="col-md-4" hint="A warning shows 30 days before this date" />
@@ -42,6 +44,7 @@
       <div class="col-12"><div class="form-check"><input class="form-check-input" type="checkbox" name="inter_state" value="1" id="inter_state" @checked(old('inter_state', $contract->inter_state))><label class="form-check-label" for="inter_state">Inter-state supply (charge IGST instead of CGST + SGST)</label></div></div>
     </div>
     @unless($contract->exists)
+      <hr class="my-4">
       @include('contracts._setup-builder')
     @endunless
     <div class="d-flex gap-2 justify-content-end mt-3"><a class="btn btn-outline-secondary" href="{{ $contract->exists ? route('contracts.show', $contract) : route('contracts.index') }}">Cancel</a><button class="btn btn-primary">{{ $contract->exists ? 'Save work order' : 'Save work order, projects and staff' }}</button></div>

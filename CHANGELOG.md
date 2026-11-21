@@ -2,6 +2,13 @@
 
 Versions follow MAJOR.MINOR.PATCH. Dates are Indian Standard Time.
 
+## 2.25.0 (2026-11-22): One-page entry made simpler
+
+- Add work order now goes step by step: 1. GeM contract / work order number, 2. contract details, 3. projects, each with its Project In-charge, posts and staff
+- One PI for several projects: a new PI typed in one project can be chosen from the list in the others, and is saved once; typing the name of an already saved PI uses that PI
+- The same one-page entry is on every work order's page, to add more projects, PIs, posts and staff later without switching menus
+- No bill amount, number or data changes
+
 ## 2.24.0 (2026-11-22): Government-style appointment order
 
 - Appointment letter is now an "APPOINTMENT ORDER" in a government office style: No. and Dated, Sub and Ref (GeM contract), numbered terms, signatory name and title, Copy to, and an Acceptance slip; still one page on the agency letterhead

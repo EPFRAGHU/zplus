@@ -142,12 +142,12 @@
   @endforeach
 
   @can('manage-masters')
-  <form method="post" action="{{ route('projects.store', $contract) }}" class="z-card p-3" id="add-project">
+  <form method="post" action="{{ route('contracts.setup', $contract) }}" class="z-card p-3" id="add-project">
     @csrf
-    <h2 class="h6 fw-bold">Add a project to this work order</h2>
-    <div class="small text-secondary mb-2">The project uses this work order's bid no. <span class="mono">{{ $contract->bid_no ?: '—' }}</span> and contract no. <span class="mono">{{ $contract->contract_no }}</span>; no need to enter them again.</div>
-    @include('contracts._project-fields', ['p' => null])
-    <div class="text-end mt-2"><button class="btn btn-primary">Add project</button></div>
+    <div class="small text-secondary mb-3">New projects use this work order's bid no. <span class="mono">{{ $contract->bid_no ?: '—' }}</span> and contract no. <span class="mono">{{ $contract->contract_no }}</span>; no need to enter them again.</div>
+    @error('setup')<div class="alert alert-danger small py-2">{{ $message }}</div>@enderror
+    @include('contracts._setup-builder', ['incharges' => $incharges->map->only(['id', 'agency_id', 'name'])->values(), 'fixedAgency' => $contract->agency_id, 'step' => '+'])
+    <div class="text-end mt-3"><button class="btn btn-primary">Save projects, posts and staff</button></div>
   </form>
   @endcan
 </x-layouts.app>

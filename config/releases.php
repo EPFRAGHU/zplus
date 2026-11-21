@@ -12,6 +12,12 @@ return [
     'timezone' => 'Asia/Kolkata',      // release times are Indian Standard Time
 
     'releases' => [
+        ['version' => '2.25.0', 'date' => '2026-11-22 11:30', 'title' => 'One-page entry made simpler', 'type' => 'feature', 'notes' => [
+            'Add work order now goes step by step: 1. GeM contract / work order number, 2. contract details, 3. projects, each with its Project In-charge, posts and staff',
+            'One PI for several projects: a new PI typed in one project can be chosen from the list in the others, and is saved once; typing the name of an already saved PI uses that PI',
+            'The same one-page entry is on every work order\'s page, to add more projects, PIs, posts and staff later without switching menus',
+            'No bill amount, number or data changes',
+        ]],
         ['version' => '2.24.0', 'date' => '2026-11-22 10:00', 'title' => 'Government-style appointment order', 'type' => 'feature', 'notes' => [
             'Appointment letter is now an "APPOINTMENT ORDER" in a government office style: No. and Dated, Sub and Ref (GeM contract), numbered terms, signatory name and title, Copy to, and an Acceptance slip; still one page on the agency letterhead',
             'New term 3 "Statutory deductions": EPF 12% (on wages up to Rs. 15,000), ESI 0.75% and TDS 2%, each shown as Applicable or Not applicable from the employee\'s switches, with the amounts and the net monthly payment worked out exactly as on the salary payout sheet',

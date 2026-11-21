@@ -66,6 +66,7 @@ Route::middleware(['auth', 'active', 'role:admin,accounts,supervisor', \App\Http
     // Masters
     Route::resource('agencies', AgencyController::class)->except(['show', 'destroy']);
     Route::get('agencies/{agency}/logo', [AgencyController::class, 'logo'])->name('agencies.logo');
+    Route::post('contracts/{contract}/setup', [GemContractController::class, 'setup'])->name('contracts.setup');
     Route::get('clients/merge', [\App\Http\Controllers\ClientMergeController::class, 'show'])->name('clients.merge');
     Route::post('clients/merge', [\App\Http\Controllers\ClientMergeController::class, 'store'])->name('clients.merge.store');
     Route::resource('clients', ClientController::class)->except(['show', 'destroy']);

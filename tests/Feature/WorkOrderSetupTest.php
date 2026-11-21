@@ -41,7 +41,7 @@ class WorkOrderSetupTest extends TestCase
     public function test_one_page_saves_work_order_projects_pi_posts_and_staff(): void
     {
         $known = ProjectIncharge::query()->create(['agency_id' => $this->swh->id, 'name' => 'Dr. Known', 'status' => 'active']);
-        $this->actingAs($this->maker)->get(route('contracts.create'))->assertOk()->assertSee('Projects, posts and staff')->assertSee('Dr. Known');
+        $this->actingAs($this->maker)->get(route('contracts.create'))->assertOk()->assertSee('Projects, Project In-charge, posts and staff')->assertSee('Dr. Known');
 
         $this->post(route('contracts.store'), $this->form([
             ['code' => 'mph', 'name' => 'MPH Academic Programme', 'project_incharge_id' => $known->id,
@@ -93,5 +93,35 @@ class WorkOrderSetupTest extends TestCase
         $this->actingAs($both)->post(route('contracts.store'), $this->form([['code' => 'MPH', 'name' => 'MPH', 'project_incharge_id' => $theirs->id]]))
             ->assertSessionHasErrors('project_incharge_id');
         $this->assertSame(0, GemContract::query()->count());
+    }
+
+    public function test_one_pi_for_several_projects_is_saved_once(): void
+    {
+        ProjectIncharge::query()->create(['agency_id' => $this->swh->id, 'name' => 'Dr. Saved PI', 'status' => 'active']);
+        $this->actingAs($this->maker)->post(route('contracts.store'), $this->form([
+            ['code' => 'MPH', 'name' => 'MPH', 'pi_name' => 'Dr. New  PI', 'pi_mobile' => '9123456789'],
+            ['code' => 'DBT', 'name' => 'DBT', 'pi_name' => 'dr. new pi'],
+            ['code' => 'NRL', 'name' => 'NRL', 'pi_name' => 'Dr. Saved PI'],
+        ]))->assertSessionHasNoErrors();
+
+        $this->assertSame(2, ProjectIncharge::query()->count());   // the new PI once, the saved PI reused
+        $contract = GemContract::query()->firstOrFail();
+        $byCode = $contract->projects()->pluck('project_incharge_id', 'code');
+        $this->assertSame($byCode['MPH'], $byCode['DBT']);
+        $this->assertSame(ProjectIncharge::query()->where('name', 'Dr. Saved PI')->value('id'), $byCode['NRL']);
+    }
+
+    public function test_existing_work_order_gets_more_projects_on_the_same_page(): void
+    {
+        $contract = GemContract::query()->create(['agency_id' => $this->swh->id, 'client_id' => $this->client->id, 'bid_no' => 'B', 'contract_no' => 'GEMC-9']);
+        $contract->projects()->create(['name' => 'MPH', 'code' => 'MPH']);
+        $this->actingAs($this->maker)->get(route('contracts.show', $contract))->assertOk()->assertSee('Save projects, posts and staff');
+
+        $this->post(route('contracts.setup', $contract), ['setup' => [['code' => 'mph', 'name' => 'Again']]])->assertSessionHasErrors('setup.0.code');
+        $this->post(route('contracts.setup', $contract), ['setup' => [['code' => 'DBT', 'name' => 'DBT',
+            'posts' => [['designation' => 'DEO', 'sanctioned_qty' => 1, 'rate' => '18000']], 'staff' => [['name' => 'Ravi', 'post' => 0]]]]])
+            ->assertSessionHasNoErrors()->assertSessionHas('status', 'Added 1 project, 1 post and 1 staff. New staff stay Inactive until a Super Admin approves them.');
+        $this->assertSame(['DBT', 'MPH'], $contract->projects()->orderBy('code')->pluck('code')->all());
+        $this->assertSame(1, Employee::query()->count());
     }
 }

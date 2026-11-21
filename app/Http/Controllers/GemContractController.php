@@ -62,6 +62,27 @@ class GemContractController extends Controller
             $counts['projects'], \Illuminate\Support\Str::plural('project', $counts['projects']), $counts['posts'], \Illuminate\Support\Str::plural('post', $counts['posts']), $counts['staff'], $staffNote));
     }
 
+    /** The same one-page entry on an existing work order: more projects, with their PI, posts and staff (owner, 22 Nov 2026). */
+    public function setup(Request $request, GemContract $contract, \App\Services\Masters\WorkOrderSetup $setup): RedirectResponse
+    {
+        Gate::authorize('manage-masters');
+        $projects = $this->setupRows($request);
+        if (! $projects) {
+            return back()->withErrors(['setup' => 'Enter at least one project (short name and project name).']);
+        }
+        $taken = $contract->projects()->pluck('code')->map(fn ($c) => strtoupper($c))->all();
+        foreach ($projects as $i => $p) {
+            if (in_array(strtoupper($p['code']), $taken, true)) {
+                throw ValidationException::withMessages(["setup.{$i}.code" => 'This work order already has a project '.strtoupper($p['code']).'. Use another short name, or add posts and staff to it below.']);
+            }
+        }
+        $counts = $setup->addProjects($contract, $projects, $request->user());
+        $staffNote = $counts['staff'] && \App\Services\Approvals\StaffChanges::applies() ? ' New staff stay Inactive until a Super Admin approves them.' : '';
+
+        return redirect()->route('contracts.show', $contract)->with('status', sprintf('Added %d %s, %d %s and %d staff.%s',
+            $counts['projects'], \Illuminate\Support\Str::plural('project', $counts['projects']), $counts['posts'], \Illuminate\Support\Str::plural('post', $counts['posts']), $counts['staff'], $staffNote));
+    }
+
     /**
      * Projects, posts and staff from the one-page form. Rows left completely blank are ignored; a staff member's
      * "post" is the position of that post in the same project's list.
