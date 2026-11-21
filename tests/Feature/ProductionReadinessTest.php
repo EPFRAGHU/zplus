@@ -35,4 +35,11 @@ class ProductionReadinessTest extends TestCase
         $changelog = file_get_contents(base_path('CHANGELOG.md'));
         $this->assertStringContainsString('## '.Release::version().' ', $changelog, 'Run: php artisan releases:changelog');
     }
+
+    public function test_every_page_uses_the_shared_theme(): void
+    {
+        $this->assertFileExists(public_path('css/app.css'));
+        $this->get('/login')->assertSee('family=Inter', false);
+        $this->actingAs(User::factory()->create(['role' => 'accounts']))->get('/')->assertSee('css/app.css?v=', false)->assertDontSee('Plus+Jakarta', false);
+    }
 }

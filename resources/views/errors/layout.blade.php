@@ -6,11 +6,11 @@
 @include('partials.favicon')
 <link href="{{ asset('vendor/bootstrap/bootstrap.min.css') }}" rel="stylesheet">
 <link href="{{ asset('vendor/bootstrap-icons/bootstrap-icons.min.css') }}" rel="stylesheet">
-<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>
-body{font-family:"Plus Jakarta Sans",system-ui,sans-serif;background:#1f1a1d;min-height:100vh;display:grid;place-items:center;padding:16px}
-.code{font-size:.8rem;font-weight:700;letter-spacing:.08em;color:#e23d4e}
-.btn-primary{--bs-btn-bg:#e23d4e;--bs-btn-border-color:#e23d4e;--bs-btn-hover-bg:#c92e40;--bs-btn-hover-border-color:#c92e40}
+body{font-family:Inter,system-ui,sans-serif;background:#0f2a5c;min-height:100vh;display:grid;place-items:center;padding:16px}
+.code{font-size:.8rem;font-weight:700;letter-spacing:.08em;color:#1d4ed8}
+.btn-primary{--bs-btn-bg:#1d4ed8;--bs-btn-border-color:#1d4ed8;--bs-btn-hover-bg:#1e40af;--bs-btn-hover-border-color:#1e40af}
 </style>
 </head><body>
 <main class="bg-white rounded-3 p-4 shadow" style="width:min(440px,100%)">

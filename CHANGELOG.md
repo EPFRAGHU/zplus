@@ -2,6 +2,13 @@
 
 Versions follow MAJOR.MINOR.PATCH. Dates are Indian Standard Time.
 
+## 2.31.0 (2026-11-22): New look on every page
+
+- The Work Orders design now runs through the whole app: navy side menu with the current page in blue, blue buttons and links, Inter font, light grey background, rounded cards with soft borders, cleaner table headings
+- Figure cards on the dashboard and reports are tinted with an icon; agency and client headings on the lists are lighter and easier to read
+- Sign-in, company choice and error pages in the same colours
+- No change to any page's contents, buttons, data or permissions
+
 ## 2.30.1 (2026-11-22): TDS off by default for new staff
 
 - New employees (employee form, one-page work order entry, Data Upload, GeM import) now start with TDS switched off; switch it on per person where TDS applies

@@ -5,12 +5,12 @@
 @include('partials.favicon')
 <link href="{{ asset('vendor/bootstrap/bootstrap.min.css') }}" rel="stylesheet">
 <link href="{{ asset('vendor/bootstrap-icons/bootstrap-icons.min.css') }}" rel="stylesheet">
-<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>
-body{font-family:"Plus Jakarta Sans",system-ui,sans-serif;background:#1f1a1d;min-height:100vh;display:grid;place-items:center;padding:16px}
+body{font-family:Inter,system-ui,sans-serif;background:#0f2a5c;min-height:100vh;display:grid;place-items:center;padding:16px}
 .pick{display:flex;gap:14px;align-items:center;width:100%;text-align:left;border:2px solid #e7e2e5;border-radius:12px;background:#fff;padding:14px 16px;transition:border-color .15s,background .15s}
-.pick:hover,.pick:focus-visible{border-color:#e23d4e;background:#fff6f7;outline:none}
-.pick.current{border-color:#e23d4e}
+.pick:hover,.pick:focus-visible{border-color:#1d4ed8;background:#f3f7ff;outline:none}
+.pick.current{border-color:#1d4ed8}
 .pick .mark{width:44px;height:44px;border-radius:10px;display:grid;place-items:center;font-weight:700;color:#fff;flex:none}
 </style>
 </head><body>
@@ -25,11 +25,11 @@ body{font-family:"Plus Jakarta Sans",system-ui,sans-serif;background:#1f1a1d;min
         <span class="mark" style="background:{{ $a->code === 'SWH' ? '#8A2557' : '#2B4C7E' }}">{{ $a->code }}</span>
         <span><span class="d-block fw-bold">{{ $a->name }}</span>
           <span class="d-block small text-secondary">Only {{ $a->code }} staff, bills and approvals @if($a->gstin)· GSTIN {{ $a->gstin }}@endif</span></span>
-        @if($current === $a->id)<span class="ms-auto badge text-bg-danger">Now</span>@endif
+        @if($current === $a->id)<span class="ms-auto badge text-bg-primary">Now</span>@endif
       </button>
     @endforeach
     <button class="pick" name="agency" value="both">
-      <span class="mark" style="background:#1f1a1d"><i class="bi bi-buildings"></i></span>
+      <span class="mark" style="background:#0f2a5c"><i class="bi bi-buildings"></i></span>
       <span><span class="d-block fw-bold">Both agencies</span>
         <span class="d-block small text-secondary">Everything together, as before (needed for GeM import and adding an agency)</span></span>
     </button>

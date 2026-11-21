@@ -1,7 +1,5 @@
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>
   .wo{--wo-navy:#0f2a5c;--wo-blue:#1d4ed8;--wo-blue-50:#eef3ff;--wo-line:#e3e8f0;--wo-muted:#64748b;--wo-text:#0f172a;font-family:Inter,system-ui,sans-serif;color:var(--wo-text)}
-  .wo .mono{font-family:Inter,system-ui,sans-serif;font-size:inherit;font-variant-numeric:tabular-nums}
   .wo-head{display:flex;align-items:center;gap:14px;flex-wrap:wrap;margin-bottom:18px}
   .wo-head-icon{width:46px;height:46px;border-radius:12px;border:1px solid var(--wo-line);background:#fff;display:grid;place-items:center;color:var(--wo-blue);font-size:1.35rem;box-shadow:0 1px 2px rgba(15,23,42,.05)}
   .wo-head h1{font-size:1.45rem;font-weight:700;margin:0;letter-spacing:-.01em}
@@ -50,10 +48,6 @@
   .wo-right{display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin-left:auto}
   .wo-fill{border-radius:999px;padding:4px 12px;font-weight:600;font-size:.82rem;white-space:nowrap}
   .wo-fill.full{background:#dcfce7;color:#166534} .wo-fill.part{background:#fef3c7;color:#92400e} .wo-fill.none{background:#f1f5f9;color:#475569}
-  .wo-prog{display:flex;align-items:center;gap:10px;min-width:180px}
-  .wo-prog .track{flex:1;height:8px;border-radius:999px;background:#e5e9f0;overflow:hidden}
-  .wo-prog .track span{display:block;height:100%;border-radius:999px;background:var(--p,#16a34a)}
-  .wo-prog b{font-weight:500;font-size:.85rem;min-width:44px;font-variant-numeric:tabular-nums}
   .wo-body{border-top:1px solid var(--wo-line);padding:0 12px 12px}
   .wo-table{margin:12px 0 0;font-size:.88rem}
   .wo-table thead th{background:#f8fafc;color:#334155;font-weight:600;text-transform:none;letter-spacing:0;font-size:.82rem;border-color:var(--wo-line)}

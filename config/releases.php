@@ -12,6 +12,12 @@ return [
     'timezone' => 'Asia/Kolkata',      // release times are Indian Standard Time
 
     'releases' => [
+        ['version' => '2.31.0', 'date' => '2026-11-22 20:30', 'title' => 'New look on every page', 'type' => 'feature', 'notes' => [
+            'The Work Orders design now runs through the whole app: navy side menu with the current page in blue, blue buttons and links, Inter font, light grey background, rounded cards with soft borders, cleaner table headings',
+            'Figure cards on the dashboard and reports are tinted with an icon; agency and client headings on the lists are lighter and easier to read',
+            'Sign-in, company choice and error pages in the same colours',
+            'No change to any page\'s contents, buttons, data or permissions',
+        ]],
         ['version' => '2.30.1', 'date' => '2026-11-22 19:30', 'title' => 'TDS off by default for new staff', 'type' => 'fix', 'notes' => [
             'New employees (employee form, one-page work order entry, Data Upload, GeM import) now start with TDS switched off; switch it on per person where TDS applies',
             'Existing employees keep their current TDS switch',

@@ -50,12 +50,12 @@
     </span>
   </form>
   <div class="row row-cols-2 row-cols-md-3 row-cols-xl-6 g-3 mb-3">
-    <x-kpi label="Clients" :value="$stats['clients']" />
-    <x-kpi label="Active work orders" :value="$stats['contracts']" color="#1f63c4" />
-    <x-kpi label="Employees deployed" :value="$stats['employees']" color="#1f8a4c" />
-    <x-kpi label="Posts vacant" :value="$stats['vacant']" :meta="'of '.$stats['sanctioned'].' sanctioned'" color="#b26b00" />
-    <x-kpi label="Billed this year" :value="inr($stats['billedThisYear'])" color="#1d1a1c" />
-    <x-kpi label="Awaiting payment" :value="inr($stats['unpaid'])" meta="Approved and submitted bills" color="#5b3fd1" />
+    <x-kpi label="Clients" icon="bank" :value="$stats['clients']" />
+    <x-kpi label="Active work orders" icon="folder2" :value="$stats['contracts']" color="#1f63c4" />
+    <x-kpi label="Employees deployed" icon="people" :value="$stats['employees']" color="#1f8a4c" />
+    <x-kpi label="Posts vacant" icon="person-dash" :value="$stats['vacant']" :meta="'of '.$stats['sanctioned'].' sanctioned'" color="#b26b00" />
+    <x-kpi label="Billed this year" icon="receipt" :value="inr($stats['billedThisYear'])" color="#1d1a1c" />
+    <x-kpi label="Awaiting payment" icon="hourglass-split" :value="inr($stats['unpaid'])" meta="Approved and submitted bills" color="#5b3fd1" />
   </div>
   @include('dashboard._reminders')
   <div class="row g-3">
@@ -69,14 +69,14 @@
               @php($b = $monthly[$m]['billed'] ?? 0) @php($p = $monthly[$m]['paid'] ?? 0)
               <div class="flex-fill d-flex flex-column align-items-center gap-1 h-100 justify-content-end" title="{{ \Carbon\Carbon::create(null, $m)->format('M') }}: billed {{ inr($b) }}, paid {{ inr($p) }}">
                 <div class="d-flex align-items-end gap-1 w-100 justify-content-center" style="height:100%">
-                  <div style="width:40%;height:{{ $b / $max * 100 }}%;background:#e23d4e;border-radius:3px 3px 0 0"></div>
+                  <div style="width:40%;height:{{ $b / $max * 100 }}%;background:#1d4ed8;border-radius:3px 3px 0 0"></div>
                   <div style="width:40%;height:{{ $p / $max * 100 }}%;background:#1d1a1c;opacity:.75;border-radius:3px 3px 0 0"></div>
                 </div>
                 <small class="text-secondary">{{ \Carbon\Carbon::create(null, $m)->format('M') }}</small>
               </div>
             @endforeach
           </div>
-          <div class="small text-secondary mt-2"><span class="d-inline-block me-1" style="width:10px;height:10px;background:#e23d4e"></span>Billed <span class="d-inline-block ms-3 me-1" style="width:10px;height:10px;background:#1d1a1c;opacity:.75"></span>Paid</div>
+          <div class="small text-secondary mt-2"><span class="d-inline-block me-1" style="width:10px;height:10px;background:#1d4ed8"></span>Billed <span class="d-inline-block ms-3 me-1" style="width:10px;height:10px;background:#1d1a1c;opacity:.75"></span>Paid</div>
         </div>
       </div>
     </div>

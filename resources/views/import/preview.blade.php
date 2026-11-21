@@ -1,11 +1,11 @@
 <x-layouts.app title="Check before importing" :crumb="'Setup / <a href=\''.route('import.create').'\'>Excel Import</a>'">
   <div class="row row-cols-2 row-cols-md-3 row-cols-xl-6 g-3 mb-3">
-    <x-kpi label="Work orders" :value="$summary['contracts']" />
-    <x-kpi label="Projects" :value="$summary['projects']" color="#1f63c4" />
-    <x-kpi label="Posts" :value="$summary['posts']" color="#1d1a1c" />
-    <x-kpi label="Sanctioned" :value="$summary['sanctioned']" color="#1d1a1c" />
-    <x-kpi label="Staff found" :value="$summary['staff']" color="#1f8a4c" />
-    <x-kpi label="Rows to fix" :value="$summary['must_fix']" color="#c42b3b" />
+    <x-kpi label="Work orders" icon="folder2" :value="$summary['contracts']" />
+    <x-kpi label="Projects" icon="stack" :value="$summary['projects']" color="#1f63c4" />
+    <x-kpi label="Posts" icon="clipboard-check" :value="$summary['posts']" color="#1d1a1c" />
+    <x-kpi label="Sanctioned" icon="check2-square" :value="$summary['sanctioned']" color="#1d1a1c" />
+    <x-kpi label="Staff found" icon="people" :value="$summary['staff']" color="#1f8a4c" />
+    <x-kpi label="Rows to fix" icon="exclamation-triangle" :value="$summary['must_fix']" color="#c42b3b" />
   </div>
   <div class="z-card mb-3">
     <div class="z-card-h"><h2>Problems in {{ $fileName }}</h2><span class="small text-secondary">You can fix these in the app after importing</span></div>

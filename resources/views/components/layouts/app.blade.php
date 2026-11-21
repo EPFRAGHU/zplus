@@ -9,44 +9,8 @@
 <link href="{{ asset('vendor/bootstrap/bootstrap.min.css') }}" rel="stylesheet">
 <link href="{{ asset('vendor/bootstrap-icons/bootstrap-icons.min.css') }}" rel="stylesheet">
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
-<style>
-:root{--z-accent:#e23d4e;--z-rail:#1f1a1d;--z-rail-fg:#cfc6cb;--z-rail-active:#2d2529;--z-bg:#f5f4f6;--bs-body-font-family:"Plus Jakarta Sans",system-ui,sans-serif;--bs-body-bg:var(--z-bg);--bs-primary:#e23d4e;--bs-primary-rgb:226,61,78;--bs-link-color-rgb:200,40,60;--bs-border-radius:.55rem}
-body{font-size:.9rem}
-.btn-primary{--bs-btn-bg:var(--z-accent);--bs-btn-border-color:var(--z-accent);--bs-btn-hover-bg:#c92e40;--bs-btn-hover-border-color:#c92e40;--bs-btn-active-bg:#b52838;--bs-btn-disabled-bg:#e23d4e}
-.mono{font-family:"JetBrains Mono",ui-monospace,monospace;font-size:.8rem}
-.num{text-align:right;font-variant-numeric:tabular-nums}
-.z-app{display:grid;grid-template-columns:236px minmax(0,1fr);min-height:100vh}
-.z-rail{background:var(--z-rail);color:var(--z-rail-fg);padding:18px 12px;position:sticky;top:0;height:100vh;overflow:auto;display:flex;flex-direction:column;gap:14px}
-.z-brand{display:flex;gap:10px;align-items:center;color:#fff;padding:4px 8px;text-decoration:none}
-.z-brand b{display:block}.z-brand small{color:var(--z-rail-fg);font-size:.7rem}
-.z-mark{width:30px;height:30px;border-radius:8px;background:var(--z-accent);display:grid;place-items:center;font-weight:800}
-.z-label{font-size:.66rem;text-transform:uppercase;letter-spacing:.09em;color:#8d8288;padding:6px 10px 2px}
-.z-nav a{display:flex;gap:10px;align-items:center;padding:7px 10px;border-radius:8px;color:var(--z-rail-fg);text-decoration:none;font-weight:500}
-.z-nav a:hover{background:var(--z-rail-active);color:#fff}
-.z-nav a.active{background:var(--z-rail-active);color:#fff;box-shadow:inset 3px 0 0 var(--z-accent)}
-.z-ver{margin-top:auto;display:block;text-decoration:none;color:var(--z-rail-fg);font-size:.72rem;padding:9px 10px;border:1px solid #3a3136;border-radius:8px;line-height:1.45}
-.z-ver:hover{border-color:#5a4e54;color:#fff}
-.z-ver .v{display:flex;align-items:center;justify-content:space-between;gap:6px;color:#fff;font-weight:600;font-size:.78rem}
-.z-ver .v span.badge{font-family:"JetBrains Mono",ui-monospace,monospace;font-weight:500;background:var(--z-accent);font-size:.68rem}
-.z-ver .d{color:#8d8288}
-.z-user{font-size:.78rem;padding:10px;border-radius:8px;background:var(--z-rail-active)}
-.z-main{min-width:0;padding:22px clamp(16px,2.5vw,28px) 48px}
-.z-card{background:#fff;border:1px solid #e7e2e5;border-radius:10px}
-.z-card>.z-card-h{display:flex;gap:10px;align-items:center;flex-wrap:wrap;padding:12px 16px;border-bottom:1px solid #e7e2e5}
-.z-card-h h2{font-size:.95rem;margin:0;font-weight:700}
-.z-kpi{padding:14px 16px}.z-kpi .v{font-size:1.45rem;font-weight:700;font-variant-numeric:tabular-nums}.z-kpi .l{font-size:.78rem;color:#6c6469;font-weight:600}
-.table{--bs-table-bg:transparent;margin:0}.table th{font-size:.7rem;text-transform:uppercase;letter-spacing:.05em;color:#6c6469;background:#faf8f9;white-space:nowrap}
-.table td{vertical-align:middle}
-.crumb{font-size:.8rem;color:#6c6469}
-.att-grid select{width:3.4rem;padding:2px 4px;font-size:.72rem;border-radius:4px;text-align:center}
-.att-grid td,.att-grid th{padding:3px 2px!important;text-align:center}
-.att-grid td:first-child,.att-grid th:first-child{text-align:left;position:sticky;left:0;background:#fff;z-index:1;padding-left:10px!important;min-width:170px}
-.c-LEFT{background:#f8d7da;color:#842029}.att-left td:first-child{box-shadow:inset 4px 0 0 #dc3545}
-.c-P{background:#e3f4ea}.c-A,.c-L{background:#fde6e8}.c-CL,.c-EL,.c-HD{background:#fdf1dc}.c-H,.c-RH,.c-CH{background:#e4eefc}.c-SAT,.c-SUN{background:#f1eef0;color:#8a8086}
-.menu-btn{display:none}
-@media (max-width:900px){.z-app{grid-template-columns:1fr}.z-rail{position:fixed;inset:0 auto 0 0;width:250px;z-index:1040;transform:translateX(-105%);transition:transform .2s}.z-rail.open{transform:none}.menu-btn{display:inline-flex}}
-</style>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link href="{{ asset('css/app.css') }}?v={{ \App\Support\Release::version() }}" rel="stylesheet">
 {{ $head ?? '' }}
 </head>
 <body>

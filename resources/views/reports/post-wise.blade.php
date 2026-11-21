@@ -10,9 +10,9 @@
     <span class="small text-secondary ms-md-2">For your own records: wages billed per post in the month's sub-bills. Not for submission.</span>
   </form>
   <div class="row row-cols-2 row-cols-md-3 g-3 mb-3">
-    <x-kpi label="Posts" :value="$groups->count()" />
-    <x-kpi label="Staff billed" :value="$staff" color="#1f63c4" />
-    <x-kpi label="Wages billed" :value="'₹'.inr($total)" color="#1f8a4c" />
+    <x-kpi label="Posts" icon="clipboard-check" :value="$groups->count()" />
+    <x-kpi label="Staff billed" icon="people" :value="$staff" color="#1f63c4" />
+    <x-kpi label="Wages billed" icon="currency-rupee" :value="'₹'.inr($total)" color="#1f8a4c" />
   </div>
   @forelse($groups as $g)
     <div class="z-card mb-3">
