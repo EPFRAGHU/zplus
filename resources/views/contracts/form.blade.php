@@ -41,7 +41,10 @@
       <div class="col-12"><div class="form-check"><input type="hidden" name="service_charge_includes_gst" value="0"><input class="form-check-input" type="checkbox" name="service_charge_includes_gst" value="1" id="sc_incl" @checked(old('service_charge_includes_gst', $contract->service_charge_includes_gst ?? true))><label class="form-check-label" for="sc_incl">Service charge % <b>includes GST</b>: charge (amount × service charge %) ÷ 1.18, e.g. 3.85% ÷ 1.18 = 3.26%. Untick to charge the full % on the amount.</label></div></div>
       <div class="col-12"><div class="form-check"><input class="form-check-input" type="checkbox" name="inter_state" value="1" id="inter_state" @checked(old('inter_state', $contract->inter_state))><label class="form-check-label" for="inter_state">Inter-state supply (charge IGST instead of CGST + SGST)</label></div></div>
     </div>
-    <div class="d-flex gap-2 justify-content-end mt-3"><a class="btn btn-outline-secondary" href="{{ $contract->exists ? route('contracts.show', $contract) : route('contracts.index') }}">Cancel</a><button class="btn btn-primary">Save work order</button></div>
+    @unless($contract->exists)
+      @include('contracts._setup-builder')
+    @endunless
+    <div class="d-flex gap-2 justify-content-end mt-3"><a class="btn btn-outline-secondary" href="{{ $contract->exists ? route('contracts.show', $contract) : route('contracts.index') }}">Cancel</a><button class="btn btn-primary">{{ $contract->exists ? 'Save work order' : 'Save work order, projects and staff' }}</button></div>
   </form>
   <script>
     (function () {
@@ -49,6 +52,8 @@
       function update() {
         [...client.options].forEach(o => { if (o.value) { o.hidden = o.disabled = !!agency.value && o.dataset.agency !== agency.value; } });
         if (client.selectedOptions[0] && client.selectedOptions[0].disabled) client.value = '';
+        const open = [...client.options].filter(o => o.value && !o.disabled);
+        if (!client.value && open.length === 1) client.value = open[0].value;   // one client per agency (owner, 21 Nov 2026)
       }
       agency.addEventListener('change', update); update();
     })();

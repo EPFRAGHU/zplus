@@ -43,12 +43,82 @@ class GemContractController extends Controller
         ])));
     }
 
-    public function store(Request $request): RedirectResponse
+    public function store(Request $request, \App\Services\Masters\WorkOrderSetup $setup): RedirectResponse
     {
         Gate::authorize('manage-masters');
-        $contract = GemContract::query()->create($this->validated($request));
+        $projects = $this->setupRows($request);
+        $data = $this->validated($request);
+        [$contract, $counts] = \Illuminate\Support\Facades\DB::transaction(function () use ($data, $projects, $setup, $request) {
+            $contract = GemContract::query()->create($data);
 
-        return redirect()->route('contracts.show', $contract)->with('status', 'Work order added. Now add its projects and posts.');
+            return [$contract, $setup->addProjects($contract, $projects, $request->user())];
+        });
+        if ($counts['projects'] === 0) {
+            return redirect()->route('contracts.show', $contract)->with('status', 'Work order added. Now add its projects and posts.');
+        }
+        $staffNote = $counts['staff'] && \App\Services\Approvals\StaffChanges::applies() ? ' New staff stay Inactive until a Super Admin approves them.' : '';
+
+        return redirect()->route('contracts.show', $contract)->with('status', sprintf('Work order added with %d %s, %d %s and %d staff.%s',
+            $counts['projects'], \Illuminate\Support\Str::plural('project', $counts['projects']), $counts['posts'], \Illuminate\Support\Str::plural('post', $counts['posts']), $counts['staff'], $staffNote));
+    }
+
+    /**
+     * Projects, posts and staff from the one-page form. Rows left completely blank are ignored; a staff member's
+     * "post" is the position of that post in the same project's list.
+     *
+     * @return array<int, array<string, mixed>>
+     */
+    private function setupRows(Request $request): array
+    {
+        $blank = fn (array $row, array $keys) => collect($keys)->every(fn ($k) => blank($row[$k] ?? null));
+        $projects = collect($request->input('setup', []))->filter(fn ($p) => is_array($p) && ! $blank($p, ['code', 'name', 'pi_name', 'project_incharge_id']))
+            ->map(function ($p) use ($blank) {
+                $p['posts'] = array_values(array_filter((array) ($p['posts'] ?? []), fn ($r) => is_array($r) && ! $blank($r, ['designation', 'rate'])));
+                $p['staff'] = array_values(array_filter((array) ($p['staff'] ?? []), fn ($r) => is_array($r) && ! $blank($r, ['name', 'mobile'])));
+
+                return $p;
+            })->values()->all();
+        $request->merge(['setup' => $projects]);
+        $validated = $request->validate([
+            'setup' => ['array', 'max:30'],
+            'setup.*.code' => ['required', \App\Support\Codes::PATTERN, 'max:12', 'distinct:ignore_case'],
+            'setup.*.name' => ['required', 'string', 'max:255'],
+            'setup.*.project_incharge_id' => ['nullable', new \App\Rules\ExistsInMyAgency(\App\Models\ProjectIncharge::class)],
+            'setup.*.pi_name' => ['nullable', 'string', 'max:255'],
+            'setup.*.pi_mobile' => ['nullable', 'regex:/^[6-9]\d{9}$/'],
+            'setup.*.posts' => ['array', 'max:60'],
+            'setup.*.posts.*.designation' => ['required', 'string', 'max:255'],
+            'setup.*.posts.*.sanctioned_qty' => ['required', 'integer', 'min:1', 'max:999'],
+            'setup.*.posts.*.rate' => ['required', 'numeric', 'min:0', 'max:9999999', 'decimal:0,2'],
+            'setup.*.staff' => ['array', 'max:200'],
+            'setup.*.staff.*.name' => ['required', 'string', 'max:255'],
+            'setup.*.staff.*.post' => ['required', 'integer', 'min:0'],
+            'setup.*.staff.*.joining_date' => ['nullable', 'date'],
+            'setup.*.staff.*.mobile' => ['nullable', 'regex:/^[6-9]\d{9}$/'],
+            'setup.*.staff.*.pf' => ['nullable', 'boolean'],
+            'setup.*.staff.*.esic' => ['nullable', 'boolean'],
+            'setup.*.staff.*.tds' => ['nullable', 'boolean'],
+        ], [
+            'setup.*.code.required' => 'Enter the short project name (e.g. MPH) for every project.',
+            'setup.*.code.distinct' => 'Two projects have the same short name.',
+            'setup.*.name.required' => 'Enter the project name for every project.',
+            'setup.*.posts.*.designation.required' => 'Every post needs a designation.',
+            'setup.*.posts.*.sanctioned_qty.required' => 'Every post needs the number of sanctioned posts.',
+            'setup.*.posts.*.rate.required' => 'Every post needs its rate.',
+            'setup.*.staff.*.name.required' => 'Every staff row needs a name.',
+            'setup.*.staff.*.post.required' => 'Choose the post of every staff member.',
+            'setup.*.pi_mobile.regex' => 'Enter a 10-digit mobile number for the new Project In-charge.',
+            'setup.*.staff.*.mobile.regex' => 'Enter a 10-digit mobile number for each staff member.',
+        ], ['setup.*.code' => 'short project name']);
+        foreach ($validated['setup'] ?? [] as $i => $p) {
+            foreach ($p['staff'] ?? [] as $s) {
+                if (! isset($p['posts'][$s['post']])) {
+                    throw ValidationException::withMessages(["setup.{$i}.staff" => 'In project '.$p['code'].', choose a post from that project for '.$s['name'].'.']);
+                }
+            }
+        }
+
+        return $validated['setup'] ?? [];
     }
 
     /** Work order page: its projects, then the month's sub-bills (one per project), then the month's tax invoice. */
@@ -103,6 +173,7 @@ class GemContractController extends Controller
         return ['contract' => $contract, 'agencies' => Agency::query()->orderBy('name')->get(),
             'clients' => Client::query()->with('agency')->orderBy('name')->get(),
             'locked' => $contract->exists && Invoice::query()->where('gem_contract_id', $contract->id)->exists(),
+            'incharges' => \App\Models\ProjectIncharge::query()->where('status', 'active')->orderBy('name')->get(['id', 'agency_id', 'name']),
             // Saved work orders (this login's agencies), so typing a known number points to it instead of making a duplicate.
             'saved' => GemContract::query()->whereKeyNot($contract->id ?? 0)->get(['id', 'bid_no', 'contract_no'])
                 ->map(fn ($k) => ['bid' => $k->bid_no, 'no' => $k->contract_no, 'url' => route('contracts.show', $k).'#add-project'])->values()];

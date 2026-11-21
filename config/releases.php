@@ -12,6 +12,13 @@ return [
     'timezone' => 'Asia/Kolkata',      // release times are Indian Standard Time
 
     'releases' => [
+        ['version' => '2.21.0', 'date' => '2026-11-21 18:00', 'title' => 'Work order, projects, posts and staff on one page', 'type' => 'feature', 'notes' => [
+            'Add work order now has a "Projects, posts and staff" section: for each project the short name, project name and Project In-charge (choose one or type a new name and mobile), its posts (designation, sanctioned, rate) and its staff (name, post, joining date, mobile, EPF / ESI / TDS)',
+            'Everything is saved together; if anything is wrong nothing is saved and the form keeps what was typed',
+            'New staff get the next SW-/ZP- ID and stay Inactive until a Super Admin approves them, as before; bank, PAN and Aadhaar are completed later under Employees',
+            'The client is chosen automatically when the agency has only one; Clients page has an "Add work order, projects and staff" button',
+            'No bill amount, number or data changes',
+        ]],
         ['version' => '2.20.0', 'date' => '2026-11-21 15:30', 'title' => 'Merge into one client', 'type' => 'feature', 'notes' => [
             'Clients → "Merge into one client" (developer only): per agency, choose the client to keep; work orders, employees and tax invoices of the other clients move to it, it is renamed "Administrative Officer NIHR - Regional Medical Research Centre, Bhubaneswar" and the emptied clients are removed',
             'Shows what each client has before anything moves; type MERGE to confirm; every move is in the Activity log',
