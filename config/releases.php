@@ -12,6 +12,11 @@ return [
     'timezone' => 'Asia/Kolkata',      // release times are Indian Standard Time
 
     'releases' => [
+        ['version' => '2.32.0', 'date' => '2026-11-23 13:30', 'title' => 'Allot projects to a Project In-charge by work order', 'type' => 'feature', 'notes' => [
+            'Add / Edit Project In-charge: choose a work order from a dropdown, then tick its projects; repeat for other work orders',
+            'All allotted projects show as chips under "Allotted projects" (project code, name, work order), each with a remove button; projects already with another In-charge are marked',
+            'Saving works as before; no data changes',
+        ]],
         ['version' => '2.31.4', 'date' => '2026-11-23 12:30', 'title' => 'Delete button next to Status', 'type' => 'fix', 'notes' => [
             'Project In-charge edit page: the Delete button is now at the top, next to Status; pointing at it explains why it is greyed out when projects are still allotted',
             'Deleting removes only the Project In-charge card; projects are never deleted',

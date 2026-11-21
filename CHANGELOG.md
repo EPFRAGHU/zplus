@@ -2,6 +2,12 @@
 
 Versions follow MAJOR.MINOR.PATCH. Dates are Indian Standard Time.
 
+## 2.32.0 (2026-11-23): Allot projects to a Project In-charge by work order
+
+- Add / Edit Project In-charge: choose a work order from a dropdown, then tick its projects; repeat for other work orders
+- All allotted projects show as chips under "Allotted projects" (project code, name, work order), each with a remove button; projects already with another In-charge are marked
+- Saving works as before; no data changes
+
 ## 2.31.4 (2026-11-23): Delete button next to Status
 
 - Project In-charge edit page: the Delete button is now at the top, next to Status; pointing at it explains why it is greyed out when projects are still allotted
