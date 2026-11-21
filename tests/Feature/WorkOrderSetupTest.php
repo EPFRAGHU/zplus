@@ -124,4 +124,20 @@ class WorkOrderSetupTest extends TestCase
         $this->assertSame(['DBT', 'MPH'], $contract->projects()->orderBy('code')->pluck('code')->all());
         $this->assertSame(1, Employee::query()->count());
     }
+
+    public function test_project_in_charge_page_filters_to_one_pi(): void
+    {
+        $a = ProjectIncharge::query()->create(['agency_id' => $this->swh->id, 'name' => 'Dr. Alpha', 'status' => 'active']);
+        ProjectIncharge::query()->create(['agency_id' => $this->swh->id, 'name' => 'Dr. Beta', 'status' => 'active']);
+        $zps = Agency::query()->create(['code' => 'ZPS', 'name' => 'Z Plus']);
+        $other = ProjectIncharge::query()->create(['agency_id' => $zps->id, 'name' => 'Dr. Other', 'status' => 'active']);
+
+        $this->actingAs($this->maker)->get(route('incharges.index'))->assertSee('Dr. Alpha')->assertSee('Dr. Beta')
+            ->assertSee('All Project In-charges')->assertDontSee('Dr. Other');
+        $html = $this->get(route('incharges.index', ['pi' => $a->id]))->assertOk()->getContent();
+        $this->assertStringContainsString('<option value="'.$a->id.'" selected>Dr. Alpha', $html);
+        $this->assertSame(1, substr_count(strip_tags(preg_replace('#<select.*?</select>#s', '', $html)), 'Dr. Alpha'));
+        $this->assertStringNotContainsString('Dr. Beta', strip_tags(preg_replace('#<select.*?</select>#s', '', $html)));
+        $this->get(route('incharges.index', ['pi' => $other->id]))->assertOk()->assertDontSee('Dr. Other');   // another agency's PI is never shown
+    }
 }

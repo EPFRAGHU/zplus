@@ -12,6 +12,10 @@ return [
     'timezone' => 'Asia/Kolkata',      // release times are Indian Standard Time
 
     'releases' => [
+        ['version' => '2.31.2', 'date' => '2026-11-23 11:00', 'title' => 'Project In-charge filter', 'type' => 'fix', 'notes' => [
+            'Project In-charge page: new "Project In-charge" dropdown; choose one to see only that PI with their projects, employees and sub-bills; "Clear" shows all again',
+            'No data changes',
+        ]],
         ['version' => '2.31.1', 'date' => '2026-11-23 10:00', 'title' => 'Work order shown by its contract number', 'type' => 'fix', 'notes' => [
             'Posts, Employees, Attendance, Sub-bills, Clients and the Dashboard now show the work order by its GeM contract number (GEMC-…) instead of the bid number; the bid number is shown underneath in small text',
             'No data changes',

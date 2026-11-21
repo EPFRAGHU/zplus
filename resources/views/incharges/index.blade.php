@@ -3,7 +3,9 @@
   <form class="z-card p-3 mb-3 d-flex gap-2 flex-wrap">
     <input class="form-control flex-grow-1 w-auto" name="q" value="{{ request('q') }}" placeholder="Search by name, mobile or e-mail" aria-label="Search">
     <select class="form-select w-auto" name="agency" aria-label="Agency"><option value="">All agencies</option>@foreach($agencies as $a)<option value="{{ $a->id }}" @selected($agencyId == $a->id)>{{ $a->name }}</option>@endforeach</select>
+    <select class="form-select w-auto" name="pi" aria-label="Project In-charge" onchange="this.form.submit()"><option value="">All Project In-charges</option>@foreach($piOptions as $o)<option value="{{ $o->id }}" @selected($piId === $o->id)>{{ $o->name }}@unless($agencyId || \App\Support\Agency\AgencyContext::id()) ({{ $o->agency?->code }})@endunless</option>@endforeach</select>
     <button class="btn btn-outline-secondary"><i class="bi bi-search"></i></button>
+    @if(request()->query())<a class="btn btn-link px-1 align-self-center" href="{{ route('incharges.index') }}">Clear</a>@endif
     <span class="small text-secondary align-self-center">Each Project In-charge with their projects, the employees under each project, and the sub-bills of those projects (marked to them; a linked PI login sees the same sub-bills in the PI portal).</span>
   </form>
 

@@ -28,14 +28,16 @@ class ProjectInchargeController extends Controller
             'projects.posts.activeEmployees' => fn ($q) => $q->orderBy('name'),
             'projects.invoices' => fn ($q) => $q->latest('month')->orderBy('invoice_no')])
             ->when($agencyId, fn ($q) => $q->where('agency_id', $agencyId))
+            ->when($request->integer('pi'), fn ($q, $id) => $q->whereKey($id))   // one Project In-charge only (owner, 23 Nov 2026)
             ->when($request->string('q')->trim()->value(), fn ($q, $s) => $q->where(fn ($w) => $w->where('name', 'like', "%{$s}%")
                 ->orWhere('mobile', 'like', "%{$s}%")->orWhere('email', 'like', "%{$s}%")))
             ->get()->sortBy(fn ($i) => $i->agency->name.'|'.$i->name)->values();
         $unallotted = Project::query()->with('contract.agency')->whereNull('project_incharge_id')
             ->when($agencyId, fn ($q) => $q->whereHas('contract', fn ($c) => $c->where('agency_id', $agencyId)))->get();
 
-        return view('incharges.index', ['incharges' => $incharges, 'unallotted' => $unallotted, 'agencyId' => $agencyId,
-            'agencies' => Agency::query()->orderBy('name')->get()]);
+        return view('incharges.index', ['incharges' => $incharges, 'unallotted' => $request->integer('pi') ? collect() : $unallotted, 'agencyId' => $agencyId,
+            'agencies' => Agency::query()->orderBy('name')->get(), 'piId' => $request->integer('pi') ?: null,
+            'piOptions' => ProjectIncharge::query()->with('agency')->when($agencyId, fn ($q) => $q->where('agency_id', $agencyId))->orderBy('name')->get(['id', 'name', 'agency_id'])]);
     }
 
     public function create(Request $request): View
