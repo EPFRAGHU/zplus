@@ -2,6 +2,12 @@
 
 Versions follow MAJOR.MINOR.PATCH. Dates are Indian Standard Time.
 
+## 2.32.1 (2026-11-23): Approving new staff: false "changed after sending" fixed
+
+- Approving a new employee could fail with "The employee's details were changed after sending" although nothing was changed: staff saved without the EPF / ESIC (or older imports without TDS) switch were recorded as blank, while the database stored "off"
+- New requests now record the details exactly as saved; requests already waiting are accepted when the only difference is such a blank switch, and still refused if anything really changed
+- No data changes
+
 ## 2.32.0 (2026-11-23): Allot projects to a Project In-charge by work order
 
 - Add / Edit Project In-charge: choose a work order from a dropdown, then tick its projects; repeat for other work orders

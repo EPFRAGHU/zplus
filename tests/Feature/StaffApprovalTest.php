@@ -136,4 +136,37 @@ class StaffApprovalTest extends TestCase
         $this->actingAs($this->owner)->post(route('approvals.approve', Approval::query()->sole()))->assertSessionHasErrors('approval');
         $this->assertSame('pending', Approval::query()->sole()->status);
     }
+
+    public function test_staff_added_without_switches_can_be_approved(): void
+    {
+        // Owner, 23 Nov 2026: a new employee saved without EPF / ESIC (e.g. GeM import) was refused as "changed after sending".
+        $staff = app(\App\Services\Approvals\StaffChanges::class);
+        $e = $staff->create(['emp_code' => 'SW-2001', 'name' => 'Imported', 'agency_id' => $this->r['agency']->id, 'status' => 'active'], $this->accounts);
+        $this->actingAs($this->owner)->post(route('approvals.approve', Approval::query()->where('employee_id', $e->id)->sole()))->assertSessionHasNoErrors();
+        $this->assertSame('active', $e->fresh()->status);
+    }
+
+    public function test_request_sent_with_blank_switches_before_the_fix_still_approves_but_a_real_change_does_not(): void
+    {
+        $make = function (string $code) {
+            $e = Employee::query()->create(['emp_code' => $code, 'name' => 'Legacy '.$code, 'agency_id' => $this->r['agency']->id, 'status' => 'inactive']);
+            $snapshot = ['name' => $e->name, 'emp_code' => $code];
+            foreach (\App\Services\Approvals\StaffChanges::WATCHED as $f) {
+                $snapshot[$f] = null;   // what the old code stored for switches the form left out
+            }
+
+            return [$e, Approval::query()->create(['agency_id' => $e->agency_id, 'type' => 'new_employee', 'employee_id' => $e->id, 'month' => '2026-11-01',
+                'label' => 'New employee '.$code, 'fingerprint' => hash('sha256', json_encode($snapshot)), 'changes' => $snapshot,
+                'status' => 'pending', 'submitted_by' => $this->accounts->id, 'submitted_at' => now()])];
+        };
+        [$ok, $okApproval] = $make('SW-3001');
+        $ok->forceFill(['tds_applicable' => true])->save();   // database default before 22 Nov
+        $this->actingAs($this->owner)->post(route('approvals.approve', $okApproval))->assertSessionHasNoErrors();
+        $this->assertSame('active', $ok->fresh()->status);
+
+        [$changed, $changedApproval] = $make('SW-3002');
+        $changed->update(['pf_applicable' => true]);            // really changed after sending
+        $this->post(route('approvals.approve', $changedApproval))->assertSessionHasErrors();
+        $this->assertSame('inactive', $changed->fresh()->status);
+    }
 }

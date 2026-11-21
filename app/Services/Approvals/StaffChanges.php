@@ -40,7 +40,8 @@ final class StaffChanges
         return DB::transaction(function () use ($data, $maker) {
             $employee = Employee::query()->create(['status' => 'inactive'] + $data);
             $employee->forceFill(['status' => 'inactive'])->save();
-            $this->sendNew($employee, $maker);
+            // Fingerprint the record as stored: switches left out of $data are filled by database defaults.
+            $this->sendNew($employee->refresh(), $maker);
 
             return $employee;
         });
@@ -145,7 +146,7 @@ final class StaffChanges
         return match ($approval->type) {
             'new_employee' => (function () use ($approval) {
                 $employee = $approval->employee;
-                if ($this->newHash($employee) !== $approval->fingerprint) {
+                if ($this->newHash($employee) !== $approval->fingerprint && ! $this->unchangedApartFromDefaults($approval, $employee)) {
                     throw new RuntimeException('The employee\'s details were changed after sending. Ask for it to be sent again.');
                 }
                 $employee->forceFill(['status' => 'active'])->save();
@@ -172,6 +173,28 @@ final class StaffChanges
                 return "New rate of {$post->designation} applied.";
             })(),
         };
+    }
+
+    /**
+     * Requests sent before 23 Nov 2026 could record a switch the form left out as blank, while the database stored its
+     * default. Such a request still counts as unchanged when the stored snapshot is the one that was fingerprinted and every
+     * difference is a blank switch that now holds its database default.
+     */
+    private function unchangedApartFromDefaults(Approval $approval, Employee $employee): bool
+    {
+        $sent = $approval->changes;
+        if (! is_array($sent) || hash('sha256', json_encode($sent)) !== $approval->fingerprint) {
+            return false;
+        }
+        $defaults = ['pf_applicable' => '0', 'esic_applicable' => '0', 'tds_applicable' => '1'];
+        foreach ($this->snapshot($employee) as $field => $now) {
+            $then = $sent[$field] ?? null;
+            if ($then !== $now && ! ($then === null && array_key_exists($field, $defaults) && $now === $defaults[$field])) {
+                return false;
+            }
+        }
+
+        return true;
     }
 
     public function latest(string $type, int $id, string $column = 'employee_id'): ?Approval

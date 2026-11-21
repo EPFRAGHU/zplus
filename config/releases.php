@@ -12,6 +12,11 @@ return [
     'timezone' => 'Asia/Kolkata',      // release times are Indian Standard Time
 
     'releases' => [
+        ['version' => '2.32.1', 'date' => '2026-11-23 15:00', 'title' => 'Approving new staff: false "changed after sending" fixed', 'type' => 'fix', 'notes' => [
+            'Approving a new employee could fail with "The employee\'s details were changed after sending" although nothing was changed: staff saved without the EPF / ESIC (or older imports without TDS) switch were recorded as blank, while the database stored "off"',
+            'New requests now record the details exactly as saved; requests already waiting are accepted when the only difference is such a blank switch, and still refused if anything really changed',
+            'No data changes',
+        ]],
         ['version' => '2.32.0', 'date' => '2026-11-23 13:30', 'title' => 'Allot projects to a Project In-charge by work order', 'type' => 'feature', 'notes' => [
             'Add / Edit Project In-charge: choose a work order from a dropdown, then tick its projects; repeat for other work orders',
             'All allotted projects show as chips under "Allotted projects" (project code, name, work order), each with a remove button; projects already with another In-charge are marked',
