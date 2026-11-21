@@ -2,6 +2,14 @@
 
 Versions follow MAJOR.MINOR.PATCH. Dates are Indian Standard Time.
 
+## 2.37.0 (2026-11-22): Over-filled posts highlighted
+
+- A post with more staff placed than sanctioned is now highlighted in red: the row is shaded with a red edge, the Filled number is red and the Vacant column says "N over"
+- Posts page: new tab Over-filled, a red "N over" tag on the project card, and "N more staff than sanctioned" in the Filled box
+- Work Orders page: red "N over" tag on the contract and on each project row, and an Over-filled choice in the Status filter
+- Work order page: over-filled post rows shaded red, and names that appear twice on the same post (capitals and Dr./Mr./Mrs./Ms. ignored) tagged "same name?" to help find staff entered twice
+- Nothing is blocked or changed: it only shows where to check
+
 ## 2.36.3 (2026-11-22): Employees list: Post, Project and Project In-charge columns
 
 - Employees list: Post, Project and Project In-charge are now three separate columns, in that order (the project and PI were small grey text under the post before)

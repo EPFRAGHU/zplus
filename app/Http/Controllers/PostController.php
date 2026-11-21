@@ -38,12 +38,18 @@ class PostController extends Controller
         // Tabs in the Work Orders style (owner, 23 Nov 2026): all posts, posts with vacancies, fully filled posts.
         $counts = ['all' => $posts->count(), 'vacant' => $posts->filter(fn ($p) => $p->active_employees_count < $p->sanctioned_qty)->count()];
         $counts['filled'] = $counts['all'] - $counts['vacant'];
-        $tab = in_array($request->input('tab'), ['vacant', 'filled'], true) ? $request->input('tab') : 'all';
+        // More staff placed than sanctioned (owner, 22 Nov 2026): highlighted in red and given a tab of their own.
+        $counts['over'] = $posts->filter(fn ($p) => $p->active_employees_count > $p->sanctioned_qty)->count();
+        $tab = in_array($request->input('tab'), ['vacant', 'filled', 'over'], true) ? $request->input('tab') : 'all';
         $figures = ['posts' => $posts->count(), 'projects' => $posts->pluck('project_id')->unique()->count(),
             'sanctioned' => $posts->sum('sanctioned_qty'), 'filled' => $posts->sum(fn ($p) => min($p->active_employees_count, $p->sanctioned_qty))];
-        if ($tab !== 'all') {
-            $posts = $posts->filter(fn ($p) => ($p->active_employees_count < $p->sanctioned_qty) === ($tab === 'vacant'))->values();
-        }
+        $figures['over'] = $posts->sum(fn ($p) => max(0, $p->active_employees_count - $p->sanctioned_qty));
+        $posts = match ($tab) {
+            'vacant' => $posts->filter(fn ($p) => $p->active_employees_count < $p->sanctioned_qty)->values(),
+            'filled' => $posts->filter(fn ($p) => $p->active_employees_count >= $p->sanctioned_qty)->values(),
+            'over' => $posts->filter(fn ($p) => $p->active_employees_count > $p->sanctioned_qty)->values(),
+            default => $posts,
+        };
 
         return view('posts.index', ['posts' => $posts, 'agencyId' => $agencyId, 'clientId' => $clientId, 'designations' => $designations,
             'counts' => $counts, 'tab' => $tab, 'figures' => $figures, 'workingAgency' => \App\Support\Agency\AgencyContext::agency(),

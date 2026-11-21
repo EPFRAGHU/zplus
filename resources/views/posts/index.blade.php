@@ -19,7 +19,7 @@
       <div class="wo-kpi k-blue"><i class="bi bi-diagram-3"></i><div><div class="l">Total posts</div><div class="v">{{ $figures['posts'] }}</div></div></div>
       <div class="wo-kpi k-violet"><i class="bi bi-stack"></i><div><div class="l">Projects</div><div class="v">{{ $figures['projects'] }}</div></div></div>
       <div class="wo-kpi k-amber"><i class="bi bi-clipboard-check"></i><div><div class="l">Sanctioned</div><div class="v">{{ $figures['sanctioned'] }}</div></div></div>
-      <div class="wo-kpi k-green"><i class="bi bi-check2-circle"></i><div><div class="l">Filled</div><div class="v">{{ $figures['filled'] }} <small>({{ $pct }}%)</small></div></div></div>
+      <div class="wo-kpi k-green"><i class="bi bi-check2-circle"></i><div><div class="l">Filled</div><div class="v">{{ $figures['filled'] }} <small>({{ $pct }}%)</small></div>@if($figures['over'])<a class="small fw-semibold text-danger text-decoration-none" href="{{ $tabUrl('over') }}"><i class="bi bi-exclamation-triangle-fill me-1"></i>{{ $figures['over'] }} more staff than sanctioned</a>@endif</div></div>
       <div class="wo-kpi k-red"><i class="bi bi-person-dash"></i><div><div class="l">Vacant</div><div class="v">{{ $vacant }}</div></div></div>
     </div>
 
@@ -29,6 +29,7 @@
         <a href="{{ $tabUrl('all') }}" @class(['on' => $tab === 'all'])>All posts ({{ $counts['all'] }})</a>
         <a href="{{ $tabUrl('vacant') }}" @class(['on' => $tab === 'vacant'])><span class="wo-dot" style="background:#f59e0b"></span>Vacant ({{ $counts['vacant'] }})</a>
         <a href="{{ $tabUrl('filled') }}" @class(['on' => $tab === 'filled'])><span class="wo-dot" style="background:#16a34a"></span>Fully filled ({{ $counts['filled'] }})</a>
+        <a href="{{ $tabUrl('over') }}" @class(['on' => $tab === 'over'])><span class="wo-dot" style="background:#dc2626"></span>Over-filled ({{ $counts['over'] }})</a>
       </nav>
       <label class="wo-pick"><span>Agency:</span>
         <select id="f-agency" name="agency" class="form-select" onchange="this.form.submit()"><option value="">All</option>@foreach($agencies as $a)<option value="{{ $a->id }}" @selected($agencyId === $a->id)>{{ $a->name }}</option>@endforeach</select></label>
@@ -59,6 +60,7 @@
     @forelse($posts->groupBy('project_id') as $projectPosts)
       @php($pj = $projectPosts->first()->project) @php($k = $pj->contract)
       @php($sanc = $projectPosts->sum('sanctioned_qty')) @php($fill = $projectPosts->sum(fn ($p) => min($p->active_employees_count, $p->sanctioned_qty)))
+      @php($over = $projectPosts->sum(fn ($p) => max(0, $p->active_employees_count - $p->sanctioned_qty)))
       <article class="wo-card">
         <div class="wo-row">
           <button type="button" class="wo-toggle" data-bs-toggle="collapse" data-bs-target="#pp-{{ $pj->id }}" aria-expanded="true" aria-controls="pp-{{ $pj->id }}">
@@ -70,6 +72,7 @@
           </button>
           <div class="wo-right">
             <span @class(['wo-fill', 'full' => $fill >= $sanc && $sanc > 0, 'part' => $fill > 0 && $fill < $sanc, 'none' => $fill === 0])>@if($fill >= $sanc && $sanc > 0)<i class="bi bi-check2 me-1"></i>@endif{{ $fill }}/{{ $sanc }} Filled</span>
+            @if($over)<span class="wo-fill over" title="More staff placed than sanctioned"><i class="bi bi-exclamation-triangle-fill me-1"></i>{{ $over }} over</span>@endif
             @can('manage-masters')<button type="button" class="btn btn-sm wo-btn-blue" data-bs-toggle="modal" data-bs-target="#addPostModal" data-agency="{{ $k->agency_id }}" data-client="{{ $k->client_id }}"><i class="bi bi-plus-lg me-1"></i>Add post</button>@endcan
             <a class="btn btn-sm wo-btn-line" href="{{ route('contracts.show', $k) }}"><i class="bi bi-box-arrow-up-right me-1"></i>Open work order</a>
           </div>
@@ -81,11 +84,12 @@
             <thead><tr><th>Designation</th><th class="num">Sanctioned</th><th class="num">Filled</th><th class="num">Vacant</th><th class="num">Rate</th><th class="text-end">Actions</th></tr></thead>
             <tbody>
             @foreach($projectPosts as $p)
-              <tr>
+              @php($extra = $p->active_employees_count - $p->sanctioned_qty)
+              <tr @class(['wo-over' => $extra > 0])>
                 <td class="fw-semibold">{{ $p->designation }}</td>
                 <td class="num">{{ $p->sanctioned_qty }}</td>
-                <td class="num">@if($p->active_employees_count < $p->sanctioned_qty)<span class="text-warning-emphasis">{{ $p->active_employees_count }}</span>@else{{ $p->active_employees_count }}@endif</td>
-                <td class="num">{{ max(0, $p->sanctioned_qty - $p->active_employees_count) ?: '—' }}</td>
+                <td class="num">@if($extra > 0)<span class="text-danger fw-bold" title="More staff placed than sanctioned">{{ $p->active_employees_count }}</span>@elseif($extra < 0)<span class="text-warning-emphasis">{{ $p->active_employees_count }}</span>@else{{ $p->active_employees_count }}@endif</td>
+                <td class="num">@if($extra > 0)<span class="badge text-bg-danger">{{ $extra }} over</span>@else{{ max(0, -$extra) ?: '—' }}@endif</td>
                 <td class="num">{{ inr($p->rate) }}{{ $k->billing_type === 'daily' ? '/day' : '' }}</td>
                 <td class="text-end text-nowrap">@can('manage-masters')<a class="btn btn-sm wo-btn-blue" href="{{ route('contracts.show', $k) }}#edit-post{{ $p->id }}"><i class="bi bi-pencil me-1"></i>Edit</a>@endcan
                   <a class="btn btn-sm wo-btn-line" href="{{ route('posts.index', ['post' => $p->designation]) }}" title="This post in every project"><i class="bi bi-funnel"></i></a></td>

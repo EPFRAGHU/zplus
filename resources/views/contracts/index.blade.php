@@ -44,6 +44,7 @@
           <option value="">All</option>
           <option value="vacant" @selected($staffing === 'vacant')>Has open posts</option>
           <option value="filled" @selected($staffing === 'filled')>Fully filled</option>
+          <option value="over" @selected($staffing === 'over')>Over-filled (more staff than sanctioned)</option>
           <option value="ending" @selected($staffing === 'ending')>Ending within 30 days</option>
         </select></label>
       <label class="wo-pick"><span>Sort:</span>
@@ -75,6 +76,7 @@
             </button>
             <div class="wo-right">
               <span @class(['wo-fill', 'full' => $row['sanctioned'] && $row['filled'] >= $row['sanctioned'], 'part' => $row['filled'] < $row['sanctioned'], 'none' => ! $row['sanctioned']])><i class="bi bi-check2 me-1"></i>{{ $row['filled'] }}/{{ $row['sanctioned'] }} Filled</span>
+              @if($row['over'])<span class="wo-fill over" title="More staff placed than sanctioned on some posts"><i class="bi bi-exclamation-triangle-fill me-1"></i>{{ $row['over'] }} over</span>@endif
               <x-fill-progress :filled="$row['filled']" :total="$row['sanctioned']" />
               @can('manage-masters')<a class="btn btn-sm wo-btn-blue" href="{{ route('contracts.show', $c) }}#add-project"><i class="bi bi-plus-lg me-1"></i>Add Project</a>@endcan
               <a class="btn btn-sm wo-btn-line" href="{{ route('contracts.show', $c) }}"><i class="bi bi-box-arrow-up-right me-1"></i>Open</a>
@@ -86,9 +88,10 @@
               <tbody>
               @forelse($c->projects as $i => $p)
                 @php($pf = $p->posts->sum('active_employees_count')) @php($pt = $p->posts->sum('sanctioned_qty'))
-                <tr><td>{{ $i + 1 }}</td><td><span class="wo-code">{{ $p->code }}</span></td><td>{{ $p->name }}</td>
+                @php($po = $p->posts->sum(fn ($x) => max(0, $x->active_employees_count - $x->sanctioned_qty)))
+                <tr @class(['wo-over' => $po > 0])><td>{{ $i + 1 }}</td><td><span class="wo-code">{{ $p->code }}</span></td><td>{{ $p->name }}</td>
                   <td>@if($p->incharge?->name ?? $p->pi_name)<i class="bi bi-person me-1 text-secondary"></i>{{ $p->incharge?->name ?? $p->pi_name }}@else<span class="text-secondary">—</span>@endif</td>
-                  <td class="text-center fw-semibold">{{ $pf }} / {{ $pt }}</td>
+                  <td class="text-center fw-semibold">{{ $pf }} / {{ $pt }}@if($po)<div><span class="badge text-bg-danger">{{ $po }} over</span></div>@endif</td>
                   <td><x-fill-progress :filled="$pf" :total="$pt" style="min-width:130px" /></td>
                   <td class="text-end text-nowrap">
                     <a class="wo-icon-btn" href="{{ route('contracts.show', $c) }}" title="View" aria-label="View {{ $p->code }}"><i class="bi bi-eye"></i></a>

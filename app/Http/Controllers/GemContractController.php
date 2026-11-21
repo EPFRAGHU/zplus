@@ -88,14 +88,16 @@ class GemContractController extends Controller
                 $posts = $c->projects->flatMap->posts;
                 $sanctioned = (int) $posts->sum('sanctioned_qty');
                 $filled = (int) $posts->sum('active_employees_count');
+                $over = (int) $posts->sum(fn ($p) => max(0, $p->active_employees_count - $p->sanctioned_qty));   // staff beyond sanctioned (22 Nov 2026)
                 $state = $c->projects->isEmpty() ? 'draft' : ($c->status === 'closed' || $c->expiry() === 'ended' ? 'completed' : 'active');
 
-                return ['contract' => $c, 'state' => $state, 'projectCount' => $c->projects->count(), 'sanctioned' => $sanctioned, 'filled' => $filled,
+                return ['contract' => $c, 'state' => $state, 'projectCount' => $c->projects->count(), 'sanctioned' => $sanctioned, 'filled' => $filled, 'over' => $over,
                     'percent' => $sanctioned ? (int) min(100, round($filled * 100 / $sanctioned)) : 0];
             });
         $rows = match ($request->input('staffing')) {
             'filled' => $rows->filter(fn ($r) => $r['sanctioned'] > 0 && $r['filled'] >= $r['sanctioned']),
             'vacant' => $rows->filter(fn ($r) => $r['filled'] < $r['sanctioned']),
+            'over' => $rows->filter(fn ($r) => $r['over'] > 0),
             'ending' => $rows->filter(fn ($r) => $r['contract']->expiry() === 'ending'),
             default => $rows,
         };

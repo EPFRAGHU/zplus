@@ -12,6 +12,13 @@ return [
     'timezone' => 'Asia/Kolkata',      // release times are Indian Standard Time
 
     'releases' => [
+        ['version' => '2.37.0', 'date' => '2026-11-22 01:30', 'title' => 'Over-filled posts highlighted', 'type' => 'feature', 'notes' => [
+            'A post with more staff placed than sanctioned is now highlighted in red: the row is shaded with a red edge, the Filled number is red and the Vacant column says "N over"',
+            'Posts page: new tab Over-filled, a red "N over" tag on the project card, and "N more staff than sanctioned" in the Filled box',
+            'Work Orders page: red "N over" tag on the contract and on each project row, and an Over-filled choice in the Status filter',
+            'Work order page: over-filled post rows shaded red, and names that appear twice on the same post (capitals and Dr./Mr./Mrs./Ms. ignored) tagged "same name?" to help find staff entered twice',
+            'Nothing is blocked or changed: it only shows where to check',
+        ]],
         ['version' => '2.36.3', 'date' => '2026-11-22 01:15', 'title' => 'Employees list: Post, Project and Project In-charge columns', 'type' => 'fix', 'notes' => [
             'Employees list: Post, Project and Project In-charge are now three separate columns, in that order (the project and PI were small grey text under the post before)',
             'Project In-charge comes from the Project In-charge master, or the PI name typed on the project if none is linked',
