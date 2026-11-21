@@ -12,6 +12,12 @@ return [
     'timezone' => 'Asia/Kolkata',      // release times are Indian Standard Time
 
     'releases' => [
+        ['version' => '2.23.0', 'date' => '2026-11-21 22:30', 'title' => 'Contract balance on the tax invoice; same post in one row', 'type' => 'feature', 'notes' => [
+            'Tax invoice PDF and page: "Contract value position": total tender value (incl. GST), less tax invoices billed before, opening balance, less this tax invoice, net balance; the net balance is next month\'s opening balance, through the contract period',
+            'Shown once the total contract value is entered on the work order',
+            'Tax invoice particulars: the same post at the same rate in different projects is now one row, with the manpower and days added up (also on earlier tax invoices\' PDFs)',
+            'No amounts or totals change; only how the rows are grouped',
+        ]],
         ['version' => '2.22.0', 'date' => '2026-11-21 20:30', 'title' => 'Resignation date on attendance', 'type' => 'feature', 'notes' => [
             'Attendance (PI portal and agency): a "Last working day" box for each person; enter it for anyone who resigned or left in that month',
             'Days after the last working day are not paid, whatever code is entered; they show in red on the attendance grid and the attendance certificate',

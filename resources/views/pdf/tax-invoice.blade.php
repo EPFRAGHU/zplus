@@ -81,6 +81,17 @@
   <tr><td></td><td colspan="6" class="b">In Words: ( {{ \App\Support\AmountInWords::rupees($t->roundedTotal) }})</td></tr>
   </tbody>
 </table>
+@php($bal = \App\Services\Billing\TaxInvoiceBuilder::contractBalance($tax))
+@if($bal)
+<table style="margin-top:8px;page-break-inside:avoid">
+  <tr><td colspan="2" class="b c">Contract value position: {{ $k?->contract_type === 'offline' ? 'Work order' : 'GeM contract' }} no. {{ $k?->contract_no }}@if($k?->start_date && $k?->end_date) ({{ $k->start_date->format('d.m.Y') }} to {{ $k->end_date->format('d.m.Y') }})@endif</td></tr>
+  <tr><td>Total tender value (incl. GST)</td><td class="r" style="width:30%">{{ $bal['value'] }}</td></tr>
+  <tr><td>Less: tax invoices billed before this one ({{ $bal['count'] }})</td><td class="r">{{ $bal['previous'] }}</td></tr>
+  <tr><td class="b">Opening balance of the contract</td><td class="r b">{{ $bal['opening'] }}</td></tr>
+  <tr><td>Less: this tax invoice ({{ $tax->number }}, {{ $tax->month->format('F Y') }})</td><td class="r">{{ $bal['current'] }}</td></tr>
+  <tr><td class="b">Net balance of the contract (opening balance for next month)</td><td class="r b">{{ $bal['closing'] }}</td></tr>
+</table>
+@endif
 @php($leavers = collect($t->lines)->map(fn ($line) => ['line' => $line->ref['line'], 'bill' => $line->ref['bill']])
     ->filter(fn ($r) => $r['line']->employee?->exitIn($r['bill']->month))->values())
 @if($leavers->isNotEmpty())

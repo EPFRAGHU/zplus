@@ -122,11 +122,13 @@ final class TaxInvoiceBuilder
         $epf12 = $edli = $admin = \App\Support\Exact::zero();
         foreach ($t->lines as $line) {
             $bill = $line->ref['bill'];
-            $key = $bill->id.'|'.$line->label.'|'.$line->rate.'|'.$line->rateType.'|'.$line->daysInMonth;
-            $groups[$key] ??= ['designation' => $line->label, 'project' => $bill->project->code, 'manpower' => 0,
+            // The same post at the same rate is one row across projects, manpower added up (owner, 21 Nov 2026).
+            $key = mb_strtoupper(preg_replace('/\s+/', ' ', trim($line->label))).'|'.$line->rate.'|'.$line->rateType.'|'.$line->daysInMonth;
+            $groups[$key] ??= ['designation' => $line->label, 'projects' => [], 'manpower' => 0,
                 'days' => \App\Support\Exact::zero(), 'amount' => \App\Support\Exact::zero(),
                 'perDay' => $line->rateType === 'monthly' ? \App\Support\Exact::mulDiv(\App\Support\Exact::of($line->rate), '1', $line->daysInMonth) : \App\Support\Exact::of($line->rate)];
             $groups[$key]['manpower']++;
+            $groups[$key]['projects'][$bill->project->code] = true;
             $groups[$key]['days'] = $groups[$key]['days']->plus($line->paidDays);
             $groups[$key]['amount'] = $groups[$key]['amount']->plus($line->exact);
             if ($line->epf) {
@@ -137,7 +139,7 @@ final class TaxInvoiceBuilder
             }
         }
         $days = fn ($d) => rtrim(rtrim((string) $d->toScale(1, \Brick\Math\RoundingMode::HalfUp), '0'), '.');
-        $rows = array_values(array_map(fn ($g) => ['designation' => $g['designation'], 'project' => $g['project'], 'manpower' => $g['manpower'],
+        $rows = array_values(array_map(fn ($g) => ['designation' => $g['designation'], 'project' => implode(', ', array_keys($g['projects'])), 'manpower' => $g['manpower'],
             'days' => $days($g['days']), 'perDay' => \App\Support\Exact::money($g['perDay']), 'amount' => \App\Support\Exact::money($g['amount'])], $groups));
 
         return [
@@ -155,6 +157,32 @@ final class TaxInvoiceBuilder
      *
      * @return array{0: string, 1: string, 2: string, 3: string} [old number, new number, old total, new total]
      */
+    /**
+     * Running balance of the work order's tender value (owner, 21 Nov 2026): value incl. GST, less every earlier tax
+     * invoice of the contract (opening balance), less this one (closing balance, next month's opening).
+     *
+     * @return array{value: string, previous: string, opening: string, current: string, closing: string, count: int}|null
+     */
+    public static function contractBalance(TaxInvoice $tax): ?array
+    {
+        $contract = $tax->contract;
+        if (! $contract || blank($contract->contract_value) || (float) $contract->contract_value <= 0) {
+            return null;
+        }
+        $earlier = TaxInvoice::query()->where('gem_contract_id', $contract->id)->whereKeyNot($tax->id)
+            ->where(fn ($q) => $q->where('month', '<', $tax->month->toDateString())
+                ->orWhere(fn ($w) => $w->where('month', $tax->month->toDateString())->where('id', '<', $tax->id)))
+            ->get(['rounded_total']);
+        $sum = fn ($rows) => $rows->reduce(fn ($c, $r) => $c->plus(\App\Support\Exact::of((string) $r->rounded_total)), \App\Support\Exact::zero());
+        $value = \App\Support\Exact::of((string) $contract->contract_value);
+        $previous = $sum($earlier);
+        $opening = $value->minus($previous);
+        $current = \App\Support\Exact::of((string) $tax->rounded_total);
+
+        return ['value' => \App\Support\Exact::money($value), 'previous' => \App\Support\Exact::money($previous), 'opening' => \App\Support\Exact::money($opening),
+            'current' => \App\Support\Exact::money($current), 'closing' => \App\Support\Exact::money($opening->minus($current)), 'count' => $earlier->count()];
+    }
+
     public function refresh(TaxInvoice $tax): array
     {
         if ($tax->status === 'paid') {

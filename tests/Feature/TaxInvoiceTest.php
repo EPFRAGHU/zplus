@@ -157,4 +157,54 @@ class TaxInvoiceTest extends TestCase
         $this->get('/tax-invoices/create')->assertForbidden();
         $this->post('/tax-invoices', ['gem_contract_id' => $client->id, 'month' => '2026-10', 'sub_bills' => [$bills[0]->id], 'invoice_date' => '2026-11-03'])->assertForbidden();
     }
+
+    public function test_same_post_in_two_projects_is_one_row_with_manpower_added(): void
+    {
+        $this->seed(DemoSeeder::class);
+        $user = User::factory()->create(['role' => 'accounts']);
+        $mph = Project::query()->where('code', 'MPH')->firstOrFail();
+        $other = $mph->contract->projects()->create(['name' => 'Snakebite', 'code' => 'SNAKE']);
+        $post = $other->posts()->create(['designation' => ' academic programme  manager', 'sanctioned_qty' => 1, 'rate' => 55000]);
+        Employee::query()->create(['emp_code' => 'EMP-9001', 'name' => 'Field Staff', 'post_id' => $post->id,
+            'agency_id' => $mph->contract->agency_id, 'client_id' => $mph->contract->client_id]);
+        $service = app(AttendanceService::class);
+        $bills = collect([$mph, $other])->map(function ($p) use ($service, $user) {
+            $sheet = $service->open($p, CarbonImmutable::parse('2026-10-01'));
+            $service->lock($sheet, $user, null);
+
+            return app(InvoiceGenerator::class)->generate($sheet->fresh(), $user);
+        });
+        $tax = app(TaxInvoiceBuilder::class)->create($mph->contract->fresh(), CarbonImmutable::parse('2026-10-01'), $bills->pluck('id')->all(), $user);
+
+        $p = \App\Http\Controllers\TaxInvoiceController::pdfData($tax)['p'];
+        $manager = collect($p['rows'])->firstWhere('designation', 'Academic Programme Manager');
+        $this->assertSame(2, $manager['manpower']);
+        $this->assertSame('MPH, SNAKE', $manager['project']);
+        $this->assertCount(2, $p['rows']);   // manager (2) + assistant (1)
+        $this->assertSame(3, $p['manpower']);
+    }
+
+    public function test_contract_balance_carries_forward_month_to_month(): void
+    {
+        [$contract, $bills, $user] = $this->twoSubBills();
+        $builder = app(TaxInvoiceBuilder::class);
+        $oct = $builder->create($contract, CarbonImmutable::parse('2026-10-01'), [$bills[0]->id], $user);
+        $this->assertNull(TaxInvoiceBuilder::contractBalance($oct));   // no tender value entered yet
+
+        $contract->update(['contract_value' => '1000000.00']);
+        $nov = TaxInvoice::query()->create(['agency_id' => $contract->agency_id, 'client_id' => $contract->client_id, 'gem_contract_id' => $contract->id,
+            'number' => 'ZP/002/26-27', 'month' => '2026-11-01', 'invoice_date' => '2026-11-30', 'taxable' => 0, 'cgst' => 0, 'sgst' => 0, 'igst' => 0,
+            'total' => '50000.00', 'rounded_total' => '50000.00', 'status' => 'draft', 'created_by' => $user->id]);
+
+        $first = TaxInvoiceBuilder::contractBalance($oct->fresh());
+        $this->assertSame(['1000000.00', '0.00', '1000000.00', $oct->rounded_total], [$first['value'], $first['previous'], $first['opening'], $first['current']]);
+        $second = TaxInvoiceBuilder::contractBalance($nov->fresh());
+        $this->assertSame($first['closing'], $second['opening']);   // last month's net balance is this month's opening balance
+        $this->assertSame(1, $second['count']);
+        $this->assertSame(\App\Support\Exact::money(\App\Support\Exact::of($first['closing'])->minus(\App\Support\Exact::of('50000'))), $second['closing']);
+
+        $html = view('pdf.tax-invoice', \App\Http\Controllers\TaxInvoiceController::pdfData($oct->fresh()))->render();
+        $this->assertStringContainsString('Net balance of the contract (opening balance for next month)', $html);
+        $this->actingAs($user)->get(route('tax-invoices.show', $oct))->assertSee('Contract value position');
+    }
 }

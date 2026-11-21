@@ -2,6 +2,13 @@
 
 Versions follow MAJOR.MINOR.PATCH. Dates are Indian Standard Time.
 
+## 2.23.0 (2026-11-21): Contract balance on the tax invoice; same post in one row
+
+- Tax invoice PDF and page: "Contract value position": total tender value (incl. GST), less tax invoices billed before, opening balance, less this tax invoice, net balance; the net balance is next month's opening balance, through the contract period
+- Shown once the total contract value is entered on the work order
+- Tax invoice particulars: the same post at the same rate in different projects is now one row, with the manpower and days added up (also on earlier tax invoices' PDFs)
+- No amounts or totals change; only how the rows are grouped
+
 ## 2.22.0 (2026-11-21): Resignation date on attendance
 
 - Attendance (PI portal and agency): a "Last working day" box for each person; enter it for anyone who resigned or left in that month

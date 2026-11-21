@@ -33,6 +33,19 @@
         <tr class="fs-5 fw-bold"><td>Rounded</td><td class="num">{{ inr($tax->rounded_total, true) }}</td></tr>
       </table>
       <div class="small text-secondary mb-3">{{ $tax->amountInWords() }}</div>
+      @php($bal = \App\Services\Billing\TaxInvoiceBuilder::contractBalance($tax))
+      @if($bal)
+        <table class="table table-sm mb-3 small" id="contract-balance">
+          <tr class="table-light"><th colspan="2">Contract value position</th></tr>
+          <tr><td>Total tender value (incl. GST)</td><td class="num">{{ inr($bal['value'], true) }}</td></tr>
+          <tr><td>Less: billed before ({{ $bal['count'] }})</td><td class="num">{{ inr($bal['previous'], true) }}</td></tr>
+          <tr class="fw-semibold"><td>Opening balance</td><td class="num">{{ inr($bal['opening'], true) }}</td></tr>
+          <tr><td>Less: this tax invoice</td><td class="num">{{ inr($bal['current'], true) }}</td></tr>
+          <tr class="fw-bold"><td>Net balance (carried forward)</td><td class="num">{{ inr($bal['closing'], true) }}</td></tr>
+        </table>
+      @else
+        <div class="small text-warning-emphasis mb-3"><i class="bi bi-info-circle me-1"></i>Enter the total contract value on the work order to show the contract balance here and on the PDF.</div>
+      @endif
       <div class="small text-secondary mb-3">Worked out on the combined sub-total of its sub-bills, with no rounding until the final total (as on your Excel tax invoice), so it can differ from the sum of the sub-bills by a few paise.</div>
       @if($next)
         <form method="post" action="{{ route('tax-invoices.status', $tax) }}" class="d-grid gap-2">@csrf
