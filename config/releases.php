@@ -12,6 +12,10 @@ return [
     'timezone' => 'Asia/Kolkata',      // release times are Indian Standard Time
 
     'releases' => [
+        ['version' => '2.33.1', 'date' => '2026-11-23 18:15', 'title' => 'Delete button on the employee edit page', 'type' => 'fix', 'notes' => [
+            'Employees → Edit: a Delete button after "Save employee" (Super Admins and Accounts), for someone entered by mistake; greyed out with the reason once the person is on attendance, bills or letters (set them Inactive instead)',
+            'A waiting approval of a deleted employee is closed; recorded in the Activity log',
+        ]],
         ['version' => '2.33.0', 'date' => '2026-11-23 17:30', 'title' => 'Approvals: new employees in a clean table', 'type' => 'feature', 'notes' => [
             'Approvals page: new employees waiting are shown in a table per agency with columns Employee, Post (project, rate), Bank, Name as per bank, A/c no., IFSC, EPF, ESIC, TDS (On / Off badges)',
             'Actions at the end of each row: Approve, Return (asks for the reason) and Delete for an employee entered by mistake (only if not yet on attendance or bills; the request is then closed as withdrawn)',

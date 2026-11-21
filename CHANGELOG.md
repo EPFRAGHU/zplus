@@ -2,6 +2,11 @@
 
 Versions follow MAJOR.MINOR.PATCH. Dates are Indian Standard Time.
 
+## 2.33.1 (2026-11-23): Delete button on the employee edit page
+
+- Employees → Edit: a Delete button after "Save employee" (Super Admins and Accounts), for someone entered by mistake; greyed out with the reason once the person is on attendance, bills or letters (set them Inactive instead)
+- A waiting approval of a deleted employee is closed; recorded in the Activity log
+
 ## 2.33.0 (2026-11-23): Approvals: new employees in a clean table
 
 - Approvals page: new employees waiting are shown in a table per agency with columns Employee, Post (project, rate), Bank, Name as per bank, A/c no., IFSC, EPF, ESIC, TDS (On / Off badges)

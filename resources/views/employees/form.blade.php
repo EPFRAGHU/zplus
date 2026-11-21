@@ -111,8 +111,21 @@
     <div class="d-flex gap-2 justify-content-end p-3 border-top">
       <a class="btn btn-outline-secondary" href="{{ $employee->exists ? route('employees.show', $employee) : route('employees.index') }}">Cancel</a>
       <button class="btn btn-primary">Save employee</button>
+      @if($employee->exists)
+        @can('delete-masters')
+          {{-- After Save (owner, 23 Nov 2026); submits the separate delete form below. Only someone not yet on attendance or bills. --}}
+          @php($blocked = \App\Support\SafeDelete::employee($employee))
+          <span class="d-inline-block" tabindex="0" title="{{ $blocked ?: 'Delete this employee (entered by mistake)' }}">
+            <button type="submit" form="delete-employee" class="btn btn-outline-danger" @disabled($blocked)><i class="bi bi-trash me-1"></i>Delete</button></span>
+        @endcan
+      @endif
     </div>
   </form>
+  @if($employee->exists)
+    @can('delete-masters')
+      <form method="post" action="{{ route('employees.destroy', $employee) }}" id="delete-employee" data-confirm="Delete {{ $employee->name }} ({{ $employee->emp_code }})? Use this only for someone entered by mistake. This cannot be undone." onsubmit="return confirm(this.dataset.confirm)">@csrf @method('delete')</form>
+    @endcan
+  @endif
   @can('manage-masters')@include('posts._add-modal', ['onSaved' => 'select'])@endcan
   <script>
     // Agency narrows the clients; client narrows the posts.

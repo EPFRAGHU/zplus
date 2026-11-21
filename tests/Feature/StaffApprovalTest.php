@@ -220,4 +220,15 @@ class StaffApprovalTest extends TestCase
         $this->assertSame('withdrawn', Approval::query()->where('type', 'new_employee')->latest('id')->first()->status);
         $this->get(route('approvals.index'))->assertSee('Nothing is waiting for approval.');
     }
+
+    public function test_delete_button_on_the_employee_edit_page(): void
+    {
+        $this->actingAs($this->accounts)->post('/employees', $this->form())->assertSessionHasNoErrors();
+        $e = Employee::query()->where('name', 'New Staff')->firstOrFail();
+        $this->get(route('employees.edit', $e))->assertSee('form="delete-employee"', false)->assertSee('id="delete-employee"', false);
+        $this->get(route('employees.edit', $this->r['existing']))->assertSee('form="delete-employee"', false);
+        $this->delete(route('employees.destroy', $e))->assertRedirect(route('employees.index'));
+        $this->assertNull(Employee::query()->find($e->id));
+        $this->assertSame('withdrawn', Approval::query()->where('type', 'new_employee')->latest('id')->first()->status);
+    }
 }
