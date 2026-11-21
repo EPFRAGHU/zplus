@@ -2,6 +2,13 @@
 
 Versions follow MAJOR.MINOR.PATCH. Dates are Indian Standard Time.
 
+## 2.26.0 (2026-11-22): Acceptance letter with every appointment order
+
+- Every appointment order now has a second page: the appointee's "Acceptance of Appointment" letter to SWACHHA / Z Plus, set out like a government letter (From, Employee ID, Date, To, Sub, Ref to the order no. and date, numbered paragraphs, particulars table, enclosures, Yours faithfully, Copy to, office-use line)
+- It states the post, project, place and joining date, the EPF / ESI / TDS that apply, and has boxes for bank, IFSC, UAN, ESI IP and nominee; the appointee signs it and returns it with the listed documents
+- The order itself stays on one page; its last term now points to the acceptance letter
+- No bill amount, number or data changes
+
 ## 2.25.0 (2026-11-22): One-page entry made simpler
 
 - Add work order now goes step by step: 1. GeM contract / work order number, 2. contract details, 3. projects, each with its Project In-charge, posts and staff

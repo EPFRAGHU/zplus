@@ -16,6 +16,7 @@
   .pay th{background:#efefef}
   .terms .pay td.r,.pay th.r{text-align:right} .terms .pay td.c{text-align:center} .terms .pay td{text-align:left;padding:1px 5px}
   .nb td{border:0}
+  .hand td{padding:7px 6px;font-size:10px}
   .heading{text-align:center;font-weight:bold;font-size:12px;text-decoration:underline;letter-spacing:1px;margin:4px 0 5px}
 </style></head><body class="gov">
 @include('pdf._letterhead-footer')
@@ -46,13 +47,36 @@
   <tr><td class="no">{{ ++$n }}.</td><td><b>Confidentiality:</b> All project information, documents and data shall be kept strictly confidential and shall not be disclosed to any unauthorised person, media or third party without prior written permission.</td></tr>
   <tr><td class="no">{{ ++$n }}.</td><td><b>Conduct:</b> The appointee shall abide by the rules and instructions of the project and perform the duties sincerely. Misconduct, negligence, unauthorised absence or breach of confidentiality shall lead to termination without notice.</td></tr>
   <tr><td class="no">{{ ++$n }}.</td><td><b>Nature of appointment:</b> This is a purely contractual, outsourced engagement for the project and confers no right to regular employment, regularisation or absorption in {{ $agency->name }}, {{ $contract->client->name }} or any other organisation.</td></tr>
-  <tr><td class="no">{{ ++$n }}.</td><td>The appointee is requested to sign and return the duplicate copy of this order in token of acceptance of the above terms and conditions.</td></tr>
+  <tr><td class="no">{{ ++$n }}.</td><td>The appointee is requested to sign the acceptance letter on the next page and return it to {{ $agency->name }} with the documents listed in it.</td></tr>
 </table>
 <table class="nb" style="margin-top:4px;page-break-inside:avoid"><tr><td></td><td class="c" style="width:42%">For <b>{{ $agency->name }}</b><br><br>{{ $agency->signatory_name ?: 'Authorised Signatory' }}@if($agency->signatory_title)<br>{{ $agency->signatory_title }}@endif</td></tr></table>
 <p style="margin-top:3px"><b>Copy to:</b><br>1. The Project In-charge{{ $project->pi_name ? ', '.$project->pi_name : '' }}, project "{{ $project->name }}", {{ $contract->client->name }}, for information.<br>2. Personal file of the appointee.</p>
-<div style="border-top:1px dashed #000;margin-top:4px;padding-top:3px;page-break-inside:avoid">
-  <div class="c b" style="text-decoration:underline">ACCEPTANCE</div>
-  <p>I, {{ $employee->name }}, have read and understood the terms and conditions of this appointment order No. {{ $number }} and accept them.</p>
-  <table class="nb"><tr><td>Signature: ____________________</td><td>Date: ______________</td><td class="r">Place: ______________</td></tr></table>
+{{-- Page 2: the acceptance letter the appointee signs and returns to the agency (owner, 22 Nov 2026), set out like a government letter. --}}
+<div style="page-break-before:always;font-size:10.5px;line-height:1.5">
+  <div class="heading" style="margin-top:0">ACCEPTANCE OF APPOINTMENT</div>
+  <table class="nb" style="margin-bottom:8px"><tr>
+    <td style="vertical-align:top;width:55%"><b>From:</b><br>{{ trim($title.' '.$employee->name) }}@if($employee->father_name)<br>{{ $employee->gender === 'female' ? 'D/o' : 'S/o' }} {{ $employee->father_name }}@endif<br>
+      @if($employee->address){!! nl2br(e($employee->address)) !!}@else Address: ________________________________ @endif<br>Mobile: {{ $employee->mobile ?: '____________________' }}</td>
+    <td class="r" style="vertical-align:top"><b>Employee ID:</b> {{ $employee->emp_code }}<br><b>Date:</b> ______________</td></tr></table>
+  <p>To,<br>The {{ $agency->signatory_title ?: 'Proprietor' }},<br><b>{{ $agency->name }}</b>@if($agency->address)<br>{!! nl2br(e($agency->address)) !!}@endif</p>
+  <table class="nb" style="margin:6px 0 8px"><tr><td style="width:48px;vertical-align:top"><b><u>Sub:-</u></b></td>
+    <td>Acceptance of appointment as <b>{{ $employee->post->designation }}</b> under the project "{{ $project->title ?: $project->name }}" ({{ $project->code }}) – reg.</td></tr>
+    <tr><td style="vertical-align:top"><b><u>Ref:-</u></b></td><td>Your Appointment Order No. <b>{{ $number }}</b> dated {{ $joined->format('d.m.Y') }}.</td></tr></table>
+  <p>{{ $employee->gender === 'female' ? 'Madam' : 'Sir' }}/{{ $employee->gender === 'female' ? 'Sir' : 'Madam' }},</p>
+  <p style="text-indent:40px">With reference to the above cited appointment order, I hereby accept the appointment as <b>{{ $employee->post->designation }}</b> on outsourcing basis under {{ $agency->name }} for deployment in the project "{{ $project->title ?: $project->name }}" at {{ $project->location ?: $contract->client->name }}, on the terms and conditions stated in the order, which I have read and understood.</p>
+  <p style="text-indent:40px">I shall report for duty on <b>{{ $joined->format('d.m.Y') }}</b>. I agree to the statutory deductions applicable to me (EPF: {{ $employee->pf_applicable ? 'Yes' : 'No' }}, ESI: {{ $employee->esic_applicable ? 'Yes' : 'No' }}, TDS: {{ ($employee->tds_applicable ?? true) ? 'Yes' : 'No' }}), understand that this is a contractual engagement for the project with no claim to regular employment, and undertake to abide by the rules, maintain confidentiality and give one month's notice before leaving.</p>
+  <p style="text-indent:40px">My particulars for payment and statutory records are given below, and self-attested copies of the documents listed are enclosed.</p>
+  <table class="pay hand" style="width:100%;margin:4px 0 8px">
+    <tr><td style="width:38%">Bank name and branch</td><td>{{ $employee->bank_name ?: '' }}</td></tr>
+    <tr><td>Bank account no.</td><td></td></tr>
+    <tr><td>IFSC</td><td>{{ $employee->ifsc ?: '' }}</td></tr>
+    <tr><td>UAN (EPF), if already allotted</td><td>{{ $employee->uan ?: '' }}</td></tr>
+    <tr><td>ESI IP no., if already allotted</td><td>{{ $employee->esic_ip ?: '' }}</td></tr>
+    <tr><td>Nominee name and relationship</td><td></td></tr>
+  </table>
+  <p><b>Enclosures:</b> (1) Aadhaar card (2) PAN card (3) Bank passbook / cancelled cheque (4) Educational and experience certificates (5) Two passport-size photographs (6) Medical fitness certificate, if required.</p>
+  <table class="nb" style="margin-top:18px;page-break-inside:avoid"><tr><td></td><td class="c" style="width:45%">Yours faithfully,<br><br><br>(Signature of the appointee)<br>{{ trim($title.' '.$employee->name) }}</td></tr></table>
+  <p style="margin-top:10px"><b>Copy to:</b><br>a) The Project In-charge{{ $project->pi_name ? ', '.$project->pi_name : '' }}, project "{{ $project->name }}", for information.<br>b) Personal file.</p>
+  <div style="border-top:1px dashed #000;margin-top:10px;padding-top:4px;font-size:9px"><b>For office use ({{ $agency->name }}):</b> Received on ______________ &nbsp;&nbsp; Checked by ______________ &nbsp;&nbsp; Joined on ______________</div>
 </div>
 </body></html>

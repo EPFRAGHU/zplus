@@ -248,7 +248,9 @@ class WebFlowTest extends TestCase
         $this->assertMatchesRegularExpression('/ESI, employee share @ 0.75% Not applicable –/u', $text);
         $this->assertMatchesRegularExpression('/TDS @ 2% Applicable 500/', $text);
         $this->assertStringContainsString('22,700', $text);                             // net for a full month
-        $this->assertStringContainsString('ACCEPTANCE', $text);
+        $this->assertStringContainsString('ACCEPTANCE OF APPOINTMENT', $text);
+        $this->assertStringContainsString('Your Appointment Order No. ZPS/NIHR/MPH/01/26', $text);
+        $this->assertStringContainsString('(Signature of the appointee)', $text);
     }
 
     public function test_attendance_certificate_names_the_agency_and_client(): void

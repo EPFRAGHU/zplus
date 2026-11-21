@@ -12,6 +12,12 @@ return [
     'timezone' => 'Asia/Kolkata',      // release times are Indian Standard Time
 
     'releases' => [
+        ['version' => '2.26.0', 'date' => '2026-11-22 12:30', 'title' => 'Acceptance letter with every appointment order', 'type' => 'feature', 'notes' => [
+            'Every appointment order now has a second page: the appointee\'s "Acceptance of Appointment" letter to SWACHHA / Z Plus, set out like a government letter (From, Employee ID, Date, To, Sub, Ref to the order no. and date, numbered paragraphs, particulars table, enclosures, Yours faithfully, Copy to, office-use line)',
+            'It states the post, project, place and joining date, the EPF / ESI / TDS that apply, and has boxes for bank, IFSC, UAN, ESI IP and nominee; the appointee signs it and returns it with the listed documents',
+            'The order itself stays on one page; its last term now points to the acceptance letter',
+            'No bill amount, number or data changes',
+        ]],
         ['version' => '2.25.0', 'date' => '2026-11-22 11:30', 'title' => 'One-page entry made simpler', 'type' => 'feature', 'notes' => [
             'Add work order now goes step by step: 1. GeM contract / work order number, 2. contract details, 3. projects, each with its Project In-charge, posts and staff',
             'One PI for several projects: a new PI typed in one project can be chosen from the list in the others, and is saved once; typing the name of an already saved PI uses that PI',

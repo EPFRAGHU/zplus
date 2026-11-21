@@ -190,7 +190,7 @@ class LetterheadTest extends TestCase
         $this->actingAs($admin)->get("/attendance/{$sheet->id}/certificate")->assertOk();
     }
 
-    public function test_swachha_appointment_letter_prints_the_banner_letterhead_on_one_page(): void
+    public function test_swachha_appointment_order_fits_one_page_with_the_acceptance_letter_after_it(): void
     {
         Storage::fake('local');
         $this->seed(DemoSeeder::class);
@@ -201,7 +201,7 @@ class LetterheadTest extends TestCase
 
         $response = $this->actingAs($admin)->get("/employees/{$employee->id}/appointment-letter")->assertOk();
         $pdf = $response->getContent();
-        $this->assertSame(1, preg_match_all('#/Type\s*/Page[^s]#', $pdf));   // fits on one page
+        $this->assertSame(2, preg_match_all('#/Type\s*/Page[^s]#', $pdf));   // the order on one page, the acceptance letter on the second (owner, 22 Nov 2026)
 
         $p = $employee->fresh()->post->project;
         $html = view('pdf.appointment-letter', \App\Http\Controllers\EmployeeController::appointmentLetterData($employee->fresh(), 'SWH/NIHR/MPH/01/26'))->render();
