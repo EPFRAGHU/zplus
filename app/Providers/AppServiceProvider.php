@@ -33,6 +33,7 @@ class AppServiceProvider extends ServiceProvider
         Gate::define('add-agency', fn (User $u) => $u->hasRole('admin', 'accounts') && $u->worksForBothAgencies() && \App\Support\Agency\AgencyContext::id() === null);
         Gate::define('view-bank-details', fn (User $u) => $u->hasRole('admin', 'accounts'));
         Gate::define('manage-users', fn (User $u) => $u->isDeveloper());
+        Gate::define('merge-clients', fn (User $u) => $u->isDeveloper());   // one-off data clean-up (owner, 21 Nov 2026)
         Gate::define('view-activity', fn (User $u) => $u->isDeveloper());
     }
 }

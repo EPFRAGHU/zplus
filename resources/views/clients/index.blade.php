@@ -1,5 +1,5 @@
 <x-layouts.app title="Clients" crumb="Masters / <span class='text-danger'>Clients</span>">
-  <x-slot:actions>@can('manage-masters')<a class="btn btn-primary" href="{{ route('clients.create') }}"><i class="bi bi-plus-lg me-1"></i>Add client</a>@endcan</x-slot:actions>
+  <x-slot:actions>@can('merge-clients')<a class="btn btn-outline-danger" href="{{ route('clients.merge') }}"><i class="bi bi-intersect me-1"></i>Merge into one client</a>@endcan @can('manage-masters')<a class="btn btn-primary" href="{{ route('clients.create') }}"><i class="bi bi-plus-lg me-1"></i>Add client</a>@endcan</x-slot:actions>
   <form class="z-card p-3 mb-3 d-flex gap-2 flex-wrap">
     <input class="form-control flex-grow-1 w-auto" name="q" value="{{ request('q') }}" placeholder="Search by name or GSTIN" aria-label="Search">
     <select class="form-select w-auto" name="agency" aria-label="Agency"><option value="">All agencies</option>@foreach($agencies as $a)<option value="{{ $a->id }}" @selected(request('agency') == $a->id)>{{ $a->name }}</option>@endforeach</select>

@@ -12,6 +12,11 @@ return [
     'timezone' => 'Asia/Kolkata',      // release times are Indian Standard Time
 
     'releases' => [
+        ['version' => '2.20.0', 'date' => '2026-11-21 15:30', 'title' => 'Merge into one client', 'type' => 'feature', 'notes' => [
+            'Clients → "Merge into one client" (developer only): per agency, choose the client to keep; work orders, employees and tax invoices of the other clients move to it, it is renamed "Administrative Officer NIHR - Regional Medical Research Centre, Bhubaneswar" and the emptied clients are removed',
+            'Shows what each client has before anything moves; type MERGE to confirm; every move is in the Activity log',
+            'Bill amounts and numbers are unchanged. Take a database backup before using it',
+        ]],
         ['version' => '2.19.0', 'date' => '2026-11-21 13:00', 'title' => 'Agencies page, projects on work orders, short project name', 'type' => 'feature', 'notes' => [
             'Agencies page shows each agency\'s full details (address, contacts, GSTIN, PAN, registrations, signatory, bank, bill prefix) with an Edit button; client names and Add client removed',
             'Work orders list shows each work order\'s projects (short name, project name, Project In-charge, posts filled) instead of the client',

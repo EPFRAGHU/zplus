@@ -2,6 +2,12 @@
 
 Versions follow MAJOR.MINOR.PATCH. Dates are Indian Standard Time.
 
+## 2.20.0 (2026-11-21): Merge into one client
+
+- Clients → "Merge into one client" (developer only): per agency, choose the client to keep; work orders, employees and tax invoices of the other clients move to it, it is renamed "Administrative Officer NIHR - Regional Medical Research Centre, Bhubaneswar" and the emptied clients are removed
+- Shows what each client has before anything moves; type MERGE to confirm; every move is in the Activity log
+- Bill amounts and numbers are unchanged. Take a database backup before using it
+
 ## 2.19.0 (2026-11-21): Agencies page, projects on work orders, short project name
 
 - Agencies page shows each agency's full details (address, contacts, GSTIN, PAN, registrations, signatory, bank, bill prefix) with an Edit button; client names and Add client removed
