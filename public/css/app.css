@@ -163,3 +163,6 @@ div.client-block{background:#f2f7ff!important;border-color:#dbe6fb!important;bor
 .wo-card > .table-responsive{border-radius:14px}
 .wo-head > .me-auto{flex:1 1 320px;min-width:0}
 .wo-row .wo-code{min-width:54px;text-align:center}
+.wo-posts{table-layout:fixed;min-width:640px}
+.wo-posts td,.wo-posts th{padding-left:12px;padding-right:12px}
+.wo-posts td:first-child{overflow-wrap:anywhere}

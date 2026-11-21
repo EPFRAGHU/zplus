@@ -2,10 +2,11 @@
 
 Versions follow MAJOR.MINOR.PATCH. Dates are Indian Standard Time.
 
-## 2.36.1 (2026-11-22): Correct times in the version history
+## 2.36.1 (2026-11-22): Correct times in the version history; Posts columns lined up
 
 - Version history and the sidebar now show the real Indian time (IST) of each release; versions 2.2.0 to 2.3.1 and 2.16.1 to 2.36.0 had wrong times, some even dated a day or two ahead
 - A check now stops any version being dated in the future
+- Posts page: Sanctioned, Filled, Vacant, Rate and Actions columns now line up exactly from one project card to the next
 - No data changes
 
 ## 2.36.0 (2026-11-22): Posts, Employees, Employee Management and Attendance in the Work Orders style

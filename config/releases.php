@@ -12,9 +12,10 @@ return [
     'timezone' => 'Asia/Kolkata',      // release times are Indian Standard Time
 
     'releases' => [
-        ['version' => '2.36.1', 'date' => '2026-11-22 01:01', 'title' => 'Correct times in the version history', 'type' => 'fix', 'notes' => [
+        ['version' => '2.36.1', 'date' => '2026-11-22 01:01', 'title' => 'Correct times in the version history; Posts columns lined up', 'type' => 'fix', 'notes' => [
             'Version history and the sidebar now show the real Indian time (IST) of each release; versions 2.2.0 to 2.3.1 and 2.16.1 to 2.36.0 had wrong times, some even dated a day or two ahead',
             'A check now stops any version being dated in the future',
+            'Posts page: Sanctioned, Filled, Vacant, Rate and Actions columns now line up exactly from one project card to the next',
             'No data changes',
         ]],
         ['version' => '2.36.0', 'date' => '2026-11-22 00:57', 'title' => 'Posts, Employees, Employee Management and Attendance in the Work Orders style', 'type' => 'feature', 'notes' => [

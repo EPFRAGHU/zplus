@@ -75,7 +75,9 @@
           </div>
         </div>
         <div class="collapse show" id="pp-{{ $pj->id }}">
-          <div class="wo-body"><div class="table-responsive"><table class="table table-sm align-middle wo-table mb-0">
+          <div class="wo-body"><div class="table-responsive"><table class="table table-sm align-middle wo-table wo-posts mb-0">
+            {{-- Same column widths in every card so the figures line up from project to project. --}}
+            <colgroup><col><col style="width:12%"><col style="width:12%"><col style="width:12%"><col style="width:14%"><col style="width:150px"></colgroup>
             <thead><tr><th>Designation</th><th class="num">Sanctioned</th><th class="num">Filled</th><th class="num">Vacant</th><th class="num">Rate</th><th class="text-end">Actions</th></tr></thead>
             <tbody>
             @foreach($projectPosts as $p)
