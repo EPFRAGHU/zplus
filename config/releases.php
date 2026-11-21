@@ -12,6 +12,12 @@ return [
     'timezone' => 'Asia/Kolkata',      // release times are Indian Standard Time
 
     'releases' => [
+        ['version' => '2.36.3', 'date' => '2026-11-22 01:15', 'title' => 'Employees list: Post, Project and Project In-charge columns', 'type' => 'fix', 'notes' => [
+            'Employees list: Post, Project and Project In-charge are now three separate columns, in that order (the project and PI were small grey text under the post before)',
+            'Project In-charge comes from the Project In-charge master, or the PI name typed on the project if none is linked',
+            'Fixed column widths so every column lines up; on a small screen the table scrolls sideways',
+            'No data changes',
+        ]],
         ['version' => '2.36.2', 'date' => '2026-11-22 01:07', 'title' => 'Employee Management: Project in its own column', 'type' => 'fix', 'notes' => [
             'All employees list: Post and Project are now separate columns (Project right after Post), and both can be sorted by clicking the heading',
             'The employee details card shows Post and Project on separate lines',

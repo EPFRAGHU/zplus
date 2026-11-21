@@ -45,8 +45,10 @@
       @if(request()->query())<a class="btn btn-link px-1" href="{{ route('employees.index') }}">Clear</a>@endif
     </form>
 
-    <div class="wo-card"><div class="table-responsive"><table class="table align-middle wo-table m-0 wo-list-table">
-      <thead><tr><th>Employee</th><th>Post · project</th><th>Work order</th><th class="num">Rate</th><th>EPF / ESIC / TDS</th><th>Bank</th><th>Status</th><th class="text-end">Actions</th></tr></thead>
+    <div class="wo-card"><div class="table-responsive"><table class="table align-middle wo-table m-0 wo-list-table wo-emps">
+      {{-- Fixed widths so every column lines up (owner, 22 Nov 2026). --}}
+      <colgroup><col style="width:10%"><col style="width:14%"><col style="width:6%"><col style="width:12%"><col style="width:13%"><col style="width:7%"><col style="width:15%"><col style="width:9%"><col style="width:6%"><col style="width:8%"></colgroup>
+      <thead><tr><th>Employee</th><th>Post</th><th>Project</th><th>Project In-charge</th><th>Work order</th><th class="num">Rate</th><th>EPF / ESIC / TDS</th><th>Bank</th><th>Status</th><th class="text-end">Actions</th></tr></thead>
       <tbody>
       @php($group = false)
       @forelse ($employees as $e)
@@ -54,7 +56,7 @@
           @php($starts = $group === false && $carriedAgency !== false && $carriedAgency === $e->agency_id)
           @php($group = $e->agency_id.'-'.$e->client_id)
           @php($cc = $clientCounts[$group] ?? null)
-          <tr class="wo-group"><td colspan="8">
+          <tr class="wo-group"><td colspan="10">
             <i class="bi bi-buildings me-1"></i>@if($e->agency)<b>{{ $e->agency->name }}</b> <span class="wo-type off">{{ $e->agency->code }}</span>@else<b>No agency set</b>@endif
             <span class="mx-2 text-secondary">›</span><i class="bi bi-bank me-1 text-secondary"></i><b>{{ $e->client?->name ?? 'Not assigned to a client yet' }}</b>
             @if($cc)<span class="wo-meta ms-2">{{ $cc->total }} {{ \Illuminate\Support\Str::plural('employee', $cc->total) }} · {{ $cc->placed }} placed on posts{{ $starts ? ' · continued from the previous page' : '' }}</span>@endif
@@ -63,7 +65,10 @@
         @php($proj = $e->post?->project)
         <tr>
           <td class="text-nowrap"><a class="fw-semibold text-decoration-none" href="{{ route('employees.show', $e) }}">{{ $e->name }}</a><div class="mono small text-secondary">{{ $e->emp_code }}</div></td>
-          <td>@if($proj)<div>{{ $e->post->designation }}</div><div class="small text-secondary" title="{{ $proj->name }}"><span class="wo-code">{{ $proj->code }}</span>@if($proj->pi_name) PI: {{ $proj->pi_name }}@endif</div>@else<span class="text-secondary small">Not placed on a post</span>@endif</td>
+          {{-- Post, Project and Project In-charge in columns of their own (owner, 22 Nov 2026). --}}
+          <td>@if($proj){{ $e->post->designation }}@else<span class="text-secondary small">Not placed on a post</span>@endif</td>
+          <td>@if($proj)<span class="wo-code" title="{{ $proj->name }}">{{ $proj->code }}</span>@else<span class="text-secondary small">—</span>@endif</td>
+          <td class="small">{{ \App\Http\Controllers\StaffController::inchargeName($e) ?? '—' }}</td>
           <td>@if($proj)<a class="mono small text-decoration-none text-nowrap" href="{{ route('contracts.show', $proj->contract) }}">{{ $proj->contract->contract_no }}</a>@else<span class="text-secondary small">—</span>@endif</td>
           <td class="num">{{ inr($e->rate()) }}</td>
           <td class="text-nowrap">
@@ -90,7 +95,7 @@
             @can('show-delete')<x-delete-button :action="route('employees.destroy', $e)" :blocked="\App\Support\SafeDelete::employee($e)" :confirm="'Delete employee '.$e->name.' ('.$e->emp_code.')? Only possible while they are on no attendance, bill or payout.'" />@endcan</td>
         </tr>
       @empty
-        <tr><td colspan="8" class="text-center text-secondary py-4">No employees match these filters.</td></tr>
+        <tr><td colspan="10" class="text-center text-secondary py-4">No employees match these filters.</td></tr>
       @endforelse
       </tbody></table></div></div>
   </div>

@@ -171,3 +171,6 @@ div.client-block{background:#f2f7ff!important;border-color:#dbe6fb!important;bor
 .wo-staff td .wo-code{display:inline-block}
 .wo-sw{display:inline-block;border-radius:999px;padding:1px 7px;margin-right:3px;font-size:.74rem;font-weight:600;background:#f1f5f9;color:#94a3b8;text-decoration:line-through}
 .wo-sw.on{background:#dcfce7;color:#166534;text-decoration:none}
+.wo-emps{table-layout:fixed;min-width:1380px}
+.wo-emps td{overflow-wrap:anywhere}
+.wo-emps td .wo-code{display:inline-block}

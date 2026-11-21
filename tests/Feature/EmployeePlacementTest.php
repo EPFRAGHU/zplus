@@ -68,7 +68,7 @@ class EmployeePlacementTest extends TestCase
         $swh = Agency::query()->where('code', 'SWH')->firstOrFail();
         Employee::query()->create(['emp_code' => 'EMP-3001', 'name' => 'Swachha Person', 'agency_id' => $swh->id]);
 
-        $this->actingAs($admin)->get('/employees')->assertSee('<th>Employee</th><th>Post · project</th><th>Work order</th>', false)
+        $this->actingAs($admin)->get('/employees')->assertSee('<th>Employee</th><th>Post</th><th>Project</th><th>Project In-charge</th><th>Work order</th>', false)
             ->assertSee('id="f-agency"', false)->assertSee('data-agency=', false)->assertSee('Not assigned to a client yet');
         $this->get('/employees')->assertSee('Total employees')->assertSee('Bank details missing')->assertSee('Active (3)')->assertSee('Inactive (0)');
         $this->get('/employees?status=inactive')->assertSee('No employees match these filters.')->assertSee('Active (3)');
@@ -96,8 +96,8 @@ class EmployeePlacementTest extends TestCase
         Employee::query()->create(['emp_code' => 'EMP-3002', 'name' => 'Unplaced Person', 'agency_id' => $swh->id]);
 
         $this->actingAs($admin)->get('/employees')->assertOk()
-            ->assertSee('<th>Post · project</th><th>Work order</th>', false)
-            ->assertSee('GEMC-511687731718030</a>', false)->assertSee('PI: Dr. S. Kanungo')
+            ->assertSee('<th>Project In-charge</th><th>Work order</th>', false)
+            ->assertSee('GEMC-511687731718030</a>', false)->assertSee('<td class="small">Dr. S. Kanungo</td>', false)
             ->assertSee('Not placed on a post')->assertSee('id="f-contract"', false);
         $this->get('/employees')->assertDontSee('@else')->assertDontSee('@endif');   // no stray template code
         $this->get('/employees?contract='.$contract->id)->assertSee('Amit Kumar (sample)')->assertDontSee('Unplaced Person')

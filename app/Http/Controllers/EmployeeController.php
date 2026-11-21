@@ -43,7 +43,7 @@ class EmployeeController extends Controller
         // One block per agency (ZPS, SWH, ...): sort by agency name, then client, then employee name.
         $agencyName = Agency::query()->select('name')->whereColumn('agencies.id', 'employees.agency_id');
         $clientName = Client::query()->select('name')->whereColumn('clients.id', 'employees.client_id');
-        $employees = (clone $filtered)->with('post.project.contract', 'agency', 'client')
+        $employees = (clone $filtered)->with('post.project.contract', 'post.project.incharge', 'agency', 'client')
             ->orderByRaw('agency_id is null')->orderBy($agencyName)->orderBy($clientName)->orderBy('name')
             ->paginate(50)->withQueryString();
         $blockCounts = (clone $filtered)->selectRaw('agency_id, count(*) as total')->groupBy('agency_id')->pluck('total', 'agency_id');

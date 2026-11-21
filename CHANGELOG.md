@@ -2,6 +2,13 @@
 
 Versions follow MAJOR.MINOR.PATCH. Dates are Indian Standard Time.
 
+## 2.36.3 (2026-11-22): Employees list: Post, Project and Project In-charge columns
+
+- Employees list: Post, Project and Project In-charge are now three separate columns, in that order (the project and PI were small grey text under the post before)
+- Project In-charge comes from the Project In-charge master, or the PI name typed on the project if none is linked
+- Fixed column widths so every column lines up; on a small screen the table scrolls sideways
+- No data changes
+
 ## 2.36.2 (2026-11-22): Employee Management: Project in its own column
 
 - All employees list: Post and Project are now separate columns (Project right after Post), and both can be sorted by clicking the heading
