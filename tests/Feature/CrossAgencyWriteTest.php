@@ -148,6 +148,7 @@ class CrossAgencyWriteTest extends TestCase
             'add a login for their agency' => fn () => $this->post('/users', ['name' => 'X', 'email' => 'x@example.com', 'role' => 'supervisor', 'active' => '1', 'password' => 'Temp1234', 'agency_id' => $o['agency']->id]),
             'add a PI for their project' => fn () => $this->post('/users', ['name' => 'Y', 'email' => 'y@example.com', 'role' => 'pi', 'active' => '1', 'password' => 'Temp1234', 'projects' => [$o['project']->id]]),
             'add projects to their work order' => fn () => $this->post("/contracts/{$o['contract']->id}/setup", ['setup' => [['code' => 'HACK', 'name' => 'Hacked']]]),
+            'move their project' => fn () => $this->post("/projects/{$o['project']->id}/move", ['gem_contract_id' => $o['contract']->id]),
             'merge their clients' => fn () => $this->post('/clients/merge', ['agency_id' => $o['agency']->id, 'target_id' => $o['client']->id, 'name' => 'Hacked', 'confirm' => 'MERGE']),
             'switch to their company' => fn () => $this->post('/choose-company', ['agency' => (string) $o['agency']->id]),
             'edit their admin login' => fn () => $this->put("/users/{$o['admin']->id}", ['name' => 'Hacked', 'email' => $o['admin']->email, 'role' => 'admin', 'active' => '0']),

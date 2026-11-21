@@ -12,6 +12,12 @@ return [
     'timezone' => 'Asia/Kolkata',      // release times are Indian Standard Time
 
     'releases' => [
+        ['version' => '2.34.0', 'date' => '2026-11-23 19:00', 'title' => 'Move a project to another work order', 'type' => 'feature', 'notes' => [
+            'Work order page (Super Admins): "Move to another work order" on each project, to bring projects out of the stand-in contract numbers made when one contract could hold only one project (e.g. …8031, …8032 into …8030)',
+            'Posts, staff, attendance, PI and appointment letters move with the project; letter numbers do not change; the emptied work order can then be deleted',
+            'Refused when the project already has sub-bills under the old work order, or the target already has a project with the same short name; recorded in the Activity log',
+            'Changes which work order a project belongs to; take a database backup before moving',
+        ]],
         ['version' => '2.33.1', 'date' => '2026-11-23 18:15', 'title' => 'Delete button on the employee edit page', 'type' => 'fix', 'notes' => [
             'Employees → Edit: a Delete button after "Save employee" (Super Admins and Accounts), for someone entered by mistake; greyed out with the reason once the person is on attendance, bills or letters (set them Inactive instead)',
             'A waiting approval of a deleted employee is closed; recorded in the Activity log',

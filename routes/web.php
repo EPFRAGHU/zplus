@@ -89,6 +89,7 @@ Route::middleware(['auth', 'active', 'role:admin,accounts,supervisor', \App\Http
     Route::delete('incharges/{incharge}', [\App\Http\Controllers\ProjectInchargeController::class, 'destroy'])->name('incharges.destroy');
     Route::delete('employees/{employee}', [EmployeeController::class, 'destroy'])->name('employees.destroy');
     Route::put('projects/{project}', [ProjectController::class, 'update'])->name('projects.update');
+    Route::post('projects/{project}/move', [ProjectController::class, 'move'])->name('projects.move');
     Route::delete('projects/{project}', [ProjectController::class, 'destroy'])->name('projects.destroy');
     Route::get('posts', [PostController::class, 'index'])->name('posts.index');
     Route::post('posts/quick', [PostController::class, 'quickStore'])->name('posts.quick');

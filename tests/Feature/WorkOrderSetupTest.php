@@ -158,4 +158,32 @@ class WorkOrderSetupTest extends TestCase
         $this->actingAs(User::factory()->create(['role' => 'supervisor', 'agency_id' => $this->swh->id]))
             ->get(route('incharges.edit', $busy))->assertDontSee('form="delete-incharge"', false);
     }
+
+    public function test_super_admin_moves_a_project_out_of_a_stand_in_work_order(): void
+    {
+        $real = GemContract::query()->create(['agency_id' => $this->swh->id, 'client_id' => $this->client->id, 'bid_no' => 'B', 'contract_no' => 'GEMC-8030']);
+        $dummy = GemContract::query()->create(['agency_id' => $this->swh->id, 'client_id' => $this->client->id, 'bid_no' => 'B', 'contract_no' => 'GEMC-8032']);
+        $ccrh = $dummy->projects()->create(['name' => 'CCRH', 'code' => 'CCRH']);
+        $post = $ccrh->posts()->create(['designation' => 'Field Worker', 'sanctioned_qty' => 1, 'rate' => 20000]);
+        $e = Employee::query()->create(['emp_code' => 'SW-1009', 'name' => 'Real Person', 'agency_id' => $this->swh->id, 'client_id' => $this->client->id, 'post_id' => $post->id, 'status' => 'active']);
+        \App\Models\GeneratedDocument::query()->create(['type' => 'appointment_letter', 'documentable_type' => Employee::class, 'documentable_id' => $e->id, 'number' => 'SWH/NIHR/CCRH/001/26']);
+
+        // Makers cannot move projects; a Super Admin can.
+        $this->actingAs($this->maker)->post(route('projects.move', $ccrh), ['gem_contract_id' => $real->id])->assertForbidden();
+        $owner = $this->makeDeveloper(User::factory()->create());
+        $this->actingAs($owner)->get(route('contracts.show', $dummy))->assertSee('Move to another work order');
+        $this->post(route('projects.move', $ccrh), ['gem_contract_id' => $real->id])->assertRedirect(route('contracts.show', $real))
+            ->assertSessionHas('status', fn ($s) => str_contains($s, 'GEMC-8032 now has no projects and can be deleted'));
+
+        $this->assertSame($real->id, $ccrh->fresh()->gem_contract_id);
+        $this->assertSame($post->id, $e->fresh()->post_id);                                         // staff and post follow the project
+        $this->assertSame('SWH/NIHR/CCRH/001/26', \App\Models\GeneratedDocument::query()->value('number'));   // letter number unchanged
+        $this->assertNull(\App\Support\SafeDelete::contract($dummy->fresh()));                        // the stand-in can now be deleted
+        $this->assertDatabaseHas('activity_logs', ['action' => 'updated', 'note' => 'Project CCRH moved from work order GEMC-8032 to GEMC-8030']);
+
+        // Refused: same short name already there, or sub-bills under the old work order.
+        $other = $dummy->projects()->create(['name' => 'Again', 'code' => 'ccrh']);
+        $this->post(route('projects.move', $other), ['gem_contract_id' => $real->id])->assertSessionHasErrors('move');
+        $this->assertSame($dummy->id, $other->fresh()->gem_contract_id);
+    }
 }

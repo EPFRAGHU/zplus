@@ -241,6 +241,7 @@ class GemContractController extends Controller
             'papers' => \App\Models\MonthlyPaper::query()->with('uploader')->where('gem_contract_id', $contract->id)->where('month', $month->toDateString())->orderBy('id')->get()->groupBy('kind'),
             'needs' => self::statutoryNeeds($contract),
             'incharges' => \App\Models\ProjectIncharge::query()->where('agency_id', $contract->agency_id)->where('status', 'active')->orderBy('name')->get(),
+            'otherContracts' => GemContract::query()->where('agency_id', $contract->agency_id)->whereKeyNot($contract->id)->orderBy('contract_no')->get(['id', 'contract_no', 'bid_no']),
         ]);
     }
 

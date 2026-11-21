@@ -86,4 +86,51 @@ class ProjectController extends Controller
 
         return $data;
     }
+
+    /**
+     * Super Admin (owner, 23 Nov 2026): moves a project to another work order of the same agency, e.g. out of a stand-in
+     * contract number made when one contract could hold only one project. Posts, staff, attendance and appointment letters
+     * follow the project; letter numbers use the project's short name, so they do not change.
+     */
+    public function move(Request $request, Project $project): RedirectResponse
+    {
+        Gate::authorize('move-projects');
+        $data = $request->validate(['gem_contract_id' => ['required', new \App\Rules\ExistsInMyAgency(GemContract::class)]],
+            ['gem_contract_id.required' => 'Choose the work order to move the project to.']);
+        $from = $project->contract;
+        $to = GemContract::query()->findOrFail($data['gem_contract_id']);
+        if ($why = self::cannotMove($project, $to)) {
+            return back()->withErrors(['move' => $why]);
+        }
+        \Illuminate\Support\Facades\DB::transaction(function () use ($project, $from, $to) {
+            $project->update(['gem_contract_id' => $to->id]);
+            if ((int) $from->client_id !== (int) $to->client_id) {
+                \App\Models\Employee::query()->whereIn('post_id', $project->posts()->pluck('id'))->update(['client_id' => $to->client_id]);
+            }
+            \App\Support\Activity\Activity::log('updated', $project, ['gem_contract_id' => [$from->contract_no, $to->contract_no]],
+                "Project {$project->code} moved from work order {$from->contract_no} to {$to->contract_no}", section: 'Masters', label: $project->code);
+        });
+
+        return redirect()->route('contracts.show', $to)->with('status', "Project {$project->name} ({$project->code}) moved from {$from->contract_no} to {$to->contract_no}, with its posts, staff and attendance."
+            .($from->projects()->exists() ? '' : " {$from->contract_no} now has no projects and can be deleted (Show delete options)."));
+    }
+
+    /** Why a project cannot move to $to, or null. */
+    public static function cannotMove(Project $project, GemContract $to): ?string
+    {
+        if ((int) $to->id === (int) $project->gem_contract_id) {
+            return 'The project is already under this work order.';
+        }
+        if ((int) $to->agency_id !== (int) $project->contract->agency_id) {
+            return 'A project can only move to a work order of the same agency.';
+        }
+        if (\App\Models\Invoice::query()->where('project_id', $project->id)->exists()) {
+            return 'This project already has sub-bills under '.$project->contract->contract_no.'; their bill numbers belong to that work order, so it cannot move.';
+        }
+        if ($to->projects()->whereRaw('UPPER(code) = ?', [strtoupper($project->code)])->exists()) {
+            return 'Work order '.$to->contract_no.' already has a project '.$project->code.'. Change one short name first.';
+        }
+
+        return null;
+    }
 }

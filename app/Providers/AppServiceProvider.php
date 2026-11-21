@@ -28,6 +28,7 @@ class AppServiceProvider extends ServiceProvider
         Gate::define('delete-project', fn (User $u) => Gate::forUser($u)->allows('delete-masters'));
         // Super Admin deletes of unused records and of bills (except paid); the buttons show only with "Show delete options" on.
         Gate::define('delete-records', fn (User $u) => $u->isSuperAdmin());
+        Gate::define('move-projects', fn (User $u) => $u->isSuperAdmin());   // project to another work order (owner, 23 Nov 2026)
         Gate::define('show-delete', fn (User $u) => Gate::forUser($u)->allows('delete-masters') && (bool) session('delete_mode'));
         // Bills, tax invoices and agencies stay with the Super Admins.
         Gate::define('show-delete-bills', fn (User $u) => $u->isSuperAdmin() && (bool) session('delete_mode'));   // delete a project's month: bill + attendance

@@ -1,6 +1,7 @@
 <x-layouts.app :title="'Work order '.$contract->contract_no" :crumb="'Masters / <a href=\''.route('contracts.index').'\'>Work Orders</a>'">
   <x-slot:actions>@can('manage-masters')<a class="btn btn-outline-primary" href="#add-project"><i class="bi bi-plus-lg me-1"></i>Add project</a><a class="btn btn-outline-secondary" href="{{ route('contracts.edit', $contract) }}"><i class="bi bi-pencil me-1"></i>Edit work order</a>@endcan
     @can('show-delete')<x-delete-button :action="route('contracts.destroy', $contract)" :small="false" label="Delete work order" :blocked="\App\Support\SafeDelete::contract($contract)" :confirm="'Delete work order '.$contract->contract_no.'? It has no projects or bills.'" />@endcan</x-slot:actions>
+  @error('move')<div class="alert alert-danger small">{{ $message }}</div>@enderror
   <div class="z-card p-3 mb-3">
     <div class="row g-3 small">
       <div class="col-md-3"><div class="text-secondary">Agency</div><div class="fw-semibold">{{ $contract->agency->name }}</div></div>
@@ -98,6 +99,18 @@
         <h2>{{ $project->name }} <span class="mono text-secondary fw-normal">{{ $project->code }}</span></h2>
         <span class="small text-secondary">PI: {{ $project->incharge?->label() ?? $project->pi_name ?? '—' }}@if($project->incharge?->mobile) · {{ $project->incharge->mobile }}@endif</span>
         @can('manage-masters')<button class="btn btn-sm btn-outline-secondary ms-auto" data-bs-toggle="collapse" data-bs-target="#edit-p{{ $project->id }}">Edit project</button>@endcan
+        @can('move-projects')@if($otherContracts->isNotEmpty())
+          <span class="dropdown">
+            <button type="button" class="btn btn-sm btn-outline-primary" data-bs-toggle="dropdown" data-bs-auto-close="outside" aria-expanded="false"><i class="bi bi-arrow-left-right me-1"></i>Move to another work order</button>
+            <form method="post" action="{{ route('projects.move', $project) }}" class="dropdown-menu dropdown-menu-end p-3" style="width:340px"
+              data-confirm="Move project {{ $project->code }} with its posts, staff and attendance to the chosen work order?" onsubmit="return confirm(this.dataset.confirm)">@csrf
+              <label class="form-label small fw-semibold mb-1" for="mv-{{ $project->id }}">Move {{ $project->code }} to work order</label>
+              <select id="mv-{{ $project->id }}" name="gem_contract_id" class="form-select form-select-sm mb-2" required><option value="">Choose work order</option>
+                @foreach($otherContracts as $oc)<option value="{{ $oc->id }}">{{ $oc->contract_no }}{{ $oc->bid_no ? ' · '.$oc->bid_no : '' }}</option>@endforeach</select>
+              <div class="small text-secondary mb-2">Posts, staff, attendance and appointment letters move with it. Not possible once the project has sub-bills.</div>
+              <button class="btn btn-sm btn-primary w-100">Move project</button>
+            </form></span>
+        @endif @endcan
         @can('show-delete')@unless(\App\Http\Controllers\ProjectController::cannotDelete($project))
           <form method="post" action="{{ route('projects.destroy', $project) }}" class="d-inline" data-confirm="Delete project {{ $project->name }} ({{ $project->code }})? It has no attendance, bills or staff. Its empty posts are removed too." onsubmit="return confirm(this.dataset.confirm)">@csrf @method('delete')
             <button class="btn btn-sm btn-outline-danger"><i class="bi bi-trash"></i> Delete project</button></form>
