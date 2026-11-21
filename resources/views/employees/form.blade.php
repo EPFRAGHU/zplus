@@ -56,7 +56,7 @@
             @foreach($posts as $p)
               @php($k = $p->project->contract)
               <option value="{{ $p->id }}" data-agency="{{ $k->agency_id }}" data-client="{{ $k->client_id }}" @selected($postId === (string) $p->id)>
-                {{ $k->bid_no }} · {{ $p->label() }} ({{ $p->active_employees_count }}/{{ $p->sanctioned_qty }} filled)</option>
+                {{ $k->contract_no }} · {{ $p->label() }} ({{ $p->active_employees_count }}/{{ $p->sanctioned_qty }} filled)</option>
             @endforeach
           </select>
           @error('post_id')<div class="invalid-feedback">{{ $message }}</div>@enderror

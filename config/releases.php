@@ -12,6 +12,10 @@ return [
     'timezone' => 'Asia/Kolkata',      // release times are Indian Standard Time
 
     'releases' => [
+        ['version' => '2.34.1', 'date' => '2026-11-23 20:00', 'title' => 'Contract number instead of bid number in post lists', 'type' => 'fix', 'notes' => [
+            'Employee form (GeM post list and "Add new post"), attendance sheet heading, Make tax invoice, the Dashboard\'s recent bills and the Sub-bills waiting lists now show the GeM contract number (GEMC-…) instead of the bid number',
+            'No data changes',
+        ]],
         ['version' => '2.34.0', 'date' => '2026-11-23 19:00', 'title' => 'Move a project to another work order', 'type' => 'feature', 'notes' => [
             'Work order page (Super Admins): "Move to another work order" on each project, to bring projects out of the stand-in contract numbers made when one contract could hold only one project (e.g. …8031, …8032 into …8030)',
             'Posts, staff, attendance, PI and appointment letters move with the project; letter numbers do not change; the emptied work order can then be deleted',

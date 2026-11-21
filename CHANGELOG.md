@@ -2,6 +2,11 @@
 
 Versions follow MAJOR.MINOR.PATCH. Dates are Indian Standard Time.
 
+## 2.34.1 (2026-11-23): Contract number instead of bid number in post lists
+
+- Employee form (GeM post list and "Add new post"), attendance sheet heading, Make tax invoice, the Dashboard's recent bills and the Sub-bills waiting lists now show the GeM contract number (GEMC-…) instead of the bid number
+- No data changes
+
 ## 2.34.0 (2026-11-23): Move a project to another work order
 
 - Work order page (Super Admins): "Move to another work order" on each project, to bring projects out of the stand-in contract numbers made when one contract could hold only one project (e.g. …8031, …8032 into …8030)

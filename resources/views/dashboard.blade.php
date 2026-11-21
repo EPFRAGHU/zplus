@@ -179,7 +179,7 @@
               @php($blk = $i->agency_id)
               <tr class="table-secondary"><td colspan="8" class="py-2"><b class="fs-6">{{ $i->contract->agency->name }}</b> <span class="badge text-bg-dark">{{ $i->contract->agency->code }}</span></td></tr>
             @endif
-            <tr><td><a class="mono" href="{{ route('invoices.show', $i) }}">{{ $i->invoice_no }}</a></td><td><span class="badge text-bg-light border">{{ $i->contract->agency->code }}</span></td><td>{{ $i->contract->client->name }}</td><td class="mono">{{ $i->contract->bid_no }}</td><td>{{ $i->project->name }}</td><td>{{ $i->month->format('M Y') }}</td><td class="num">{{ inr($i->rounded_total) }}</td><td><x-status :value="$i->status" /></td></tr>
+            <tr><td><a class="mono" href="{{ route('invoices.show', $i) }}">{{ $i->invoice_no }}</a></td><td><span class="badge text-bg-light border">{{ $i->contract->agency->code }}</span></td><td>{{ $i->contract->client->name }}</td><td class="mono">{{ $i->contract->contract_no }}</td><td>{{ $i->project->name }}</td><td>{{ $i->month->format('M Y') }}</td><td class="num">{{ inr($i->rounded_total) }}</td><td><x-status :value="$i->status" /></td></tr>
           @empty
             <tr><td colspan="8" class="text-center text-secondary py-4">No bills yet. Lock a month's attendance, then make its bill.</td></tr>
           @endforelse

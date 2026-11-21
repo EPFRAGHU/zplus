@@ -39,7 +39,7 @@ class QuickPostTest extends TestCase
         $this->assertSame('SNAKEBITE', $post->project->code);
         $this->assertSame($swh->id, $post->project->contract->agency_id);
         $this->assertSame($icmr->id, $res->json('post.client_id'));
-        $this->assertStringContainsString('GEM/2026/B/8004647 · Snakebite · PTS-III', $res->json('post.label'));
+        $this->assertStringContainsString('GEMC-511687702194133 · Snakebite · PTS-III', $res->json('post.label'));
     }
 
     public function test_add_post_to_an_existing_contract_and_project(): void

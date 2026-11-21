@@ -18,7 +18,7 @@
     <div class="z-card-h"><h2>Ready to bill</h2><span class="small text-secondary">Locked attendance without a bill</span></div>
     <ul class="list-group list-group-flush">
       @foreach($ready as $s)
-        <li class="list-group-item d-flex align-items-center gap-2 flex-wrap"><span class="badge text-bg-light border">{{ $s->project->contract->agency->code }}</span><span>{{ $s->project->contract->client->name }}</span><span class="mono small text-secondary">{{ $s->project->contract->bid_no }}</span><b>{{ $s->project->name }}</b><span class="text-secondary">{{ $s->month->format('F Y') }}</span>
+        <li class="list-group-item d-flex align-items-center gap-2 flex-wrap"><span class="badge text-bg-light border">{{ $s->project->contract->agency->code }}</span><span>{{ $s->project->contract->client->name }}</span><span class="mono small text-secondary">{{ $s->project->contract->contract_no }}</span><b>{{ $s->project->name }}</b><span class="text-secondary">{{ $s->month->format('F Y') }}</span>
           @can('billing')<form method="post" action="{{ route('invoices.store') }}" class="ms-auto">@csrf<input type="hidden" name="attendance_sheet_id" value="{{ $s->id }}"><button class="btn btn-sm btn-primary">Make bill</button></form>@endcan</li>
       @endforeach
     </ul>
@@ -36,7 +36,7 @@
       <div class="small text-secondary mb-1">Attendance started but not locked yet:</div>
       <ul class="list-group list-group-flush small">
         @foreach($drafts as $s)
-          <li class="list-group-item d-flex gap-2 align-items-center px-0"><span class="badge text-bg-light border">{{ $s->project->contract->agency->code }}</span><span>{{ $s->project->contract->client->name }}</span><span class="mono small text-secondary">{{ $s->project->contract->bid_no }}</span><b>{{ $s->project->name }}</b><span class="text-secondary">{{ $s->month->format('F Y') }}</span>
+          <li class="list-group-item d-flex gap-2 align-items-center px-0"><span class="badge text-bg-light border">{{ $s->project->contract->agency->code }}</span><span>{{ $s->project->contract->client->name }}</span><span class="mono small text-secondary">{{ $s->project->contract->contract_no }}</span><b>{{ $s->project->name }}</b><span class="text-secondary">{{ $s->month->format('F Y') }}</span>
             <a class="btn btn-sm btn-outline-secondary ms-auto" href="{{ route('attendance.show', $s) }}">Open and lock</a></li>
         @endforeach
       </ul>
@@ -93,7 +93,7 @@
         </x-client-block>
       @endif
       <tr><td><a class="mono" href="{{ route('invoices.show', $i) }}">{{ $i->invoice_no }}</a></td><td><span class="badge text-bg-light border" title="{{ $i->contract->agency->name }}">{{ $i->contract->agency->code }}</span></td><td>{{ $i->contract->client->name }}</td>
-        <td><a class="mono text-decoration-none" href="{{ route('contracts.show', $i->contract) }}">{{ $i->contract->contract_no }}</a>@if($i->contract->bid_no)<div class="small text-secondary">Bid {{ $i->contract->bid_no }}</div>@endif</td>
+        <td><a class="mono text-decoration-none" href="{{ route('contracts.show', $i->contract) }}">{{ $i->contract->contract_no }}</a>@if($i->contract->bid_no)<div class="small text-secondary">Bid {{ $i->contract->contract_no }}</div>@endif</td>
         <td><span class="fw-semibold">{{ $i->project->name }}</span>@if($i->project->pi_name) <div class="small text-secondary">PI: {{ $i->project->pi_name }}</div> @endif</td><td>{{ $i->month->format('M Y') }}</td>
         <td class="num">{{ inr($i->taxable, true) }}</td><td class="num fw-semibold">{{ inr($i->rounded_total, true) }}</td><td><x-status :value="$i->status" />@if($i->tax_invoice_id) <div class="small"><a href="{{ route('tax-invoices.show', $i->tax_invoice_id) }}">In tax invoice</a></div>@endif</td></tr>
     @empty

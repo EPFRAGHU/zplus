@@ -18,7 +18,7 @@
         <tr>
           <td><input class="form-check-input" type="checkbox" name="sub_bills[]" value="{{ $b->id }}" id="sb{{ $b->id }}" checked aria-label="Include {{ $b->invoice_no }}"></td>
           <td><label for="sb{{ $b->id }}" class="mono">{{ $b->invoice_no }}</label></td>
-          <td>{{ $b->project->name }}</td><td class="mono small">{{ $b->contract->bid_no }}</td>
+          <td>{{ $b->project->name }}</td><td class="mono small">{{ $b->contract->contract_no }}</td>
           <td class="num">{{ inr($b->taxable, true) }}</td><td class="num">{{ inr((float) $b->cgst + (float) $b->sgst + (float) $b->igst, true) }}</td>
           <td class="num">{{ inr($b->total, true) }}</td><td><x-status :value="$b->status" /></td>
         </tr>

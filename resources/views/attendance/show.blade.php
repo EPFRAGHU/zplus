@@ -42,7 +42,7 @@
     <span>Agency: <b>{{ $sheet->project->contract->agency->name }}</b></span>
     <span>Client: <b>{{ $sheet->project->contract->client->name }}</b></span>
     <span>PI: <b>{{ $sheet->project->pi_name ?? '—' }}</b></span>
-    <span>Contract: <span class="mono">{{ $sheet->project->contract->bid_no }}</span></span>
+    <span>Work order: <span class="mono">{{ $sheet->project->contract->contract_no }}</span></span>
     @if($sheet->invoice)<span>Bill: <a class="mono" href="{{ route('invoices.show', $sheet->invoice) }}">{{ $sheet->invoice->invoice_no }}</a></span>@endif
   </div>
 

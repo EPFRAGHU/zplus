@@ -81,7 +81,7 @@ class PostController extends Controller
 
             return response()->json(['post' => [
                 'id' => $post->id, 'agency_id' => $k->agency_id, 'client_id' => $k->client_id,
-                'label' => $k->bid_no.' · '.$post->label().' (0/'.$post->sanctioned_qty.' filled)',
+                'label' => $k->contract_no.' · '.$post->label().' (0/'.$post->sanctioned_qty.' filled)',
             ]], 201);
         }
 
