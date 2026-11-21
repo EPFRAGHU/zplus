@@ -121,12 +121,21 @@ class EmployeeController extends Controller
             $doc->update(['number' => sprintf('%s/%02d/%s', $prefix, DocumentSequence::next("appointment:{$prefix}:{$yy}"), $yy)]);
         }
 
-        $rate = $employee->rate();
+        return Pdf::loadView('pdf.appointment-letter', self::appointmentLetterData($employee, $doc->number))->setPaper('a4')->stream("appointment-".\App\Support\Codes::fileSafe($employee->emp_code).".pdf");
+    }
 
-        return Pdf::loadView('pdf.appointment-letter', [
-            'employee' => $employee, 'project' => $project, 'contract' => $contract, 'agency' => $contract->agency,
-            'number' => $doc->number, 'rate' => $rate, 'rateWords' => AmountInWords::rupees($rate),
-        ])->setPaper('a4')->stream("appointment-".\App\Support\Codes::fileSafe($employee->emp_code).".pdf");
+    /** Everything the appointment letter prints. Deductions use the salary payout sheet's rules on a full month (owner, 21 Nov 2026). */
+    public static function appointmentLetterData(Employee $employee, string $number): array
+    {
+        $project = $employee->post->project;
+        $contract = $project->contract;
+        $rate = $employee->rate();
+        $daily = $contract->billing_type === 'daily';
+        $cuts = $daily ? null : app(\App\Services\Payroll\SalaryPayoutSheet::class)->deductions(\App\Support\Money::toPaise((string) $rate),
+            (bool) $employee->pf_applicable, (bool) $employee->esic_applicable, (bool) ($employee->tds_applicable ?? true));
+
+        return ['employee' => $employee, 'project' => $project, 'contract' => $contract, 'agency' => $contract->agency,
+            'number' => $number, 'rate' => $rate, 'rateWords' => AmountInWords::rupees($rate), 'daily' => $daily, 'cuts' => $cuts];
     }
 
     /** Switch EPF, ESIC and TDS on or off from the employees list. */

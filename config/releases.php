@@ -12,6 +12,12 @@ return [
     'timezone' => 'Asia/Kolkata',      // release times are Indian Standard Time
 
     'releases' => [
+        ['version' => '2.24.0', 'date' => '2026-11-22 10:00', 'title' => 'Government-style appointment order', 'type' => 'feature', 'notes' => [
+            'Appointment letter is now an "APPOINTMENT ORDER" in a government office style: No. and Dated, Sub and Ref (GeM contract), numbered terms, signatory name and title, Copy to, and an Acceptance slip; still one page on the agency letterhead',
+            'New term 3 "Statutory deductions": EPF 12% (on wages up to Rs. 15,000), ESI 0.75% and TDS 2%, each shown as Applicable or Not applicable from the employee\'s switches, with the amounts and the net monthly payment worked out exactly as on the salary payout sheet',
+            'Reference number unchanged: SWH/NIHR/<short project name>/01/26, numbered per project',
+            'No bill amount, number or data changes',
+        ]],
         ['version' => '2.23.0', 'date' => '2026-11-21 22:30', 'title' => 'Contract balance on the tax invoice; same post in one row', 'type' => 'feature', 'notes' => [
             'Tax invoice PDF and page: "Contract value position": total tender value (incl. GST), less tax invoices billed before, opening balance, less this tax invoice, net balance; the net balance is next month\'s opening balance, through the contract period',
             'Shown once the total contract value is entered on the work order',

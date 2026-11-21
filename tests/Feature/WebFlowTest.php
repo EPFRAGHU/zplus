@@ -229,19 +229,26 @@ class WebFlowTest extends TestCase
         $this->actingAs($admin)->get("/invoices/{$invoice->id}/pdf")->assertOk()->assertHeader('content-type', 'application/pdf');
     }
 
-    public function test_appointment_letter_names_the_agency_and_client(): void
+    public function test_appointment_letter_is_a_government_style_order_with_statutory_deductions(): void
     {
         $this->seed(DemoSeeder::class);
-        $employee = Employee::query()->with('post.project.contract.agency', 'post.project.contract.client')->firstOrFail();
-        $project = $employee->post->project;
+        $employee = Employee::query()->with('post.project.contract')->firstOrFail();
+        $employee->forceFill(['pf_applicable' => true, 'esic_applicable' => false, 'tds_applicable' => true, 'rate_override' => null])->save();
+        $employee->post->update(['rate' => 25000]);
 
-        $html = view('pdf.appointment-letter', ['employee' => $employee, 'project' => $project, 'contract' => $project->contract,
-            'agency' => $project->contract->agency, 'number' => 'ZPS/NIHR/MPH/01/26', 'rate' => '55000',
-            'rateWords' => 'Rupees Fifty Five Thousand Only'])->render();
-        $this->assertStringContainsString('<b>Agency:</b> M/S Z Plus Surakhya Seva (ZPS)', $html);
-        $this->assertStringContainsString('<b>Client:</b> ICMR-NIHR (RMRCBB), Bhubaneswar', $html);
+        $pdf = $this->actingAs($this->user('admin'))->get("/employees/{$employee->id}/appointment-letter")->assertOk()
+            ->assertHeader('content-type', 'application/pdf')->getContent();
+        $text = preg_replace('/\s+/', ' ', (new \Smalot\PdfParser\Parser)->parseContent($pdf)->getText());
 
-        $this->actingAs($this->user('admin'))->get("/employees/{$employee->id}/appointment-letter")->assertOk()->assertHeader('content-type', 'application/pdf');
+        $this->assertStringContainsString('APPOINTMENT ORDER', $text);
+        $this->assertStringContainsString('No. ZPS/NIHR/MPH/01/26', $text);
+        $this->assertStringContainsString('M/S Z Plus Surakhya Seva', $text);          // agency
+        $this->assertStringContainsString('ICMR-NIHR (RMRCBB), Bhubaneswar', $text);   // client
+        $this->assertMatchesRegularExpression('/EPF, employee share @ 12%.*Applicable 1,800/', $text);   // 12% of 15,000
+        $this->assertMatchesRegularExpression('/ESI, employee share @ 0.75% Not applicable –/u', $text);
+        $this->assertMatchesRegularExpression('/TDS @ 2% Applicable 500/', $text);
+        $this->assertStringContainsString('22,700', $text);                             // net for a full month
+        $this->assertStringContainsString('ACCEPTANCE', $text);
     }
 
     public function test_attendance_certificate_names_the_agency_and_client(): void

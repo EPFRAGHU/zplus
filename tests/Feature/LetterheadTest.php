@@ -62,8 +62,7 @@ class LetterheadTest extends TestCase
 
         $employee = Employee::query()->with('post.project.contract.agency', 'post.project.contract.client')->firstOrFail();
         $p = $employee->post->project;
-        $letter = view('pdf.appointment-letter', ['employee' => $employee, 'project' => $p, 'contract' => $p->contract, 'agency' => $p->contract->agency,
-            'number' => 'ZPS/NIHR/MPH/01/26', 'rate' => '55000', 'rateWords' => 'Rupees Fifty Five Thousand Only'])->render();
+        $letter = view('pdf.appointment-letter', \App\Http\Controllers\EmployeeController::appointmentLetterData($employee, 'ZPS/NIHR/MPH/01/26'))->render();
         $this->assertStringContainsString('M/S Z PLUS SURAKHYA SEVA', $letter);
         $this->assertStringNotContainsString('O/o The', $letter);   // the letterhead replaces the plain "From" address
 
@@ -205,11 +204,10 @@ class LetterheadTest extends TestCase
         $this->assertSame(1, preg_match_all('#/Type\s*/Page[^s]#', $pdf));   // fits on one page
 
         $p = $employee->fresh()->post->project;
-        $html = view('pdf.appointment-letter', ['employee' => $employee, 'project' => $p, 'contract' => $p->contract, 'agency' => $swh->fresh(),
-            'number' => 'SWH/NIHR/MPH/01/26', 'rate' => '55000', 'rateWords' => 'Rupees Fifty Five Thousand Only'])->render();
+        $html = view('pdf.appointment-letter', \App\Http\Controllers\EmployeeController::appointmentLetterData($employee->fresh(), 'SWH/NIHR/MPH/01/26'))->render();
         $this->assertStringContainsString('&ldquo;SWACHHA&rdquo;', $html);
         $this->assertStringContainsString('Regd. Office Address:', $html);
-        $this->assertStringContainsString('Ref:- SWH/NIHR/MPH/01/26', $html);
+        $this->assertStringContainsString('<b>No. SWH/NIHR/MPH/01/26</b>', $html);   // government-style order number (owner, 21 Nov 2026)
         $this->assertStringNotContainsString('O/o The', $html);
     }
 }
