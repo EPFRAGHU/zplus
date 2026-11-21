@@ -30,6 +30,7 @@ final class AttendanceService
                 $employees = Employee::query()
                     ->whereIn('post_id', $project->posts()->pluck('id'))
                     ->whereIn('status', ['active', 'notice'])
+                    ->where(fn ($q) => $q->whereNull('exit_date')->orWhere('exit_date', '>=', $month->toDateString()))   // left before this month
                     ->whereNotIn('id', $existing)
                     ->get();
 
@@ -68,6 +69,9 @@ final class AttendanceService
                 $codes = [];
                 for ($d = 1; $d <= $days; $d++) {
                     $codes[$d] = strtoupper(trim((string) ($codesByEntry[$entry->id][$d] ?? 'A')));
+                }
+                $codes = $entry->employee ? $this->blankOutsideEmployment($codes, $sheet->month, $entry->employee) : $codes;   // nothing is paid after the last working day
+                for ($d = 1; $d <= $days; $d++) {
                     $old = strtoupper((string) ($entry->codes[$d] ?? $entry->codes[(string) $d] ?? 'A'));
                     if ($old !== $codes[$d] && count($log) < 200) {
                         $log[($entry->employee?->name ?? 'Staff').' · day '.$d] = [$old, $codes[$d]];
@@ -123,6 +127,50 @@ final class AttendanceService
             'locked_at' => now(),
             'locked_by' => $user->id,
         ])->save();
+        // Staff whose last working day falls in this month are Inactive from next month (owner, 21 Nov 2026).
+        Employee::query()->whereIn('id', $sheet->entries()->pluck('employee_id'))->whereNotNull('exit_date')
+            ->where('exit_date', '<=', $sheet->month->endOfMonth()->toDateString())->where('status', '<>', 'inactive')
+            ->get()->each(fn (Employee $e) => $e->update(['status' => 'inactive']));
+    }
+
+    /**
+     * The PI (or the agency) records a resignation: the last working day of staff on this sheet, within this month.
+     * Days after it are cleared on save. A blank date removes a resignation entered for this month.
+     *
+     * @param  array<int|string, ?string>  $exits  entry id => Y-m-d or blank
+     * @return array<int, string> names of staff whose date changed
+     */
+    public function setExits(AttendanceSheet $sheet, array $exits): array
+    {
+        $this->assertEditable($sheet);
+        $first = $sheet->month->startOfMonth();
+        $last = $sheet->month->endOfMonth();
+        $changed = [];
+        foreach ($sheet->entries()->with('employee')->whereIn('id', array_keys($exits))->get() as $entry) {
+            $e = $entry->employee;
+            $raw = $exits[$entry->id] ?? null;
+            $date = filled($raw) ? CarbonImmutable::parse($raw)->startOfDay() : null;
+            if (! $e) {
+                continue;
+            }
+            if ($date && ($date->lt($first) || $date->gt($last))) {
+                throw new RuntimeException("The last working day of {$e->name} must be in {$sheet->month->format('F Y')}.");
+            }
+            if ($date && $e->joining_date && $date->lt($e->joining_date)) {
+                throw new RuntimeException("The last working day of {$e->name} is before their joining date.");
+            }
+            $current = $e->exit_date ? CarbonImmutable::parse($e->exit_date)->startOfDay() : null;
+            if (! $date && (! $current || $current->lt($first) || $current->gt($last))) {
+                continue;   // a blank box only clears a date of this month
+            }
+            if ($current?->toDateString() === $date?->toDateString()) {
+                continue;
+            }
+            $e->update(['exit_date' => $date?->toDateString()]);
+            $changed[] = $e->name;
+        }
+
+        return $changed;
     }
 
     public function unlock(AttendanceSheet $sheet): void

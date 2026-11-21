@@ -81,5 +81,12 @@
   <tr><td></td><td colspan="6" class="b">In Words: ( {{ \App\Support\AmountInWords::rupees($t->roundedTotal) }})</td></tr>
   </tbody>
 </table>
+@php($leavers = collect($t->lines)->map(fn ($line) => ['line' => $line->ref['line'], 'bill' => $line->ref['bill']])
+    ->filter(fn ($r) => $r['line']->employee?->exitIn($r['bill']->month))->values())
+@if($leavers->isNotEmpty())
+<div style="margin-top:8px;font-size:9px;color:#b02a37"><b>Staff who resigned during {{ $leavers->first()['bill']->month->format('F Y') }} (paid up to the last working day):</b>
+  @foreach($leavers as $r){{ $r['line']->employee_name }} – {{ $r['line']->designation }} ({{ $r['bill']->project->code }}), last working day {{ $r['line']->employee->exit_date->format('d.m.Y') }}, {{ rtrim(rtrim((string) $r['line']->paid_days, '0'), '.') }} days paid{{ $loop->last ? '.' : ';' }} @endforeach
+</div>
+@endif
 <table class="nb" style="margin-top:40px;page-break-inside:avoid"><tr><td></td><td class="r b i" style="width:40%">{{ strtoupper($agency->name) }}</td></tr><tr><td></td><td class="r b">Authorized Signatory</td></tr></table>
 </body></html>

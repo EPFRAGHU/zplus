@@ -12,6 +12,13 @@ return [
     'timezone' => 'Asia/Kolkata',      // release times are Indian Standard Time
 
     'releases' => [
+        ['version' => '2.22.0', 'date' => '2026-11-21 20:30', 'title' => 'Resignation date on attendance', 'type' => 'feature', 'notes' => [
+            'Attendance (PI portal and agency): a "Last working day" box for each person; enter it for anyone who resigned or left in that month',
+            'Days after the last working day are not paid, whatever code is entered; they show in red on the attendance grid and the attendance certificate',
+            'The sub-bill (page and PDF) shows "Resigned, last working day" in red under the person\'s name; the tax invoice PDF lists staff who resigned that month, with days paid',
+            'When that month\'s attendance is locked the person becomes Inactive and is not on next month\'s sheet',
+            'Amounts change only for the staff whose last working day is entered (paid up to that date)',
+        ]],
         ['version' => '2.21.0', 'date' => '2026-11-21 18:00', 'title' => 'Work order, projects, posts and staff on one page', 'type' => 'feature', 'notes' => [
             'Add work order now has a "Projects, posts and staff" section: for each project the short name, project name and Project In-charge (choose one or type a new name and mobile), its posts (designation, sanctioned, rate) and its staff (name, post, joining date, mobile, EPF / ESI / TDS)',
             'Everything is saved together; if anything is wrong nothing is saved and the form keeps what was typed',

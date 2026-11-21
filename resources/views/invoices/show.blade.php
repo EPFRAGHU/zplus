@@ -20,7 +20,8 @@
         <div class="table-responsive"><table class="table">
           <thead><tr><th>Sl.</th><th>Name</th><th>Post</th><th class="num">Rate</th>@if($invoice->billing_type === 'monthly')<th class="num">Days in month</th>@endif<th class="num">Paid days</th><th class="num">Amount</th></tr></thead>
           <tbody>@foreach($invoice->lines as $l)
-            <tr><td>{{ $loop->iteration }}</td><td>{{ $l->employee_name }}</td><td>{{ $l->designation }}</td><td class="num">{{ inr($l->rate) }}{{ $l->rate_type === 'daily' ? '/day' : '' }}</td>
+            @php($exit = $l->employee?->exitIn($invoice->month))
+            <tr @class(['table-danger' => $exit])><td>{{ $loop->iteration }}</td><td>{{ $l->employee_name }}@if($exit)<div><span class="badge text-bg-danger">Resigned · last day {{ $exit->format('d.m.Y') }}</span></div>@endif</td><td>{{ $l->designation }}</td><td class="num">{{ inr($l->rate) }}{{ $l->rate_type === 'daily' ? '/day' : '' }}</td>
               @if($invoice->billing_type === 'monthly')<td class="num">{{ $l->days_in_month }}</td>@endif<td class="num">{{ rtrim(rtrim((string) $l->paid_days, '0'), '.') }}</td><td class="num">{{ inr($l->amount, true) }}</td></tr>
           @endforeach</tbody>
         </table></div>

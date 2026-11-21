@@ -102,4 +102,10 @@ class Employee extends Model
 
         return $prefix.max(1001, ($max ?? 1000) + 1);
     }
+
+    /** The last working day when it falls in the given month (a resignation shown in red on that month's papers). */
+    public function exitIn(\Carbon\CarbonInterface $month): ?\Carbon\CarbonInterface
+    {
+        return $this->exit_date && $this->exit_date->between($month->copy()->startOfMonth(), $month->copy()->endOfMonth()) ? $this->exit_date : null;
+    }
 }

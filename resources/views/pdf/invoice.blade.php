@@ -44,7 +44,8 @@
     @foreach($invoice->lines as $l)
       @php($perDay = $l->rate_type === 'monthly' ? (float) $l->rate / max(1, (int) $l->days_in_month) : (float) $l->rate)
       <tr><td class="c" style="vertical-align:bottom">{{ $loop->iteration }}</td>
-        <td class="b i">{{ $l->employee_name }}<br>{{ $l->designation }}</td>
+        @php($exit = $l->employee?->exitIn($invoice->month))
+        <td class="b i">{{ $l->employee_name }}<br>{{ $l->designation }}@if($exit)<br><span style="color:#b02a37">Resigned, last working day {{ $exit->format('d.m.Y') }} (paid up to that date)</span>@endif</td>
         <td class="c" style="vertical-align:bottom">1</td>
         <td class="c" style="vertical-align:bottom">{{ rtrim(rtrim((string) $l->paid_days, '0'), '.') }}</td>
         <td class="c" style="vertical-align:bottom">{{ $rs($perDay) }}</td>

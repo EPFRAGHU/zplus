@@ -18,4 +18,9 @@ class InvoiceLine extends Model
     {
         return $this->belongsTo(Invoice::class);
     }
+
+    public function employee(): BelongsTo
+    {
+        return $this->belongsTo(Employee::class);
+    }
 }

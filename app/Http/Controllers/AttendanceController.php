@@ -74,11 +74,15 @@ class AttendanceController extends Controller
             'codes' => ['required', 'array'],
             'codes.*' => ['array'],
             'codes.*.*' => ['required', 'string', 'in:'.implode(',', array_keys(AttendanceCodes::LABELS))],
+            'exit' => ['nullable', 'array'], 'exit.*' => ['nullable', 'date'],
         ]);
 
         $changed = 0;
         $response = $this->attempt(function () use ($sheet, $data, $request, &$changed) {
-            $changed = $this->attendance->save($sheet, $data['codes'], $request->user());
+            \Illuminate\Support\Facades\DB::transaction(function () use ($sheet, $data, $request, &$changed) {
+                $this->attendance->setExits($sheet, $data['exit'] ?? []);
+                $changed = $this->attendance->save($sheet, $data['codes'], $request->user());
+            });
         }, 'Attendance saved.');
 
         return $changed ? $response->with('status', "Attendance saved. {$changed} ".\Illuminate\Support\Str::plural('change', $changed).' recorded as made by the agency after the PI submitted.') : $response;

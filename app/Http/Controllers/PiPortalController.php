@@ -61,9 +61,13 @@ class PiPortalController extends Controller
         $data = $request->validate([
             'codes' => ['required', 'array'], 'codes.*' => ['array'],
             'codes.*.*' => ['required', 'string', 'in:'.implode(',', array_keys(AttendanceCodes::LABELS))],
+            'exit' => ['nullable', 'array'], 'exit.*' => ['nullable', 'date'],
         ]);
 
-        return $this->attempt(fn () => $this->attendance->save($sheet, $data['codes']), 'Attendance saved. You can keep changing it until you submit.');
+        return $this->attempt(fn () => \Illuminate\Support\Facades\DB::transaction(function () use ($sheet, $data) {
+            $this->attendance->setExits($sheet, $data['exit'] ?? []);
+            $this->attendance->save($sheet, $data['codes']);
+        }), 'Attendance saved. You can keep changing it until you submit.');
     }
 
     public function submit(Request $request, AttendanceSheet $sheet): RedirectResponse

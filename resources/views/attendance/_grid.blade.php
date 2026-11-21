@@ -11,9 +11,15 @@
         <th class="num">Paid days</th></tr></thead>
       <tbody>
       @forelse($sheet->entries->sortBy('employee.name') as $entry)
-        <tr><td><div class="fw-semibold">{{ $entry->employee->name }}</div><div class="small text-secondary">{{ $entry->employee->post?->designation }}</div></td>
+        @php($exit = $entry->employee->exitIn($sheet->month))
+        <tr @class(['att-left' => $exit])><td><div class="fw-semibold">{{ $entry->employee->name }}</div><div class="small text-secondary">{{ $entry->employee->post?->designation }}</div>
+          @if($exit)<span class="badge text-bg-danger">Resigned · last day {{ $exit->format('d.m.Y') }}</span>@endif
+          @if($editable)<label class="d-block small text-secondary mt-1">Last working day <input type="date" name="exit[{{ $entry->id }}]" value="{{ $exit?->toDateString() }}"
+            min="{{ $sheet->month->startOfMonth()->toDateString() }}" max="{{ $sheet->month->endOfMonth()->toDateString() }}" class="form-control form-control-sm d-inline-block w-auto"
+            title="Only if the person resigned or left this month; days after it are not paid"></label>@endif</td>
           @for($d = 1; $d <= $days; $d++)
             @php($c = $entry->codes[$d] ?? $entry->codes[(string) $d] ?? 'A')
+            @if($exit && $d > $exit->day)<td class="c-LEFT" title="After the last working day: not paid"><span class="mono small">–</span></td>@continue @endif
             <td class="c-{{ $c }}">@if(! $editable)<span class="mono small">{{ $c }}</span>@else
               <select name="codes[{{ $entry->id }}][{{ $d }}]" class="form-select c-{{ $c }}" aria-label="{{ $entry->employee->name }}, day {{ $d }}" onchange="this.className='form-select c-'+this.value;this.parentNode.className='c-'+this.value">
                 @foreach(array_keys($codes) as $k)<option @selected($k === $c)>{{ $k }}</option>@endforeach
@@ -25,7 +31,7 @@
       @endforelse
       </tbody></table></div>
     <div class="d-flex gap-2 justify-content-between align-items-center p-3 border-top flex-wrap">
-      <span class="small text-secondary">Paid days count every code except A and L. HD counts as half a day. Days before joining or after exit start as A.</span>
+      <span class="small text-secondary">Paid days count every code except A and L. HD counts as half a day. Days before joining or after the last working day are not paid; enter the last working day of anyone who resigned this month (shown in red).</span>
       @if($editable)<button class="btn btn-outline-primary">Save attendance</button>@endif
     </div>
   </div>

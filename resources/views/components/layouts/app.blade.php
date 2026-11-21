@@ -42,6 +42,7 @@ body{font-size:.9rem}
 .att-grid select{width:3.4rem;padding:2px 4px;font-size:.72rem;border-radius:4px;text-align:center}
 .att-grid td,.att-grid th{padding:3px 2px!important;text-align:center}
 .att-grid td:first-child,.att-grid th:first-child{text-align:left;position:sticky;left:0;background:#fff;z-index:1;padding-left:10px!important;min-width:170px}
+.c-LEFT{background:#f8d7da;color:#842029}.att-left td:first-child{box-shadow:inset 4px 0 0 #dc3545}
 .c-P{background:#e3f4ea}.c-A,.c-L{background:#fde6e8}.c-CL,.c-EL,.c-HD{background:#fdf1dc}.c-H,.c-RH,.c-CH{background:#e4eefc}.c-SAT,.c-SUN{background:#f1eef0;color:#8a8086}
 .menu-btn{display:none}
 @media (max-width:900px){.z-app{grid-template-columns:1fr}.z-rail{position:fixed;inset:0 auto 0 0;width:250px;z-index:1040;transform:translateX(-105%);transition:transform .2s}.z-rail.open{transform:none}.menu-btn{display:inline-flex}}

@@ -18,8 +18,9 @@
   <thead><tr><th>Sl.</th><th>Name of the Staff</th><th>Designation</th>@for($d = 1; $d <= $days; $d++)<th>{{ $d }}</th>@endfor<th>No. of working days</th></tr></thead>
   <tbody>
   @foreach($sheet->entries->sortBy('employee.name')->values() as $i => $e)
-    <tr><td>{{ $i + 1 }}</td><td class="l">{{ $e->employee->name }}</td><td class="l">{{ $e->employee->post?->designation }}</td>
-      @for($d = 1; $d <= $days; $d++)@php($c = $e->codes[$d] ?? $e->codes[(string) $d] ?? 'A')<td>{{ $word[$c] ?? $c }}</td>@endfor
+    @php($exit = $e->employee->exitIn($sheet->month))
+    <tr><td>{{ $i + 1 }}</td><td class="l">{{ $e->employee->name }}@if($exit)<br><span style="color:#b02a37;font-weight:bold">Resigned, last day {{ $exit->format('d.m.Y') }}</span>@endif</td><td class="l">{{ $e->employee->post?->designation }}</td>
+      @for($d = 1; $d <= $days; $d++)@php($c = $e->codes[$d] ?? $e->codes[(string) $d] ?? 'A')@if($exit && $d > $exit->day)<td style="background:#f8d7da;color:#b02a37">–</td>@else<td>{{ $word[$c] ?? $c }}</td>@endif @endfor
       <td class="b">{{ rtrim(rtrim((string) $e->paid_days, '0'), '.') }} days</td></tr>
   @endforeach
   </tbody>
