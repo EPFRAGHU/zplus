@@ -162,7 +162,7 @@ class ClientAgencyTest extends TestCase
         $this->assertSame(2, substr_count($html, 'client-block'));
         $this->assertStringContainsString('1 contract · 2 employees', $html);
         $this->assertStringNotContainsString('Bill code', $html);   // Z Plus's ICMR block
-        $this->assertStringContainsString('GEM/2026/B/7972720</a>', $html);                     // its contract row
+        $this->assertStringContainsString('GEMC-511687731718030</a>', $html);                     // its contract row
         $this->assertStringContainsString('No contracts yet for this client.', $html);          // SWACHHA's ICMR
         $this->assertMatchesRegularExpression('#/employees\?agency=\d+&amp;client=\d+" title="Employees of this client">2 #', $html);
     }

@@ -2,6 +2,11 @@
 
 Versions follow MAJOR.MINOR.PATCH. Dates are Indian Standard Time.
 
+## 2.31.1 (2026-11-23): Work order shown by its contract number
+
+- Posts, Employees, Attendance, Sub-bills, Clients and the Dashboard now show the work order by its GeM contract number (GEMC-…) instead of the bid number; the bid number is shown underneath in small text
+- No data changes
+
 ## 2.31.0 (2026-11-22): New look on every page
 
 - The Work Orders design now runs through the whole app: navy side menu with the current page in blue, blue buttons and links, Inter font, light grey background, rounded cards with soft borders, cleaner table headings

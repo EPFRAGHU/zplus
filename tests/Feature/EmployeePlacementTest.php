@@ -95,7 +95,7 @@ class EmployeePlacementTest extends TestCase
 
         $this->actingAs($admin)->get('/employees')->assertOk()
             ->assertSee('<th>Work order</th><th>Project</th><th>Post</th>', false)
-            ->assertSee('GEM/2026/B/7972720</a>', false)->assertSee('PI: Dr. S. Kanungo')
+            ->assertSee('GEMC-511687731718030</a>', false)->assertSee('PI: Dr. S. Kanungo')
             ->assertSee('Not placed on a post')->assertSee('id="f-contract"', false);
         $this->get('/employees')->assertDontSee('@else')->assertDontSee('@endif');   // no stray template code
         $this->get('/employees?contract='.$contract->id)->assertSee('Amit Kumar (sample)')->assertDontSee('Unplaced Person')

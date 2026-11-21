@@ -53,7 +53,7 @@
       <tr>
         <td class="small">{{ $k->agency->name }} <span class="text-secondary">({{ $k->agency->code }})</span></td>
         <td>{{ $k->client->name }}</td>
-        <td><a class="mono text-decoration-none" href="{{ route('contracts.show', $k) }}">{{ $k->bid_no }}</a></td>
+        <td><a class="mono text-decoration-none" href="{{ route('contracts.show', $k) }}">{{ $k->contract_no }}</a>@if($k->bid_no)<div class="small text-secondary">Bid {{ $k->bid_no }}</div>@endif</td>
         <td><span class="fw-semibold">{{ $p->project->name }}</span>@if($p->project->pi_name) <div class="small text-secondary">PI: {{ $p->project->pi_name }}</div> @endif</td>
         <td class="fw-semibold">{{ $p->designation }}</td>
         <td class="num">{{ $p->sanctioned_qty }}</td>

@@ -38,7 +38,7 @@
         <tr>
           <td><span class="badge text-bg-light border" title="{{ $p->contract->agency->name }}">{{ $p->contract->agency->code }}</span></td>
           <td>{{ $p->contract->client->name }}</td>
-          <td><a class="mono text-decoration-none" href="{{ route('contracts.show', $p->contract) }}">{{ $p->contract->bid_no }}</a></td>
+          <td><a class="mono text-decoration-none" href="{{ route('contracts.show', $p->contract) }}">{{ $p->contract->contract_no }}</a>@if($p->contract->bid_no)<div class="small text-secondary">Bid {{ $p->contract->bid_no }}</div>@endif</td>
           <td class="fw-semibold">{{ $p->name }}</td><td>{{ $p->pi_name ?? '—' }}</td><td class="num">{{ $sheet?->entries_count ?? $p->employees_count }}</td>
           <td>@if(! $sheet)<span class="badge text-bg-light border">Not started</span>@elseif($sheet->invoice)<span class="badge text-bg-success">Billed</span>@elseif($sheet->isSubmitted())<span class="badge text-bg-info">Submitted by PI · check</span>@else<x-status :value="$sheet->status" />@endif</td>
           <td>

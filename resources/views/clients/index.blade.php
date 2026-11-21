@@ -36,7 +36,7 @@
       @forelse($c->contracts as $k)
         @php($kPosts = $k->projects->flatMap->posts)
         <tr>
-          <td class="ps-5"><a class="mono text-decoration-none" href="{{ route('contracts.show', $k) }}">{{ $k->bid_no }}</a></td>
+          <td class="ps-5"><a class="mono text-decoration-none" href="{{ route('contracts.show', $k) }}">{{ $k->contract_no }}</a>@if($k->bid_no)<div class="small text-secondary">Bid {{ $k->bid_no }}</div>@endif</td>
           <td class="mono small">{{ $k->contract_no }}</td>
           <td class="small">{{ $k->isDaily() ? 'Daily rate' : 'Monthly rate' }}</td>
           <td class="num">{{ $k->projects_count }}</td>

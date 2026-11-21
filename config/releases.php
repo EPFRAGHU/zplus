@@ -12,6 +12,10 @@ return [
     'timezone' => 'Asia/Kolkata',      // release times are Indian Standard Time
 
     'releases' => [
+        ['version' => '2.31.1', 'date' => '2026-11-23 10:00', 'title' => 'Work order shown by its contract number', 'type' => 'fix', 'notes' => [
+            'Posts, Employees, Attendance, Sub-bills, Clients and the Dashboard now show the work order by its GeM contract number (GEMC-…) instead of the bid number; the bid number is shown underneath in small text',
+            'No data changes',
+        ]],
         ['version' => '2.31.0', 'date' => '2026-11-22 20:30', 'title' => 'New look on every page', 'type' => 'feature', 'notes' => [
             'The Work Orders design now runs through the whole app: navy side menu with the current page in blue, blue buttons and links, Inter font, light grey background, rounded cards with soft borders, cleaner table headings',
             'Figure cards on the dashboard and reports are tinted with an icon; agency and client headings on the lists are lighter and easier to read',

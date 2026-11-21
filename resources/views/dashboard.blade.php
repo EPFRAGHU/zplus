@@ -154,7 +154,7 @@
             <tr>
               <td><span class="badge text-bg-light border" title="{{ $p->contract->agency->name }}">{{ $p->contract->agency->code }}</span></td>
               <td class="small">{{ $p->contract->client->name }}</td>
-              <td><a class="mono text-decoration-none" href="{{ route('contracts.show', $p->contract) }}">{{ $p->contract->bid_no }}</a></td>
+              <td><a class="mono text-decoration-none" href="{{ route('contracts.show', $p->contract) }}">{{ $p->contract->contract_no }}</a>@if($p->contract->bid_no)<div class="small text-secondary">Bid {{ $p->contract->bid_no }}</div>@endif</td>
               <td><span class="fw-semibold">{{ $p->name }}</span>@if($p->pi_name) <div class="small text-secondary">PI: {{ $p->pi_name }}</div> @endif</td>
               <td class="num">{{ $r['staff'] }} / {{ $r['sanctioned'] }}</td>
               <td><span class="badge text-bg-{{ $badge }}">{{ ucfirst($r['last']) }}</span></td>

@@ -93,7 +93,7 @@
         </x-client-block>
       @endif
       <tr><td><a class="mono" href="{{ route('invoices.show', $i) }}">{{ $i->invoice_no }}</a></td><td><span class="badge text-bg-light border" title="{{ $i->contract->agency->name }}">{{ $i->contract->agency->code }}</span></td><td>{{ $i->contract->client->name }}</td>
-        <td><a class="mono text-decoration-none" href="{{ route('contracts.show', $i->contract) }}">{{ $i->contract->bid_no }}</a></td>
+        <td><a class="mono text-decoration-none" href="{{ route('contracts.show', $i->contract) }}">{{ $i->contract->contract_no }}</a>@if($i->contract->bid_no)<div class="small text-secondary">Bid {{ $i->contract->bid_no }}</div>@endif</td>
         <td><span class="fw-semibold">{{ $i->project->name }}</span>@if($i->project->pi_name) <div class="small text-secondary">PI: {{ $i->project->pi_name }}</div> @endif</td><td>{{ $i->month->format('M Y') }}</td>
         <td class="num">{{ inr($i->taxable, true) }}</td><td class="num fw-semibold">{{ inr($i->rounded_total, true) }}</td><td><x-status :value="$i->status" />@if($i->tax_invoice_id) <div class="small"><a href="{{ route('tax-invoices.show', $i->tax_invoice_id) }}">In tax invoice</a></div>@endif</td></tr>
     @empty

@@ -275,7 +275,7 @@ class WebFlowTest extends TestCase
         $this->actingAs($admin)->get('/attendance?month=2026-10')->assertOk()
             ->assertSee('<th>Work order</th><th>Project</th><th>PI</th>', false)
             ->assertSee('id="f-contract"', false)->assertSee('id="f-project"', false)
-            ->assertSee('Second Project')->assertSee('GEM/2026/B/7972720</a>', false);
+            ->assertSee('Second Project')->assertSee('GEMC-511687731718030</a>', false);
         $this->get('/attendance?month=2026-10&contract='.$contract->id)->assertSee('Second Project');
         $mph = Project::query()->where('code', 'MPH')->firstOrFail();
         $this->get('/attendance?month=2026-10&project='.$mph->id)->assertDontSee('<td class="fw-semibold">Second Project</td>', false);
@@ -307,7 +307,7 @@ class WebFlowTest extends TestCase
 
         $this->actingAs($admin)->get('/invoices')->assertOk()
             ->assertSee('<th>Work order</th><th>Project</th>', false)
-            ->assertSee('GEM/2026/B/7972720</a>', false)->assertSee('PI: Dr. S. Kanungo')
+            ->assertSee('GEMC-511687731718030</a>', false)->assertSee('PI: Dr. S. Kanungo')
             ->assertSee('id="f-contract"', false)->assertSee('id="f-project"', false);
         $this->get('/invoices?contract='.$mph->gem_contract_id)->assertSee('ZP/001/26-27(MPH)');
         $this->get('/invoices?project='.$other->id)->assertDontSee('ZP/001/26-27(MPH)</a>', false);

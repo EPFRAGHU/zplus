@@ -43,7 +43,7 @@
         <td>@if($e->agency)<span class="badge text-bg-light border" title="{{ $e->agency->name }}">{{ $e->agency->code }}</span>@else<span class="badge text-bg-warning">None</span>@endif</td>
         <td>{{ $e->client?->name ?? 'Not assigned yet' }}</td>
         @php($proj = $e->post?->project)
-        <td>@if($proj)<a class="mono text-decoration-none" href="{{ route('contracts.show', $proj->contract) }}">{{ $proj->contract->bid_no }}</a>@else<span class="text-secondary small">—</span>@endif</td>
+        <td>@if($proj)<a class="mono text-decoration-none" href="{{ route('contracts.show', $proj->contract) }}">{{ $proj->contract->contract_no }}</a>@if($proj->contract->bid_no)<div class="small text-secondary">Bid {{ $proj->contract->bid_no }}</div>@endif @else<span class="text-secondary small">—</span>@endif</td>
         <td>
           @if($proj)
             <span class="fw-semibold">{{ $proj->name }}</span>
