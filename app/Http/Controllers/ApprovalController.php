@@ -23,7 +23,7 @@ class ApprovalController extends Controller
     public function index(Request $request): View
     {
         $me = $request->user();
-        $base = fn () => Approval::query()->with('agency', 'submitter', 'decider');
+        $base = fn () => Approval::query()->with('agency', 'submitter', 'decider', 'employee');
 
         return view('approvals.index', [
             'canApprove' => Approvals::canApprove($me),

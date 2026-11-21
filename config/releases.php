@@ -12,6 +12,12 @@ return [
     'timezone' => 'Asia/Kolkata',      // release times are Indian Standard Time
 
     'releases' => [
+        ['version' => '2.33.0', 'date' => '2026-11-23 17:30', 'title' => 'Approvals: new employees in a clean table', 'type' => 'feature', 'notes' => [
+            'Approvals page: new employees waiting are shown in a table per agency with columns Employee, Post (project, rate), Bank, Name as per bank, A/c no., IFSC, EPF, ESIC, TDS (On / Off badges)',
+            'Actions at the end of each row: Approve, Return (asks for the reason) and Delete for an employee entered by mistake (only if not yet on attendance or bills; the request is then closed as withdrawn)',
+            'Rows changed after sending are highlighted and say what changed',
+            'No data changes',
+        ]],
         ['version' => '2.32.2', 'date' => '2026-11-23 16:30', 'title' => 'New staff corrected while waiting: approval kept up to date', 'type' => 'fix', 'notes' => [
             'Correcting a new employee while the approval is waiting (EPF / ESIC / TDS switch on the list, bank, post, rate) now updates the waiting request, so the Super Admin approves the latest details instead of getting "changed after sending"',
             'A request that is already out of date says exactly what changed (on the Approvals page and the employee page), and the employee page now has "Send again for approval" for it',

@@ -62,7 +62,7 @@ class StaffApprovalTest extends TestCase
         $this->assertFalse($sheet->entries()->where('employee_id', $new->id)->exists());   // not on attendance
 
         $approval = Approval::query()->where('type', 'new_employee')->sole();
-        $this->actingAs($this->owner)->get(route('approvals.index'))->assertSee('New employee '.$new->emp_code.' New Staff')->assertSee('Analyst (LAB');
+        $this->actingAs($this->owner)->get(route('approvals.index'))->assertSee($new->emp_code)->assertSee('New Staff')->assertSee('Analyst')->assertSee('<span class="badge text-bg-primary">LAB</span>', false);
         $this->actingAs($this->owner)->post(route('approvals.approve', $approval))->assertSessionHasNoErrors();
         $this->assertSame('active', $new->fresh()->status);
     }
@@ -200,5 +200,24 @@ class StaffApprovalTest extends TestCase
         $new = Approval::query()->where('employee_id', $e->id)->where('status', 'pending')->sole();
         $this->actingAs($this->owner)->post(route('approvals.approve', $new))->assertSessionHasNoErrors();
         $this->assertSame('active', $e->fresh()->status);
+    }
+
+    public function test_new_staff_show_in_columns_with_approve_return_and_delete(): void
+    {
+        $this->actingAs($this->accounts)->post('/employees', $this->form(['bank_name' => 'STATE BANK OF INDIA', 'account_holder' => 'New Staff',
+            'account_number' => '22007837186', 'ifsc' => 'SBIN0001234', 'pf_applicable' => '1']))->assertSessionHasNoErrors();
+        $e = Employee::query()->where('name', 'New Staff')->firstOrFail();
+        $html = $this->actingAs($this->owner)->get(route('approvals.index'))->assertOk()->getContent();
+        foreach (['Name as per bank</th><th>A/c no.</th><th>IFSC</th>', 'STATE BANK OF INDIA', '22007837186', 'SBIN0001234',
+            'Approve', 'Return to the maker', route('employees.destroy', $e)] as $t) {
+            $this->assertStringContainsString($t, $html);
+        }
+        $this->assertSame(1, substr_count($html, 'text-bg-success">On</span>'));   // EPF on; ESIC off; TDS off by default for new staff
+
+        // Delete an employee entered by mistake from here: the request is closed, not left behind.
+        $this->delete(route('employees.destroy', $e), ['back' => 'approvals'])->assertRedirect(route('approvals.index'));
+        $this->assertNull(Employee::query()->find($e->id));
+        $this->assertSame('withdrawn', Approval::query()->where('type', 'new_employee')->latest('id')->first()->status);
+        $this->get(route('approvals.index'))->assertSee('Nothing is waiting for approval.');
     }
 }

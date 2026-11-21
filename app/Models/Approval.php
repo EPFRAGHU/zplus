@@ -19,7 +19,7 @@ class Approval extends Model
 
     public const STAFF_TYPES = ['new_employee', 'employee_change', 'post_rate'];
 
-    public const STATUSES = ['pending' => 'Waiting for approval', 'approved' => 'Approved', 'returned' => 'Returned', 'superseded' => 'Sent again'];
+    public const STATUSES = ['pending' => 'Waiting for approval', 'approved' => 'Approved', 'returned' => 'Returned', 'superseded' => 'Sent again', 'withdrawn' => 'Withdrawn (employee deleted)'];
 
     protected function casts(): array
     {

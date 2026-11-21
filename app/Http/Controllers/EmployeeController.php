@@ -253,13 +253,16 @@ class EmployeeController extends Controller
     }
 
     /** Super Admin: deletes an employee entered by mistake (no attendance, bills or letters) only when nothing depends on it (owner, 17 Nov 2026). */
-    public function destroy(Employee $employee): RedirectResponse
+    public function destroy(Request $request, Employee $employee): RedirectResponse
     {
         \Illuminate\Support\Facades\Gate::authorize('delete-masters');
         if ($why = \App\Support\SafeDelete::employee($employee)) {
             return back()->withErrors(['delete' => $why]);
         }
         $label = $employee->emp_code.' '.$employee->name;
+        // A waiting approval of someone entered by mistake is closed, not left without its employee (owner, 23 Nov 2026).
+        \App\Models\Approval::query()->where('employee_id', $employee->id)->where('status', 'pending')
+            ->update(['status' => 'withdrawn', 'decided_by' => $request->user()->id, 'decided_at' => now(), 'reason' => 'Employee deleted: entered by mistake']);
         foreach ($employee->documents as $doc) {
             \Illuminate\Support\Facades\Storage::disk('local')->delete($doc->path);
             $doc->delete();
@@ -267,6 +270,6 @@ class EmployeeController extends Controller
         $employee->delete();
         \App\Support\Activity\Activity::log('deleted', null, [], "Employee deleted: {$label}", section: 'Masters', label: $label);
 
-        return redirect()->route('employees.index')->with('status', "Employee {$label} deleted.");
+        return redirect()->route($request->input('back') === 'approvals' ? 'approvals.index' : 'employees.index')->with('status', "Employee {$label} deleted.");
     }
 }
