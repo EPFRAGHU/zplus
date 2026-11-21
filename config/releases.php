@@ -12,6 +12,10 @@ return [
     'timezone' => 'Asia/Kolkata',      // release times are Indian Standard Time
 
     'releases' => [
+        ['version' => '2.31.3', 'date' => '2026-11-23 11:45', 'title' => 'Delete a Project In-charge from its edit page', 'type' => 'fix', 'notes' => [
+            '"Edit / allot projects" page of a Project In-charge now has a Delete button (Super Admins and Accounts); it works only when no project is allotted, otherwise it explains what to untick first',
+            'Recorded in the Activity log; no other data changes',
+        ]],
         ['version' => '2.31.2', 'date' => '2026-11-23 11:00', 'title' => 'Project In-charge filter', 'type' => 'fix', 'notes' => [
             'Project In-charge page: new "Project In-charge" dropdown; choose one to see only that PI with their projects, employees and sub-bills; "Clear" shows all again',
             'No data changes',

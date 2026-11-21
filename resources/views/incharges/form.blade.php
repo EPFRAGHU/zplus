@@ -35,6 +35,20 @@
     @endforelse
     <div class="d-flex gap-2 justify-content-end mt-3"><a class="btn btn-outline-secondary" href="{{ route('incharges.index') }}">Cancel</a><button class="btn btn-primary">Save</button></div>
   </form>
+  @if($incharge->exists)
+    @can('delete-masters')
+      {{-- Delete from here too (owner, 23 Nov 2026); only a Project In-charge with no projects allotted can go. --}}
+      @php($blocked = \App\Support\SafeDelete::incharge($incharge))
+      <div class="z-card p-3 mt-3 d-flex align-items-center gap-3 flex-wrap" id="delete-incharge">
+        <div class="me-auto"><b>Delete this Project In-charge</b>
+          <div class="small text-secondary">{{ $blocked ?: 'No projects are allotted, so this Project In-charge can be deleted. This cannot be undone.' }}</div></div>
+        <form method="post" action="{{ route('incharges.destroy', $incharge) }}" data-confirm="Delete Project In-charge {{ $incharge->name }}? This cannot be undone." onsubmit="return confirm(this.dataset.confirm)">
+          @csrf @method('delete')
+          <button class="btn btn-outline-danger" @disabled($blocked) @if($blocked) title="{{ $blocked }}" @endif><i class="bi bi-trash me-1"></i>Delete</button>
+        </form>
+      </div>
+    @endcan
+  @endif
   <script>
     (() => {   // show only the chosen agency's work orders
       const agency = document.getElementById('f-agency_id');

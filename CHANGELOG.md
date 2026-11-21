@@ -2,6 +2,11 @@
 
 Versions follow MAJOR.MINOR.PATCH. Dates are Indian Standard Time.
 
+## 2.31.3 (2026-11-23): Delete a Project In-charge from its edit page
+
+- "Edit / allot projects" page of a Project In-charge now has a Delete button (Super Admins and Accounts); it works only when no project is allotted, otherwise it explains what to untick first
+- Recorded in the Activity log; no other data changes
+
 ## 2.31.2 (2026-11-23): Project In-charge filter
 
 - Project In-charge page: new "Project In-charge" dropdown; choose one to see only that PI with their projects, employees and sub-bills; "Clear" shows all again

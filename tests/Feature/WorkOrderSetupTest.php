@@ -140,4 +140,22 @@ class WorkOrderSetupTest extends TestCase
         $this->assertStringNotContainsString('Dr. Beta', strip_tags(preg_replace('#<select.*?</select>#s', '', $html)));
         $this->get(route('incharges.index', ['pi' => $other->id]))->assertOk()->assertDontSee('Dr. Other');   // another agency's PI is never shown
     }
+
+    public function test_project_in_charge_without_projects_can_be_deleted_from_its_edit_page(): void
+    {
+        $free = ProjectIncharge::query()->create(['agency_id' => $this->swh->id, 'name' => 'Dr. Free', 'status' => 'active']);
+        $busy = ProjectIncharge::query()->create(['agency_id' => $this->swh->id, 'name' => 'Dr. Busy', 'status' => 'active']);
+        $contract = GemContract::query()->create(['agency_id' => $this->swh->id, 'client_id' => $this->client->id, 'bid_no' => 'B', 'contract_no' => 'GEMC-7']);
+        $contract->projects()->create(['name' => 'MPH', 'code' => 'MPH', 'project_incharge_id' => $busy->id]);
+
+        $this->actingAs($this->maker)->get(route('incharges.edit', $free))->assertSee('Delete this Project In-charge')->assertSee('can be deleted');
+        $this->get(route('incharges.edit', $busy))->assertSee('Untick them under');   // button shown disabled with the reason
+        $this->delete(route('incharges.destroy', $busy))->assertSessionHasErrors('delete');
+        $this->delete(route('incharges.destroy', $free))->assertRedirect(route('incharges.index'));
+        $this->assertNull(ProjectIncharge::query()->find($free->id));
+        $this->assertNotNull(ProjectIncharge::query()->find($busy->id));
+
+        $this->actingAs(User::factory()->create(['role' => 'supervisor', 'agency_id' => $this->swh->id]))
+            ->get(route('incharges.edit', $busy))->assertDontSee('Delete this Project In-charge');
+    }
 }
