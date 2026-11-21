@@ -2,7 +2,13 @@
 
 Versions follow MAJOR.MINOR.PATCH. Dates are Indian Standard Time.
 
-## 2.36.0 (2026-11-23): Posts, Employees, Employee Management and Attendance in the Work Orders style
+## 2.36.1 (2026-11-22): Correct times in the version history
+
+- Version history and the sidebar now show the real Indian time (IST) of each release; versions 2.2.0 to 2.3.1 and 2.16.1 to 2.36.0 had wrong times, some even dated a day or two ahead
+- A check now stops any version being dated in the future
+- No data changes
+
+## 2.36.0 (2026-11-22): Posts, Employees, Employee Management and Attendance in the Work Orders style
 
 - Same design, colours and fonts as Work Orders on four more pages: a heading with an icon, five figure boxes, tabs, filter dropdowns in one bar
 - Posts: figures (posts, projects, sanctioned, filled, vacant), tabs All / Vacant / Fully filled, and one card per project with its posts, filled count, Add post and Open work order
@@ -11,128 +17,128 @@ Versions follow MAJOR.MINOR.PATCH. Dates are Indian Standard Time.
 - Employee Management: figures (total, active, EPF on, ESIC on, bank details missing) and the details, month-wise pay and all-employees tables in the new cards
 - Look only: no amounts, numbers or data change
 
-## 2.35.0 (2026-11-23): Project In-charge page in the Work Orders style
+## 2.35.0 (2026-11-22): Project In-charge page in the Work Orders style
 
 - Project In-charge page now has the same design, colours and fonts as Work Orders: a heading with an icon, five figure boxes (In-charges, projects allotted, staff under them, with PI portal login, projects without PI), tabs All / Active / Inactive, Agency and Project In-charge dropdowns, and a search box
 - Each Project In-charge is a card that opens to show their projects, the staff under each and the latest sub-bills; Edit / allot projects and Delete stay on the card
 - The Work Orders styles now live in the shared stylesheet so both pages stay alike; no data changes
 
-## 2.34.1 (2026-11-23): Contract number instead of bid number in post lists
+## 2.34.1 (2026-11-21): Contract number instead of bid number in post lists
 
 - Employee form (GeM post list and "Add new post"), attendance sheet heading, Make tax invoice, the Dashboard's recent bills and the Sub-bills waiting lists now show the GeM contract number (GEMC-…) instead of the bid number
 - No data changes
 
-## 2.34.0 (2026-11-23): Move a project to another work order
+## 2.34.0 (2026-11-21): Move a project to another work order
 
 - Work order page (Super Admins): "Move to another work order" on each project, to bring projects out of the stand-in contract numbers made when one contract could hold only one project (e.g. …8031, …8032 into …8030)
 - Posts, staff, attendance, PI and appointment letters move with the project; letter numbers do not change; the emptied work order can then be deleted
 - Refused when the project already has sub-bills under the old work order, or the target already has a project with the same short name; recorded in the Activity log
 - Changes which work order a project belongs to; take a database backup before moving
 
-## 2.33.1 (2026-11-23): Delete button on the employee edit page
+## 2.33.1 (2026-11-21): Delete button on the employee edit page
 
 - Employees → Edit: a Delete button after "Save employee" (Super Admins and Accounts), for someone entered by mistake; greyed out with the reason once the person is on attendance, bills or letters (set them Inactive instead)
 - A waiting approval of a deleted employee is closed; recorded in the Activity log
 
-## 2.33.0 (2026-11-23): Approvals: new employees in a clean table
+## 2.33.0 (2026-11-21): Approvals: new employees in a clean table
 
 - Approvals page: new employees waiting are shown in a table per agency with columns Employee, Post (project, rate), Bank, Name as per bank, A/c no., IFSC, EPF, ESIC, TDS (On / Off badges)
 - Actions at the end of each row: Approve, Return (asks for the reason) and Delete for an employee entered by mistake (only if not yet on attendance or bills; the request is then closed as withdrawn)
 - Rows changed after sending are highlighted and say what changed
 - No data changes
 
-## 2.32.2 (2026-11-23): New staff corrected while waiting: approval kept up to date
+## 2.32.2 (2026-11-21): New staff corrected while waiting: approval kept up to date
 
 - Correcting a new employee while the approval is waiting (EPF / ESIC / TDS switch on the list, bank, post, rate) now updates the waiting request, so the Super Admin approves the latest details instead of getting "changed after sending"
 - A request that is already out of date says exactly what changed (on the Approvals page and the employee page), and the employee page now has "Send again for approval" for it
 - No data changes
 
-## 2.32.1 (2026-11-23): Approving new staff: false "changed after sending" fixed
+## 2.32.1 (2026-11-21): Approving new staff: false "changed after sending" fixed
 
 - Approving a new employee could fail with "The employee's details were changed after sending" although nothing was changed: staff saved without the EPF / ESIC (or older imports without TDS) switch were recorded as blank, while the database stored "off"
 - New requests now record the details exactly as saved; requests already waiting are accepted when the only difference is such a blank switch, and still refused if anything really changed
 - No data changes
 
-## 2.32.0 (2026-11-23): Allot projects to a Project In-charge by work order
+## 2.32.0 (2026-11-21): Allot projects to a Project In-charge by work order
 
 - Add / Edit Project In-charge: choose a work order from a dropdown, then tick its projects; repeat for other work orders
 - All allotted projects show as chips under "Allotted projects" (project code, name, work order), each with a remove button; projects already with another In-charge are marked
 - Saving works as before; no data changes
 
-## 2.31.4 (2026-11-23): Delete button next to Status
+## 2.31.4 (2026-11-21): Delete button next to Status
 
 - Project In-charge edit page: the Delete button is now at the top, next to Status; pointing at it explains why it is greyed out when projects are still allotted
 - Deleting removes only the Project In-charge card; projects are never deleted
 
-## 2.31.3 (2026-11-23): Delete a Project In-charge from its edit page
+## 2.31.3 (2026-11-21): Delete a Project In-charge from its edit page
 
 - "Edit / allot projects" page of a Project In-charge now has a Delete button (Super Admins and Accounts); it works only when no project is allotted, otherwise it explains what to untick first
 - Recorded in the Activity log; no other data changes
 
-## 2.31.2 (2026-11-23): Project In-charge filter
+## 2.31.2 (2026-11-21): Project In-charge filter
 
 - Project In-charge page: new "Project In-charge" dropdown; choose one to see only that PI with their projects, employees and sub-bills; "Clear" shows all again
 - No data changes
 
-## 2.31.1 (2026-11-23): Work order shown by its contract number
+## 2.31.1 (2026-11-21): Work order shown by its contract number
 
 - Posts, Employees, Attendance, Sub-bills, Clients and the Dashboard now show the work order by its GeM contract number (GEMC-…) instead of the bid number; the bid number is shown underneath in small text
 - No data changes
 
-## 2.31.0 (2026-11-22): New look on every page
+## 2.31.0 (2026-11-21): New look on every page
 
 - The Work Orders design now runs through the whole app: navy side menu with the current page in blue, blue buttons and links, Inter font, light grey background, rounded cards with soft borders, cleaner table headings
 - Figure cards on the dashboard and reports are tinted with an icon; agency and client headings on the lists are lighter and easier to read
 - Sign-in, company choice and error pages in the same colours
 - No change to any page's contents, buttons, data or permissions
 
-## 2.30.1 (2026-11-22): TDS off by default for new staff
+## 2.30.1 (2026-11-21): TDS off by default for new staff
 
 - New employees (employee form, one-page work order entry, Data Upload, GeM import) now start with TDS switched off; switch it on per person where TDS applies
 - Existing employees keep their current TDS switch
 - Changes salary payouts only for new staff whose TDS is left off (no 2% deduction)
 
-## 2.30.0 (2026-11-22): New look for Work Orders (Contracts)
+## 2.30.0 (2026-11-21): New look for Work Orders (Contracts)
 
 - Work Orders page redesigned: heading "Contracts – <agency>" with Add Contract and Export (Excel of the list), figure cards (contracts, projects, posts, filled and open posts with percentages)
 - Tabs All / Active / Completed / Draft (no projects yet), Agency, Status (open posts, fully filled, ending within 30 days), Sort, search across contract, bid, project and PI, list or grid view, 10 work orders per page
 - Each work order is a card, collapsed by default: contract no., GeM / offline, bid no., agency, filled posts and a progress bar, Add Project and Open; opening it shows the projects with In-Charge, posts filled and View / Edit / more (posts, employees, attendance, sub-bills)
 - Nothing else changes: same pages behind the buttons, same data and permissions
 
-## 2.29.0 (2026-11-22): Bank letter in Excel, appointment no. 001, longer codes
+## 2.29.0 (2026-11-21): Bank letter in Excel, appointment no. 001, longer codes
 
 - Bank Letter: new "Excel" button next to "Bank letter PDF": one sheet for SBI accounts, one for NEFT and one for staff with missing bank details (only after the salary payout is approved, like the PDF)
 - Appointment letter numbers now have three digits: SWH/NIHR/<short project name>/001/26 (new letters; letters already numbered keep their number)
 - Short project name, client code and letter code: up to 20 characters, and may contain spaces and / - . _ ( ) & + # , ; the boxes are wider
 - No bill amount or data changes
 
-## 2.28.0 (2026-11-22): Edit buttons everywhere; makers can delete unused records
+## 2.28.0 (2026-11-21): Edit buttons everywhere; makers can delete unused records
 
 - Edit buttons: on each work order and each of its projects (Work orders list), on each post (Posts list, opens the post's edit form on its work order page) and on each employee (Employees list); clients and Project In-charge already had them
 - Accounts logins (SWACHHA / Z Plus makers) can now switch on "Show delete options" and delete records that are not in use: work orders, projects, posts, clients, Project In-charge and employees of their own agency
 - Deleting bills, tax invoices and agencies stays with the Super Admins; paid or used records can never be deleted; every delete is in the Activity log
 
-## 2.27.0 (2026-11-22): Post-wise filter and post-wise sub-bills
+## 2.27.0 (2026-11-21): Post-wise filter and post-wise sub-bills
 
 - Posts: new "Post" filter; choosing a post (e.g. Project Technical Support-II) lists it in every project, with a summary of the projects, sanctioned and filled
 - Sub-bills → "Post-wise sub-bills": for a month (and optionally one post and agency), each post with the projects, sub-bill numbers, rates, staff, days paid and wages billed, with totals; PDF for your own records (marked not for submission)
 - No bill amount, number or data changes
 
-## 2.26.0 (2026-11-22): Acceptance letter with every appointment order
+## 2.26.0 (2026-11-21): Acceptance letter with every appointment order
 
 - Every appointment order now has a second page: the appointee's "Acceptance of Appointment" letter to SWACHHA / Z Plus, set out like a government letter (From, Employee ID, Date, To, Sub, Ref to the order no. and date, numbered paragraphs, particulars table, enclosures, Yours faithfully, Copy to, office-use line)
 - It states the post, project, place and joining date, the EPF / ESI / TDS that apply, and has boxes for bank, IFSC, UAN, ESI IP and nominee; the appointee signs it and returns it with the listed documents
 - The order itself stays on one page; its last term now points to the acceptance letter
 - No bill amount, number or data changes
 
-## 2.25.0 (2026-11-22): One-page entry made simpler
+## 2.25.0 (2026-11-21): One-page entry made simpler
 
 - Add work order now goes step by step: 1. GeM contract / work order number, 2. contract details, 3. projects, each with its Project In-charge, posts and staff
 - One PI for several projects: a new PI typed in one project can be chosen from the list in the others, and is saved once; typing the name of an already saved PI uses that PI
 - The same one-page entry is on every work order's page, to add more projects, PIs, posts and staff later without switching menus
 - No bill amount, number or data changes
 
-## 2.24.0 (2026-11-22): Government-style appointment order
+## 2.24.0 (2026-11-21): Government-style appointment order
 
 - Appointment letter is now an "APPOINTMENT ORDER" in a government office style: No. and Dated, Sub and Ref (GeM contract), numbered terms, signatory name and title, Copy to, and an Acceptance slip; still one page on the agency letterhead
 - New term 3 "Statutory deductions": EPF 12% (on wages up to Rs. 15,000), ESI 0.75% and TDS 2%, each shown as Applicable or Not applicable from the employee's switches, with the amounts and the net monthly payment worked out exactly as on the salary payout sheet
@@ -388,12 +394,12 @@ Versions follow MAJOR.MINOR.PATCH. Dates are Indian Standard Time.
 - Browser security headers on every page: HTTPS-only (HSTS), no framing by other sites, no content-type guessing
 - Uploaded Excel files that were checked but never saved are deleted after a day
 
-## 2.3.1 (2026-11-04): Proof: no agency can enter the other's data
+## 2.3.1 (2026-11-03): Proof: no agency can enter the other's data
 
 - New test tries all 30 add / edit / delete / status actions of a Z Plus login on SWACHHA data and the other way round (60 attempts): every one is refused and no row changes
 - An agency login's new records always get its own agency, even if a form does not send one
 
-## 2.3.0 (2026-11-04): Shared-computer safety and stricter agency isolation
+## 2.3.0 (2026-11-03): Shared-computer safety and stricter agency isolation
 
 - Pages, PDFs and downloads shown to a signed-in user are never kept in the browser cache, so Back after signing out shows nothing
 - Signing out tells the browser to clear this site's cache, cookies and storage
@@ -402,17 +408,17 @@ Versions follow MAJOR.MINOR.PATCH. Dates are Indian Standard Time.
 - Form checks look records up through the agency filter, so another agency's records are rejected even before saving
 - Database safety net: triggers refuse any contract, sub-bill, tax invoice or employee linked to a different agency's client or contract
 
-## 2.2.3 (2026-11-04): Month and year picker
+## 2.2.3 (2026-11-03): Month and year picker
 
 - Month fields on Attendance, Sub-bills and Tax invoices open a calendar: choose the year with the arrows, then click the month
 - Works the same in every browser, including Firefox (which has no built-in month calendar)
 
-## 2.2.2 (2026-11-04): Agency filled in on forms
+## 2.2.2 (2026-11-03): Agency filled in on forms
 
 - For a Z Plus or SWACHHA login, the Agency field on Add client, Add GeM contract, Add employee and Add new post is filled in and locked to their agency
 - The Super Admin and both-agency logins still choose the agency
 
-## 2.2.1 (2026-11-04): Agency name on screen
+## 2.2.1 (2026-11-03): Agency name on screen
 
 - Dashboard shows "You are working for" with the agency's name, logo and GSTIN (or "Both agencies")
 - Every page shows the agency badge next to the page title

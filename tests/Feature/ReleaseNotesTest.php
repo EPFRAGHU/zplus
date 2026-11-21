@@ -30,6 +30,8 @@ class ReleaseNotesTest extends TestCase
         $this->assertSame($dates, collect($dates)->sortDesc()->values()->all(), 'release times must go back in time down the list');
         foreach ($all as $r) {
             $this->assertTrue($r['date']->gte(Release::started()));
+            // Times are the real Indian time of the release (owner, 22 Nov 2026): never a time still to come.
+            $this->assertTrue($r['date']->lte(now()->addMinutes(30)), "v{$r['version']} is dated in the future ({$r['date']->format('d M Y H:i')} IST)");
             $this->assertNotEmpty($r['notes']);
         }
     }

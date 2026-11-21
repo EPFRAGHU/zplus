@@ -12,7 +12,12 @@ return [
     'timezone' => 'Asia/Kolkata',      // release times are Indian Standard Time
 
     'releases' => [
-        ['version' => '2.36.0', 'date' => '2026-11-23 22:30', 'title' => 'Posts, Employees, Employee Management and Attendance in the Work Orders style', 'type' => 'feature', 'notes' => [
+        ['version' => '2.36.1', 'date' => '2026-11-22 01:01', 'title' => 'Correct times in the version history', 'type' => 'fix', 'notes' => [
+            'Version history and the sidebar now show the real Indian time (IST) of each release; versions 2.2.0 to 2.3.1 and 2.16.1 to 2.36.0 had wrong times, some even dated a day or two ahead',
+            'A check now stops any version being dated in the future',
+            'No data changes',
+        ]],
+        ['version' => '2.36.0', 'date' => '2026-11-22 00:57', 'title' => 'Posts, Employees, Employee Management and Attendance in the Work Orders style', 'type' => 'feature', 'notes' => [
             'Same design, colours and fonts as Work Orders on four more pages: a heading with an icon, five figure boxes, tabs, filter dropdowns in one bar',
             'Posts: figures (posts, projects, sanctioned, filled, vacant), tabs All / Vacant / Fully filled, and one card per project with its posts, filled count, Add post and Open work order',
             'Employees: figures (total, active, placed on posts, on notice, bank details missing), status tabs, search, and the list in one table with a light agency › client row; EPF / ESIC / TDS switches, Edit and Delete as before',
@@ -20,175 +25,175 @@ return [
             'Employee Management: figures (total, active, EPF on, ESIC on, bank details missing) and the details, month-wise pay and all-employees tables in the new cards',
             'Look only: no amounts, numbers or data change',
         ]],
-        ['version' => '2.35.0', 'date' => '2026-11-23 21:00', 'title' => 'Project In-charge page in the Work Orders style', 'type' => 'feature', 'notes' => [
+        ['version' => '2.35.0', 'date' => '2026-11-22 00:21', 'title' => 'Project In-charge page in the Work Orders style', 'type' => 'feature', 'notes' => [
             'Project In-charge page now has the same design, colours and fonts as Work Orders: a heading with an icon, five figure boxes (In-charges, projects allotted, staff under them, with PI portal login, projects without PI), tabs All / Active / Inactive, Agency and Project In-charge dropdowns, and a search box',
             'Each Project In-charge is a card that opens to show their projects, the staff under each and the latest sub-bills; Edit / allot projects and Delete stay on the card',
             'The Work Orders styles now live in the shared stylesheet so both pages stay alike; no data changes',
         ]],
-        ['version' => '2.34.1', 'date' => '2026-11-23 20:00', 'title' => 'Contract number instead of bid number in post lists', 'type' => 'fix', 'notes' => [
+        ['version' => '2.34.1', 'date' => '2026-11-21 23:52', 'title' => 'Contract number instead of bid number in post lists', 'type' => 'fix', 'notes' => [
             'Employee form (GeM post list and "Add new post"), attendance sheet heading, Make tax invoice, the Dashboard\'s recent bills and the Sub-bills waiting lists now show the GeM contract number (GEMC-…) instead of the bid number',
             'No data changes',
         ]],
-        ['version' => '2.34.0', 'date' => '2026-11-23 19:00', 'title' => 'Move a project to another work order', 'type' => 'feature', 'notes' => [
+        ['version' => '2.34.0', 'date' => '2026-11-21 23:39', 'title' => 'Move a project to another work order', 'type' => 'feature', 'notes' => [
             'Work order page (Super Admins): "Move to another work order" on each project, to bring projects out of the stand-in contract numbers made when one contract could hold only one project (e.g. …8031, …8032 into …8030)',
             'Posts, staff, attendance, PI and appointment letters move with the project; letter numbers do not change; the emptied work order can then be deleted',
             'Refused when the project already has sub-bills under the old work order, or the target already has a project with the same short name; recorded in the Activity log',
             'Changes which work order a project belongs to; take a database backup before moving',
         ]],
-        ['version' => '2.33.1', 'date' => '2026-11-23 18:15', 'title' => 'Delete button on the employee edit page', 'type' => 'fix', 'notes' => [
+        ['version' => '2.33.1', 'date' => '2026-11-21 23:16', 'title' => 'Delete button on the employee edit page', 'type' => 'fix', 'notes' => [
             'Employees → Edit: a Delete button after "Save employee" (Super Admins and Accounts), for someone entered by mistake; greyed out with the reason once the person is on attendance, bills or letters (set them Inactive instead)',
             'A waiting approval of a deleted employee is closed; recorded in the Activity log',
         ]],
-        ['version' => '2.33.0', 'date' => '2026-11-23 17:30', 'title' => 'Approvals: new employees in a clean table', 'type' => 'feature', 'notes' => [
+        ['version' => '2.33.0', 'date' => '2026-11-21 23:01', 'title' => 'Approvals: new employees in a clean table', 'type' => 'feature', 'notes' => [
             'Approvals page: new employees waiting are shown in a table per agency with columns Employee, Post (project, rate), Bank, Name as per bank, A/c no., IFSC, EPF, ESIC, TDS (On / Off badges)',
             'Actions at the end of each row: Approve, Return (asks for the reason) and Delete for an employee entered by mistake (only if not yet on attendance or bills; the request is then closed as withdrawn)',
             'Rows changed after sending are highlighted and say what changed',
             'No data changes',
         ]],
-        ['version' => '2.32.2', 'date' => '2026-11-23 16:30', 'title' => 'New staff corrected while waiting: approval kept up to date', 'type' => 'fix', 'notes' => [
+        ['version' => '2.32.2', 'date' => '2026-11-21 22:53', 'title' => 'New staff corrected while waiting: approval kept up to date', 'type' => 'fix', 'notes' => [
             'Correcting a new employee while the approval is waiting (EPF / ESIC / TDS switch on the list, bank, post, rate) now updates the waiting request, so the Super Admin approves the latest details instead of getting "changed after sending"',
             'A request that is already out of date says exactly what changed (on the Approvals page and the employee page), and the employee page now has "Send again for approval" for it',
             'No data changes',
         ]],
-        ['version' => '2.32.1', 'date' => '2026-11-23 15:00', 'title' => 'Approving new staff: false "changed after sending" fixed', 'type' => 'fix', 'notes' => [
+        ['version' => '2.32.1', 'date' => '2026-11-21 22:42', 'title' => 'Approving new staff: false "changed after sending" fixed', 'type' => 'fix', 'notes' => [
             'Approving a new employee could fail with "The employee\'s details were changed after sending" although nothing was changed: staff saved without the EPF / ESIC (or older imports without TDS) switch were recorded as blank, while the database stored "off"',
             'New requests now record the details exactly as saved; requests already waiting are accepted when the only difference is such a blank switch, and still refused if anything really changed',
             'No data changes',
         ]],
-        ['version' => '2.32.0', 'date' => '2026-11-23 13:30', 'title' => 'Allot projects to a Project In-charge by work order', 'type' => 'feature', 'notes' => [
+        ['version' => '2.32.0', 'date' => '2026-11-21 19:07', 'title' => 'Allot projects to a Project In-charge by work order', 'type' => 'feature', 'notes' => [
             'Add / Edit Project In-charge: choose a work order from a dropdown, then tick its projects; repeat for other work orders',
             'All allotted projects show as chips under "Allotted projects" (project code, name, work order), each with a remove button; projects already with another In-charge are marked',
             'Saving works as before; no data changes',
         ]],
-        ['version' => '2.31.4', 'date' => '2026-11-23 12:30', 'title' => 'Delete button next to Status', 'type' => 'fix', 'notes' => [
+        ['version' => '2.31.4', 'date' => '2026-11-21 19:03', 'title' => 'Delete button next to Status', 'type' => 'fix', 'notes' => [
             'Project In-charge edit page: the Delete button is now at the top, next to Status; pointing at it explains why it is greyed out when projects are still allotted',
             'Deleting removes only the Project In-charge card; projects are never deleted',
         ]],
-        ['version' => '2.31.3', 'date' => '2026-11-23 11:45', 'title' => 'Delete a Project In-charge from its edit page', 'type' => 'fix', 'notes' => [
+        ['version' => '2.31.3', 'date' => '2026-11-21 18:55', 'title' => 'Delete a Project In-charge from its edit page', 'type' => 'fix', 'notes' => [
             '"Edit / allot projects" page of a Project In-charge now has a Delete button (Super Admins and Accounts); it works only when no project is allotted, otherwise it explains what to untick first',
             'Recorded in the Activity log; no other data changes',
         ]],
-        ['version' => '2.31.2', 'date' => '2026-11-23 11:00', 'title' => 'Project In-charge filter', 'type' => 'fix', 'notes' => [
+        ['version' => '2.31.2', 'date' => '2026-11-21 18:50', 'title' => 'Project In-charge filter', 'type' => 'fix', 'notes' => [
             'Project In-charge page: new "Project In-charge" dropdown; choose one to see only that PI with their projects, employees and sub-bills; "Clear" shows all again',
             'No data changes',
         ]],
-        ['version' => '2.31.1', 'date' => '2026-11-23 10:00', 'title' => 'Work order shown by its contract number', 'type' => 'fix', 'notes' => [
+        ['version' => '2.31.1', 'date' => '2026-11-21 18:34', 'title' => 'Work order shown by its contract number', 'type' => 'fix', 'notes' => [
             'Posts, Employees, Attendance, Sub-bills, Clients and the Dashboard now show the work order by its GeM contract number (GEMC-…) instead of the bid number; the bid number is shown underneath in small text',
             'No data changes',
         ]],
-        ['version' => '2.31.0', 'date' => '2026-11-22 20:30', 'title' => 'New look on every page', 'type' => 'feature', 'notes' => [
+        ['version' => '2.31.0', 'date' => '2026-11-21 18:27', 'title' => 'New look on every page', 'type' => 'feature', 'notes' => [
             'The Work Orders design now runs through the whole app: navy side menu with the current page in blue, blue buttons and links, Inter font, light grey background, rounded cards with soft borders, cleaner table headings',
             'Figure cards on the dashboard and reports are tinted with an icon; agency and client headings on the lists are lighter and easier to read',
             'Sign-in, company choice and error pages in the same colours',
             'No change to any page\'s contents, buttons, data or permissions',
         ]],
-        ['version' => '2.30.1', 'date' => '2026-11-22 19:30', 'title' => 'TDS off by default for new staff', 'type' => 'fix', 'notes' => [
+        ['version' => '2.30.1', 'date' => '2026-11-21 18:18', 'title' => 'TDS off by default for new staff', 'type' => 'fix', 'notes' => [
             'New employees (employee form, one-page work order entry, Data Upload, GeM import) now start with TDS switched off; switch it on per person where TDS applies',
             'Existing employees keep their current TDS switch',
             'Changes salary payouts only for new staff whose TDS is left off (no 2% deduction)',
         ]],
-        ['version' => '2.30.0', 'date' => '2026-11-22 19:00', 'title' => 'New look for Work Orders (Contracts)', 'type' => 'feature', 'notes' => [
+        ['version' => '2.30.0', 'date' => '2026-11-21 18:14', 'title' => 'New look for Work Orders (Contracts)', 'type' => 'feature', 'notes' => [
             'Work Orders page redesigned: heading "Contracts – <agency>" with Add Contract and Export (Excel of the list), figure cards (contracts, projects, posts, filled and open posts with percentages)',
             'Tabs All / Active / Completed / Draft (no projects yet), Agency, Status (open posts, fully filled, ending within 30 days), Sort, search across contract, bid, project and PI, list or grid view, 10 work orders per page',
             'Each work order is a card, collapsed by default: contract no., GeM / offline, bid no., agency, filled posts and a progress bar, Add Project and Open; opening it shows the projects with In-Charge, posts filled and View / Edit / more (posts, employees, attendance, sub-bills)',
             'Nothing else changes: same pages behind the buttons, same data and permissions',
         ]],
-        ['version' => '2.29.0', 'date' => '2026-11-22 17:30', 'title' => 'Bank letter in Excel, appointment no. 001, longer codes', 'type' => 'feature', 'notes' => [
+        ['version' => '2.29.0', 'date' => '2026-11-21 18:02', 'title' => 'Bank letter in Excel, appointment no. 001, longer codes', 'type' => 'feature', 'notes' => [
             'Bank Letter: new "Excel" button next to "Bank letter PDF": one sheet for SBI accounts, one for NEFT and one for staff with missing bank details (only after the salary payout is approved, like the PDF)',
             'Appointment letter numbers now have three digits: SWH/NIHR/<short project name>/001/26 (new letters; letters already numbered keep their number)',
             'Short project name, client code and letter code: up to 20 characters, and may contain spaces and / - . _ ( ) & + # , ; the boxes are wider',
             'No bill amount or data changes',
         ]],
-        ['version' => '2.28.0', 'date' => '2026-11-22 16:00', 'title' => 'Edit buttons everywhere; makers can delete unused records', 'type' => 'feature', 'notes' => [
+        ['version' => '2.28.0', 'date' => '2026-11-21 17:55', 'title' => 'Edit buttons everywhere; makers can delete unused records', 'type' => 'feature', 'notes' => [
             'Edit buttons: on each work order and each of its projects (Work orders list), on each post (Posts list, opens the post\'s edit form on its work order page) and on each employee (Employees list); clients and Project In-charge already had them',
             'Accounts logins (SWACHHA / Z Plus makers) can now switch on "Show delete options" and delete records that are not in use: work orders, projects, posts, clients, Project In-charge and employees of their own agency',
             'Deleting bills, tax invoices and agencies stays with the Super Admins; paid or used records can never be deleted; every delete is in the Activity log',
         ]],
-        ['version' => '2.27.0', 'date' => '2026-11-22 15:00', 'title' => 'Post-wise filter and post-wise sub-bills', 'type' => 'feature', 'notes' => [
+        ['version' => '2.27.0', 'date' => '2026-11-21 17:50', 'title' => 'Post-wise filter and post-wise sub-bills', 'type' => 'feature', 'notes' => [
             'Posts: new "Post" filter; choosing a post (e.g. Project Technical Support-II) lists it in every project, with a summary of the projects, sanctioned and filled',
             'Sub-bills → "Post-wise sub-bills": for a month (and optionally one post and agency), each post with the projects, sub-bill numbers, rates, staff, days paid and wages billed, with totals; PDF for your own records (marked not for submission)',
             'No bill amount, number or data changes',
         ]],
-        ['version' => '2.26.0', 'date' => '2026-11-22 12:30', 'title' => 'Acceptance letter with every appointment order', 'type' => 'feature', 'notes' => [
+        ['version' => '2.26.0', 'date' => '2026-11-21 17:32', 'title' => 'Acceptance letter with every appointment order', 'type' => 'feature', 'notes' => [
             'Every appointment order now has a second page: the appointee\'s "Acceptance of Appointment" letter to SWACHHA / Z Plus, set out like a government letter (From, Employee ID, Date, To, Sub, Ref to the order no. and date, numbered paragraphs, particulars table, enclosures, Yours faithfully, Copy to, office-use line)',
             'It states the post, project, place and joining date, the EPF / ESI / TDS that apply, and has boxes for bank, IFSC, UAN, ESI IP and nominee; the appointee signs it and returns it with the listed documents',
             'The order itself stays on one page; its last term now points to the acceptance letter',
             'No bill amount, number or data changes',
         ]],
-        ['version' => '2.25.0', 'date' => '2026-11-22 11:30', 'title' => 'One-page entry made simpler', 'type' => 'feature', 'notes' => [
+        ['version' => '2.25.0', 'date' => '2026-11-21 17:29', 'title' => 'One-page entry made simpler', 'type' => 'feature', 'notes' => [
             'Add work order now goes step by step: 1. GeM contract / work order number, 2. contract details, 3. projects, each with its Project In-charge, posts and staff',
             'One PI for several projects: a new PI typed in one project can be chosen from the list in the others, and is saved once; typing the name of an already saved PI uses that PI',
             'The same one-page entry is on every work order\'s page, to add more projects, PIs, posts and staff later without switching menus',
             'No bill amount, number or data changes',
         ]],
-        ['version' => '2.24.0', 'date' => '2026-11-22 10:00', 'title' => 'Government-style appointment order', 'type' => 'feature', 'notes' => [
+        ['version' => '2.24.0', 'date' => '2026-11-21 17:23', 'title' => 'Government-style appointment order', 'type' => 'feature', 'notes' => [
             'Appointment letter is now an "APPOINTMENT ORDER" in a government office style: No. and Dated, Sub and Ref (GeM contract), numbered terms, signatory name and title, Copy to, and an Acceptance slip; still one page on the agency letterhead',
             'New term 3 "Statutory deductions": EPF 12% (on wages up to Rs. 15,000), ESI 0.75% and TDS 2%, each shown as Applicable or Not applicable from the employee\'s switches, with the amounts and the net monthly payment worked out exactly as on the salary payout sheet',
             'Reference number unchanged: SWH/NIHR/<short project name>/01/26, numbered per project',
             'No bill amount, number or data changes',
         ]],
-        ['version' => '2.23.0', 'date' => '2026-11-21 22:30', 'title' => 'Contract balance on the tax invoice; same post in one row', 'type' => 'feature', 'notes' => [
+        ['version' => '2.23.0', 'date' => '2026-11-21 17:15', 'title' => 'Contract balance on the tax invoice; same post in one row', 'type' => 'feature', 'notes' => [
             'Tax invoice PDF and page: "Contract value position": total tender value (incl. GST), less tax invoices billed before, opening balance, less this tax invoice, net balance; the net balance is next month\'s opening balance, through the contract period',
             'Shown once the total contract value is entered on the work order',
             'Tax invoice particulars: the same post at the same rate in different projects is now one row, with the manpower and days added up (also on earlier tax invoices\' PDFs)',
             'No amounts or totals change; only how the rows are grouped',
         ]],
-        ['version' => '2.22.0', 'date' => '2026-11-21 20:30', 'title' => 'Resignation date on attendance', 'type' => 'feature', 'notes' => [
+        ['version' => '2.22.0', 'date' => '2026-11-21 17:05', 'title' => 'Resignation date on attendance', 'type' => 'feature', 'notes' => [
             'Attendance (PI portal and agency): a "Last working day" box for each person; enter it for anyone who resigned or left in that month',
             'Days after the last working day are not paid, whatever code is entered; they show in red on the attendance grid and the attendance certificate',
             'The sub-bill (page and PDF) shows "Resigned, last working day" in red under the person\'s name; the tax invoice PDF lists staff who resigned that month, with days paid',
             'When that month\'s attendance is locked the person becomes Inactive and is not on next month\'s sheet',
             'Amounts change only for the staff whose last working day is entered (paid up to that date)',
         ]],
-        ['version' => '2.21.0', 'date' => '2026-11-21 18:00', 'title' => 'Work order, projects, posts and staff on one page', 'type' => 'feature', 'notes' => [
+        ['version' => '2.21.0', 'date' => '2026-11-21 16:57', 'title' => 'Work order, projects, posts and staff on one page', 'type' => 'feature', 'notes' => [
             'Add work order now has a "Projects, posts and staff" section: for each project the short name, project name and Project In-charge (choose one or type a new name and mobile), its posts (designation, sanctioned, rate) and its staff (name, post, joining date, mobile, EPF / ESI / TDS)',
             'Everything is saved together; if anything is wrong nothing is saved and the form keeps what was typed',
             'New staff get the next SW-/ZP- ID and stay Inactive until a Super Admin approves them, as before; bank, PAN and Aadhaar are completed later under Employees',
             'The client is chosen automatically when the agency has only one; Clients page has an "Add work order, projects and staff" button',
             'No bill amount, number or data changes',
         ]],
-        ['version' => '2.20.0', 'date' => '2026-11-21 15:30', 'title' => 'Merge into one client', 'type' => 'feature', 'notes' => [
+        ['version' => '2.20.0', 'date' => '2026-11-21 16:47', 'title' => 'Merge into one client', 'type' => 'feature', 'notes' => [
             'Clients → "Merge into one client" (developer only): per agency, choose the client to keep; work orders, employees and tax invoices of the other clients move to it, it is renamed "Administrative Officer NIHR - Regional Medical Research Centre, Bhubaneswar" and the emptied clients are removed',
             'Shows what each client has before anything moves; type MERGE to confirm; every move is in the Activity log',
             'Bill amounts and numbers are unchanged. Take a database backup before using it',
         ]],
-        ['version' => '2.19.0', 'date' => '2026-11-21 13:00', 'title' => 'Agencies page, projects on work orders, short project name', 'type' => 'feature', 'notes' => [
+        ['version' => '2.19.0', 'date' => '2026-11-21 16:39', 'title' => 'Agencies page, projects on work orders, short project name', 'type' => 'feature', 'notes' => [
             'Agencies page shows each agency\'s full details (address, contacts, GSTIN, PAN, registrations, signatory, bank, bill prefix) with an Edit button; client names and Add client removed',
             'Work orders list shows each work order\'s projects (short name, project name, Project In-charge, posts filled) instead of the client',
             '"Code" of a project is now called "Short project name" (used in sub-bill numbers and appointment letters)',
             'Clients no longer need a bill code; one is filled in automatically',
             'No bill amount, number or data changes',
         ]],
-        ['version' => '2.18.1', 'date' => '2026-11-18 23:55', 'title' => 'Error pages, health check and icon', 'type' => 'fix', 'notes' => [
+        ['version' => '2.18.1', 'date' => '2026-11-18 21:34', 'title' => 'Error pages, health check and icon', 'type' => 'fix', 'notes' => [
             'Error pages (not found, not allowed, page expired, too many attempts, something went wrong, maintenance) now match the app\'s design and never show technical details',
             'New /health address for Coolify and uptime monitors; it also checks that the database answers',
             'Real Z+ icon in the browser tab and on phones',
             'CHANGELOG.md and a rewritten README for developers',
             'No bill amount, number or data changes',
         ]],
-        ['version' => '2.18.0', 'date' => '2026-11-18 23:20', 'title' => 'Choose company after signing in', 'type' => 'feature', 'notes' => [
+        ['version' => '2.18.0', 'date' => '2026-11-18 21:21', 'title' => 'Choose company after signing in', 'type' => 'feature', 'notes' => [
             'Logins for both agencies (the Super Admins) now choose the company after signing in: SWACHHA, M/S Z Plus Surakhya Seva or Both agencies',
             'With one company chosen, every page, list, approval and dropdown shows only that company, exactly like the agency\'s own login; header shows the company with a "Change" link, and "Change company" is in the menu',
             'GeM import and adding an agency need "Both agencies"',
             'Agency logins (SWACHHA / Z Plus makers) are unchanged: they always see only their own agency',
             'No bill amount, number or data changes',
         ]],
-        ['version' => '2.17.2', 'date' => '2026-11-18 22:40', 'title' => 'Own agency filled in; work orders told apart', 'type' => 'fix', 'notes' => [
+        ['version' => '2.17.2', 'date' => '2026-11-18 21:13', 'title' => 'Own agency filled in; work orders told apart', 'type' => 'fix', 'notes' => [
             'Agency logins (SWACHHA / Z Plus): the Agency box on every list page (Employees, Attendance, Sub-bills, Tax invoices, Posts, Work orders, Clients, Project In-charge, Bank Letter) shows your own agency instead of "All agencies"',
             'Work order filters show bid no. · contract no. · client, so several contracts under the same GeM bid no longer look like duplicates',
             'No bill amount, number or data changes',
         ]],
-        ['version' => '2.17.1', 'date' => '2026-11-18 22:10', 'title' => 'Add post: agency filled in', 'type' => 'fix', 'notes' => [
+        ['version' => '2.17.1', 'date' => '2026-11-18 21:07', 'title' => 'Add post: agency filled in', 'type' => 'fix', 'notes' => [
             'Add new post box: the Agency field now shows the login\'s own agency (SWACHHA or Z Plus) instead of a blank box',
             'No bill amount, number or data changes',
         ]],
-        ['version' => '2.17.0', 'date' => '2026-11-18 21:45', 'title' => 'Makers see what is waiting for approval', 'type' => 'feature', 'notes' => [
+        ['version' => '2.17.0', 'date' => '2026-11-18 20:57', 'title' => 'Makers see what is waiting for approval', 'type' => 'feature', 'notes' => [
             'Approvals page for makers (Accounts / Operator): new list "Sent – waiting for Super Admin approval" with each item, who sent it, when, and how many days it has waited (yellow after 3 days)',
             'Sidebar: grey count of items waiting for a Super Admin, red count of items returned to you',
             'Dashboard card for makers: "X waiting for Super Admin · Y returned to you", opens Approvals',
             'Each maker sees only their own agency\'s items. Super Admin pages unchanged. No bill amount, number or data changes',
         ]],
-        ['version' => '2.16.1', 'date' => '2026-11-18 21:15', 'title' => 'Edit button for the second owner', 'type' => 'fix', 'notes' => [
+        ['version' => '2.16.1', 'date' => '2026-11-18 20:50', 'title' => 'Edit button for the second owner', 'type' => 'fix', 'notes' => [
             'Users list: the developer now sees the Edit button on the other Super Admin\'s row (to correct the name or reset the password); nobody else can open Users',
             'No bill amount, number or data changes',
         ]],
@@ -340,11 +345,11 @@ return [
             'Browser security headers on every page: HTTPS-only (HSTS), no framing by other sites, no content-type guessing',
             'Uploaded Excel files that were checked but never saved are deleted after a day',
         ]],
-        ['version' => '2.3.1', 'date' => '2026-11-04 03:15', 'title' => 'Proof: no agency can enter the other\'s data', 'type' => 'fix', 'notes' => [
+        ['version' => '2.3.1', 'date' => '2026-11-03 23:15', 'title' => 'Proof: no agency can enter the other\'s data', 'type' => 'fix', 'notes' => [
             'New test tries all 30 add / edit / delete / status actions of a Z Plus login on SWACHHA data and the other way round (60 attempts): every one is refused and no row changes',
             'An agency login\'s new records always get its own agency, even if a form does not send one',
         ]],
-        ['version' => '2.3.0', 'date' => '2026-11-04 02:30', 'title' => 'Shared-computer safety and stricter agency isolation', 'type' => 'feature', 'notes' => [
+        ['version' => '2.3.0', 'date' => '2026-11-03 22:58', 'title' => 'Shared-computer safety and stricter agency isolation', 'type' => 'feature', 'notes' => [
             'Pages, PDFs and downloads shown to a signed-in user are never kept in the browser cache, so Back after signing out shows nothing',
             'Signing out tells the browser to clear this site\'s cache, cookies and storage',
             '"Keep me signed in" removed (office computers are shared); earlier remember-me cookies no longer work',
@@ -352,20 +357,20 @@ return [
             'Form checks look records up through the agency filter, so another agency\'s records are rejected even before saving',
             'Database safety net: triggers refuse any contract, sub-bill, tax invoice or employee linked to a different agency\'s client or contract',
         ]],
-        ['version' => '2.2.3', 'date' => '2026-11-04 01:15', 'title' => 'Month and year picker', 'type' => 'fix', 'notes' => [
+        ['version' => '2.2.3', 'date' => '2026-11-03 22:27', 'title' => 'Month and year picker', 'type' => 'fix', 'notes' => [
             'Month fields on Attendance, Sub-bills and Tax invoices open a calendar: choose the year with the arrows, then click the month',
             'Works the same in every browser, including Firefox (which has no built-in month calendar)',
         ]],
-        ['version' => '2.2.2', 'date' => '2026-11-04 00:45', 'title' => 'Agency filled in on forms', 'type' => 'fix', 'notes' => [
+        ['version' => '2.2.2', 'date' => '2026-11-03 22:20', 'title' => 'Agency filled in on forms', 'type' => 'fix', 'notes' => [
             'For a Z Plus or SWACHHA login, the Agency field on Add client, Add GeM contract, Add employee and Add new post is filled in and locked to their agency',
             'The Super Admin and both-agency logins still choose the agency',
         ]],
-        ['version' => '2.2.1', 'date' => '2026-11-04 00:15', 'title' => 'Agency name on screen', 'type' => 'fix', 'notes' => [
+        ['version' => '2.2.1', 'date' => '2026-11-03 22:10', 'title' => 'Agency name on screen', 'type' => 'fix', 'notes' => [
             'Dashboard shows "You are working for" with the agency\'s name, logo and GSTIN (or "Both agencies")',
             'Every page shows the agency badge next to the page title',
             'Single-agency logins no longer see the Agency filter on the dashboard',
         ]],
-        ['version' => '2.2.0', 'date' => '2026-11-03 23:30', 'title' => 'Separate logins for each agency', 'type' => 'feature', 'notes' => [
+        ['version' => '2.2.0', 'date' => '2026-11-03 21:52', 'title' => 'Separate logins for each agency', 'type' => 'feature', 'notes' => [
             'Each login works for one agency (Z Plus or SWACHHA) or, set by the Super Admin, for both',
             'A single-agency login sees and enters only its own agency\'s clients, contracts, projects, posts, staff, attendance, sub-bills and tax invoices; the other agency\'s records are "not found"',
             'Agency Admins create logins (operators, accounts, PIs) for their own agency only; only the Super Admin creates both-agency logins',
