@@ -128,9 +128,9 @@ class ClientAgencyTest extends TestCase
         $zps = Agency::query()->where('code', 'ZPS')->firstOrFail();
 
         $this->actingAs($admin)->get('/contracts')->assertOk()
-            ->assertSee('id="f-agency"', false)->assertDontSee('id="f-client"', false)
-            ->assertSee('<span class="text-secondary">Agency:</span>', false)->assertSee('M/S Z Plus Surakhya Seva')
-            ->assertSee('<th style="width:14%">Project</th><th>Project name</th><th>Project In-charge</th>', false)
+            ->assertSee('name="agency"', false)->assertDontSee('id="f-client"', false)
+            ->assertSee('Agency: <b>M/S Z Plus Surakhya Seva (ZPS)</b>', false)
+            ->assertSee('<th style="width:13%">Project Code</th><th>Project Name</th><th>Project In-Charge</th>', false)
             ->assertSee('GEM/2026/B/7972720');
         $this->get('/contracts?agency='.$swh->id)->assertOk()->assertDontSee('GEM/2026/B/7972720');
         $zpsIcmr = Client::query()->where('agency_id', $zps->id)->firstOrFail();
@@ -183,22 +183,40 @@ class ClientAgencyTest extends TestCase
         $this->assertStringContainsString('Add client to SWH', $html);
     }
 
-    public function test_contracts_page_is_split_into_agency_blocks(): void
+    public function test_contracts_page_redesign_tabs_figures_filters_and_pages(): void
     {
         $this->seed(DemoSeeder::class);
         $swh = Agency::query()->where('code', 'SWH')->firstOrFail();
         $swhClient = Client::query()->where('agency_id', $swh->id)->firstOrFail();
         GemContract::query()->create(['agency_id' => $swh->id, 'client_id' => $swhClient->id, 'bid_no' => 'GEM/2026/B/0000001', 'contract_no' => 'GEMC-1']);
+        $this->actingAs(User::factory()->create(['role' => 'admin']));
 
-        $html = $this->actingAs(User::factory()->create(['role' => 'admin']))->get('/contracts')->assertOk()->getContent();
-        $zps = strpos($html, '<b class="fs-6">M/S Z Plus Surakhya Seva</b> <span class="badge text-bg-dark">ZPS</span>');
-        $swhPos = strpos($html, '<b class="fs-6">SWACHHA</b> <span class="badge text-bg-dark">SWH</span>');
-        $this->assertNotFalse($zps);
-        $this->assertNotFalse($swhPos);
-        $this->assertStringContainsString('1 contract · 1 project · 2 / 2 posts filled', $html);
-        $this->assertGreaterThan($swhPos, strpos($html, 'GEM/2026/B/0000001'));   // SWACHHA's contract under its block, even though its number sorts first
-        $this->assertStringNotContainsString('client-block', $html);              // owner, 21 Nov 2026: projects instead of clients
-        $this->assertStringContainsString('<span class="badge text-bg-primary mono">MPH</span>', $html);
+        // Owner, 22 Nov 2026: figures, status tabs, collapsed contracts with their projects.
+        $html = $this->get('/contracts')->assertOk()->getContent();
+        $this->assertStringContainsString('Contracts – Both agencies', $html);
+        $this->assertStringContainsString('All Contracts (2)', $html);
+        $this->assertStringContainsString('Active (1)', $html);
+        $this->assertStringContainsString('Draft (1)', $html);                     // the new contract has no projects yet
+        $this->assertMatchesRegularExpression('#Total Posts</div><div class="v">2</div>#', $html);
+        $this->assertStringContainsString('2/2 Filled', $html);
+        $this->assertStringContainsString('class="collapse" id="wo-', $html);      // collapsed by default
+        $this->assertStringContainsString('<span class="wo-code">MPH</span>', $html);
+
+        $this->get('/contracts?tab=draft')->assertSee('GEMC-1')->assertDontSee('GEM/2026/B/7972720');
+        $this->get('/contracts?q=MPH')->assertSee('GEM/2026/B/7972720')->assertDontSee('GEMC-1');
+        $this->get('/contracts?staffing=filled')->assertSee('GEM/2026/B/7972720')->assertDontSee('GEMC-1');
+        $this->get('/contracts?agency='.$swh->id)->assertSee('GEMC-1')->assertDontSee('GEM/2026/B/7972720');
+
+        foreach (range(2, 12) as $n) {
+            GemContract::query()->create(['agency_id' => $swh->id, 'client_id' => $swhClient->id, 'bid_no' => 'B'.$n, 'contract_no' => sprintf('GEMC-P%02d', $n)]);
+        }
+        $this->get('/contracts?sort=contract')->assertSee('page=2', false);         // 10 per page
+        $this->get('/contracts?sort=contract&page=2')->assertSee('GEMC-P12');
+
+        $xlsx = $this->get('/contracts/export')->assertOk()->baseResponse->getFile()->getPathname();
+        $rows = \PhpOffice\PhpSpreadsheet\IOFactory::load($xlsx)->getActiveSheet()->toArray();
+        $this->assertSame('Contract no.', $rows[0][1]);
+        $this->assertContains('MPH', array_column($rows, 8));
     }
 
     public function test_client_needs_no_code_and_gets_a_unique_one(): void

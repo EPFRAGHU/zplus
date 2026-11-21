@@ -408,7 +408,7 @@ class OwnerChangesTest extends TestCase
     public function test_a_saved_work_order_is_reused_for_more_projects(): void
     {
         [$agency, $client, $contract] = $this->swachha();
-        $this->get('/contracts')->assertOk()->assertSee('#add-project', false)->assertSee('Add project');
+        $this->get('/contracts')->assertOk()->assertSee('#add-project', false)->assertSee('Add Project');
         $this->get("/contracts/{$contract->id}")->assertSee('id="add-project"', false)->assertSee('no need to enter them again');
 
         // Typing a saved number on "Add work order" points to it; saving it again explains what to do.

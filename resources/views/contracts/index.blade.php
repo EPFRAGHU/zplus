@@ -1,69 +1,129 @@
-<x-layouts.app title="Work Orders" crumb="Masters / <span class='text-danger'>Work Orders</span>">
-  <x-slot:actions>
-    @can('import')<a class="btn btn-outline-secondary" href="{{ route('import.create') }}"><i class="bi bi-file-earmark-arrow-up me-1"></i>Import from Excel</a>@endcan
-    @can('manage-masters')<a class="btn btn-primary" href="{{ route('contracts.create') }}"><i class="bi bi-plus-lg me-1"></i>Add work order</a>@endcan
-  </x-slot:actions>
+<x-layouts.app title="Work Orders" crumb="Masters / <span class='text-danger'>Work Orders</span>" :quiet-title="true">
+  <x-slot:head>@include('contracts._index-style')</x-slot:head>
   @php
-    $all = $contracts->flatMap(fn ($c) => $c->projects->flatMap->posts);
-    $sanctioned = $all->sum('sanctioned_qty'); $filled = $all->sum('active_employees_count');
+    $q = request()->except('page');
+    $tabUrl = fn ($t) => route('contracts.index', array_filter(['tab' => $t === 'all' ? null : $t] + $q, fn ($v) => $v !== null && $v !== ''));
+    $agencyName = $workingAgency?->name ?? 'Both agencies';
+    $pct = fn ($n, $d) => $d ? rtrim(rtrim(number_format($n * 100 / $d, 1), '0'), '.').'%' : '0%';
   @endphp
-  <div class="row row-cols-2 row-cols-md-4 g-3 mb-3">
-    <x-kpi label="Work orders" :value="$contracts->count()" />
-    <x-kpi label="Projects" :value="$contracts->sum(fn ($c) => $c->projects->count())" color="#1f63c4" />
-    <x-kpi label="Posts sanctioned" :value="$sanctioned" color="#1d1a1c" />
-    <x-kpi label="Posts filled" :value="$filled" :meta="max(0, $sanctioned - $filled).' vacant'" color="#1f8a4c" />
-  </div>
-  <form class="z-card p-3 mb-3 row g-2 mx-0 align-items-end">
-    <div class="col-md-3"><label class="form-label small text-secondary mb-1" for="f-agency">Agency</label>
-      <select id="f-agency" class="form-select" name="agency"><option value="">All agencies</option>@foreach($agencies as $a)<option value="{{ $a->id }}" @selected($agencyId === $a->id)>{{ $a->name }}</option>@endforeach</select></div>
-    <div class="col-md-7"><label class="form-label small text-secondary mb-1" for="f-q">Search</label><input id="f-q" class="form-control" name="q" value="{{ request('q') }}" placeholder="Bid no., contract no., project or PI"></div>
-    <div class="col-md-2 d-flex gap-2"><button class="btn btn-outline-secondary flex-fill">Show</button>@if(request()->query())<a class="btn btn-link px-1" href="{{ route('contracts.index') }}">Clear</a>@endif</div>
-  </form>
-  @php($agencyBlock = null) @php($group = null)
-  @forelse ($contracts as $c)
-    @if($agencyBlock !== $c->agency_id)
-      @php($agencyBlock = $c->agency_id) @php($group = null)
-      @php($inAgency = $contracts->where('agency_id', $c->agency_id))
-      @php($aPosts = $inAgency->flatMap(fn ($k) => $k->projects->flatMap->posts))
-      <div class="d-flex align-items-center gap-2 flex-wrap mt-4 mb-2 px-3 py-2 rounded bg-body-secondary border">
-        <b class="fs-6">{{ $c->agency->name }}</b> <span class="badge text-bg-dark">{{ $c->agency->code }}</span>
-        <span class="small text-secondary">{{ $inAgency->count() }} {{ \Illuminate\Support\Str::plural('contract', $inAgency->count()) }} · @php($nProj = $inAgency->sum(fn ($k) => $k->projects->count())){{ $nProj }} {{ \Illuminate\Support\Str::plural('project', $nProj) }} · {{ $aPosts->sum('active_employees_count') }} / {{ $aPosts->sum('sanctioned_qty') }} posts filled</span>
-        @can('manage-masters')<a class="small ms-auto" href="{{ route('contracts.create', ['agency' => $c->agency_id]) }}"><i class="bi bi-plus"></i>Add contract</a>@endcan
-      </div>
-    @endif
-    @php($posts = $c->projects->flatMap->posts) @php($s = $posts->sum('sanctioned_qty')) @php($f = $posts->sum('active_employees_count'))
-    <div class="z-card mb-2">
-      <div class="z-card-h">
-        <div><a class="fw-bold text-decoration-none mono" href="{{ route('contracts.show', $c) }}">{{ $c->contract_no }}</a>
-          <span class="badge {{ $c->contract_type === 'offline' ? 'text-bg-secondary' : 'text-bg-info' }} ms-1">{{ $c->typeLabel() }}</span>
-          @include('contracts._expiry', ['c' => $c])
-          <div class="mono text-secondary small">{{ $c->bid_no ? 'Bid '.$c->bid_no : '' }}</div></div>
-        <div class="small">
-          <div><span class="text-secondary">Agency:</span> <span class="fw-semibold">{{ $c->agency->name }}</span> ({{ $c->agency->code }})</div>
-
-        </div>
-        <div class="ms-auto d-flex gap-2 align-items-center">
-          @if($c->isDaily())<span class="badge text-bg-light border">Daily rate × days + EPF/ESIC</span>@endif
-          <span class="badge rounded-pill text-bg-{{ $f < $s ? 'warning' : 'success' }}">{{ $f }}/{{ $s }} filled</span>
-          @can('manage-masters')<a class="btn btn-sm btn-outline-primary" href="{{ route('contracts.show', $c) }}#add-project" title="Add another project using this bid and contract number"><i class="bi bi-plus-lg"></i> Add project</a>@endcan
-          @can('manage-masters')<a class="btn btn-sm btn-primary" href="{{ route('contracts.edit', $c) }}"><i class="bi bi-pencil me-1"></i>Edit</a>@endcan
-          <a class="btn btn-sm btn-outline-secondary" href="{{ route('contracts.show', $c) }}">Open</a>
+  <div class="wo">
+    <div class="wo-head">
+      <div class="wo-head-icon"><i class="bi bi-file-earmark-text"></i></div>
+      <div class="me-auto"><h1>Contracts – {{ $agencyName }}</h1><p>View and manage work orders, their projects and how many posts are filled.</p></div>
+      <div class="wo-actions d-flex gap-2 flex-wrap">
+        @can('import')<a class="btn wo-btn-line" href="{{ route('import.create') }}"><i class="bi bi-file-earmark-arrow-up me-1"></i>Import</a>@endcan
+        @can('manage-masters')<a class="btn wo-btn-primary" href="{{ route('contracts.create') }}"><i class="bi bi-plus-lg me-1"></i>Add Contract</a>@endcan
+        <div class="dropdown">
+          <button class="btn wo-btn-line dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false"><i class="bi bi-download me-1"></i>Export</button>
+          <ul class="dropdown-menu dropdown-menu-end">
+            <li><a class="dropdown-item" href="{{ route('contracts.export', $q) }}"><i class="bi bi-file-earmark-excel me-2 text-success"></i>Excel (this list)</a></li>
+          </ul>
         </div>
       </div>
-      <div class="table-responsive"><table class="table table-sm mb-0 small">
-        <thead><tr><th style="width:14%">Project</th><th>Project name</th><th>Project In-charge</th><th class="num">Posts filled</th><th></th></tr></thead>
-        <tbody>
-        @forelse($c->projects as $p)
-          @php($pp = $p->posts)
-          <tr><td><span class="badge text-bg-primary mono">{{ $p->code }}</span></td><td>{{ $p->name }}</td><td>{{ $p->incharge?->name ?? $p->pi_name ?? '—' }}</td>
-            <td class="num">{{ $pp->sum('active_employees_count') }} / {{ $pp->sum('sanctioned_qty') }}</td>
-            <td class="text-end">@can('manage-masters')<a class="btn btn-sm btn-link py-0" href="{{ route('contracts.show', $c) }}#edit-p{{ $p->id }}">Edit project</a>@endcan</td></tr>
-        @empty
-          <tr><td colspan="5" class="text-secondary">No projects yet. Use <b>Add project</b>.</td></tr>
-        @endforelse
-        </tbody></table></div>
     </div>
-  @empty
-    <div class="z-card p-4 text-center text-secondary">No contracts yet. @can('import')<a href="{{ route('import.create') }}">Import your GeM workbook</a> or add one by hand.@endcan</div>
-  @endforelse
+
+    <div class="wo-kpis">
+      <div class="wo-kpi k-blue"><i class="bi bi-folder2"></i><div><div class="l">Total Contracts</div><div class="v">{{ $kpi['contracts'] }}</div></div></div>
+      <div class="wo-kpi k-violet"><i class="bi bi-stack"></i><div><div class="l">Total Projects</div><div class="v">{{ $kpi['projects'] }}</div></div></div>
+      <div class="wo-kpi k-amber"><i class="bi bi-clipboard-check"></i><div><div class="l">Total Posts</div><div class="v">{{ $kpi['posts'] }}</div></div></div>
+      <div class="wo-kpi k-green"><i class="bi bi-check2-circle"></i><div><div class="l">Filled Posts</div><div class="v">{{ $kpi['filled'] }} <small>({{ $pct($kpi['filled'], $kpi['posts']) }})</small></div></div></div>
+      <div class="wo-kpi k-red"><i class="bi bi-people"></i><div><div class="l">Open Posts</div><div class="v">{{ $kpi['open'] }} <small>({{ $pct($kpi['open'], $kpi['posts']) }})</small></div></div></div>
+    </div>
+
+    <form class="wo-bar" method="get" action="{{ route('contracts.index') }}" role="search">
+      @if($tab !== 'all')<input type="hidden" name="tab" value="{{ $tab }}">@endif
+      <nav class="wo-tabs" aria-label="Contract status">
+        <a href="{{ $tabUrl('all') }}" @class(['on' => $tab === 'all']) @if($tab === 'all') aria-current="page" @endif>All Contracts ({{ $counts['all'] }})</a>
+        <a href="{{ $tabUrl('active') }}" @class(['on' => $tab === 'active'])><span class="wo-dot" style="background:#16a34a"></span>Active ({{ $counts['active'] }})</a>
+        <a href="{{ $tabUrl('completed') }}" @class(['on' => $tab === 'completed'])><span class="wo-dot" style="background:#94a3b8"></span>Completed ({{ $counts['completed'] }})</a>
+        <a href="{{ $tabUrl('draft') }}" @class(['on' => $tab === 'draft']) title="Work orders with no projects yet"><span class="wo-dot" style="background:#cbd5e1"></span>Draft ({{ $counts['draft'] }})</a>
+      </nav>
+      <label class="wo-pick"><span>Agency:</span>
+        <select name="agency" class="form-select" onchange="this.form.submit()"><option value="">All</option>@foreach($agencies as $a)<option value="{{ $a->id }}" @selected($agencyId === $a->id)>{{ $a->name }}</option>@endforeach</select></label>
+      <label class="wo-pick"><span>Status:</span>
+        <select name="staffing" class="form-select" onchange="this.form.submit()">
+          <option value="">All</option>
+          <option value="vacant" @selected($staffing === 'vacant')>Has open posts</option>
+          <option value="filled" @selected($staffing === 'filled')>Fully filled</option>
+          <option value="ending" @selected($staffing === 'ending')>Ending within 30 days</option>
+        </select></label>
+      <label class="wo-pick"><span>Sort:</span>
+        <select name="sort" class="form-select" onchange="this.form.submit()">
+          @foreach(['agency' => 'Agency', 'contract' => 'Contract no.', 'end' => 'End date', 'filled' => 'Most filled', 'vacant' => 'Most open posts'] as $k => $v)<option value="{{ $k }}" @selected($sort === $k)>{{ $v }}</option>@endforeach
+        </select></label>
+      <div class="wo-search"><i class="bi bi-search"></i><input class="form-control" name="q" value="{{ request('q') }}" placeholder="Search by contract, bid, project, PI…" aria-label="Search contracts"></div>
+      <div class="wo-views" role="group" aria-label="View">
+        <button type="button" data-view="list" title="List view" aria-label="List view"><i class="bi bi-list-ul"></i></button>
+        <button type="button" data-view="grid" title="Grid view" aria-label="Grid view"><i class="bi bi-grid"></i></button>
+      </div>
+      <button class="visually-hidden">Search</button>
+    </form>
+
+    <div class="wo-list" id="wo-list">
+      @forelse($contracts as $row)
+        @php($c = $row['contract'])
+        <article class="wo-card">
+          <div class="wo-row">
+            <button type="button" class="wo-toggle" data-bs-toggle="collapse" data-bs-target="#wo-{{ $c->id }}" aria-expanded="false" aria-controls="wo-{{ $c->id }}">
+              <i class="bi bi-chevron-right chev"></i><i class="bi bi-file-earmark-text doc"></i>
+              <span class="min-w-0">
+                <span class="d-flex align-items-center gap-2 flex-wrap"><span class="wo-no">{{ $c->contract_no }}</span>
+                  <span @class(['wo-type', 'off' => $c->contract_type === 'offline'])>{{ $c->typeLabel() }}</span>
+                  @if($row['state'] === 'completed')<span class="badge text-bg-secondary">Completed</span>@elseif($row['state'] === 'draft')<span class="badge text-bg-light border">Draft: no projects</span>@endif
+                  @include('contracts._expiry', ['c' => $c])</span>
+                <span class="wo-meta d-block">@if($c->bid_no)Bid: <b>{{ $c->bid_no }}</b> <span class="mx-1">|</span>@endif Agency: <b>{{ $c->agency->name }} ({{ $c->agency->code }})</b> <span class="mx-1">|</span> {{ $row['projectCount'] }} {{ \Illuminate\Support\Str::plural('project', $row['projectCount']) }}</span>
+              </span>
+            </button>
+            <div class="wo-right">
+              <span @class(['wo-fill', 'full' => $row['sanctioned'] && $row['filled'] >= $row['sanctioned'], 'part' => $row['filled'] < $row['sanctioned'], 'none' => ! $row['sanctioned']])><i class="bi bi-check2 me-1"></i>{{ $row['filled'] }}/{{ $row['sanctioned'] }} Filled</span>
+              <x-fill-progress :filled="$row['filled']" :total="$row['sanctioned']" />
+              @can('manage-masters')<a class="btn btn-sm wo-btn-blue" href="{{ route('contracts.show', $c) }}#add-project"><i class="bi bi-plus-lg me-1"></i>Add Project</a>@endcan
+              <a class="btn btn-sm wo-btn-line" href="{{ route('contracts.show', $c) }}"><i class="bi bi-box-arrow-up-right me-1"></i>Open</a>
+            </div>
+          </div>
+          <div class="collapse" id="wo-{{ $c->id }}">
+            <div class="wo-body"><div class="table-responsive"><table class="table table-sm align-middle wo-table mb-0">
+              <thead><tr><th style="width:4%">#</th><th style="width:13%">Project Code</th><th>Project Name</th><th>Project In-Charge</th><th class="text-center">Posts (Filled / Total)</th><th style="width:18%">Progress</th><th class="text-end">Actions</th></tr></thead>
+              <tbody>
+              @forelse($c->projects as $i => $p)
+                @php($pf = $p->posts->sum('active_employees_count')) @php($pt = $p->posts->sum('sanctioned_qty'))
+                <tr><td>{{ $i + 1 }}</td><td><span class="wo-code">{{ $p->code }}</span></td><td>{{ $p->name }}</td>
+                  <td>@if($p->incharge?->name ?? $p->pi_name)<i class="bi bi-person me-1 text-secondary"></i>{{ $p->incharge?->name ?? $p->pi_name }}@else<span class="text-secondary">—</span>@endif</td>
+                  <td class="text-center fw-semibold">{{ $pf }} / {{ $pt }}</td>
+                  <td><x-fill-progress :filled="$pf" :total="$pt" style="min-width:130px" /></td>
+                  <td class="text-end text-nowrap">
+                    <a class="wo-icon-btn" href="{{ route('contracts.show', $c) }}" title="View" aria-label="View {{ $p->code }}"><i class="bi bi-eye"></i></a>
+                    @can('manage-masters')<a class="wo-icon-btn" href="{{ route('contracts.show', $c) }}#edit-p{{ $p->id }}" title="Edit project" aria-label="Edit {{ $p->code }}"><i class="bi bi-pencil"></i></a>@endcan
+                    <span class="dropdown"><button type="button" class="wo-icon-btn" data-bs-toggle="dropdown" aria-expanded="false" aria-label="More for {{ $p->code }}"><i class="bi bi-three-dots"></i></button>
+                      <ul class="dropdown-menu dropdown-menu-end">
+                        <li><a class="dropdown-item" href="{{ route('posts.index', ['project' => $p->id]) }}"><i class="bi bi-diagram-3 me-2"></i>Posts</a></li>
+                        <li><a class="dropdown-item" href="{{ route('employees.index', ['project' => $p->id]) }}"><i class="bi bi-people me-2"></i>Employees</a></li>
+                        <li><a class="dropdown-item" href="{{ route('attendance.index', ['project' => $p->id]) }}"><i class="bi bi-calendar-check me-2"></i>Attendance</a></li>
+                        @can('billing')<li><a class="dropdown-item" href="{{ route('invoices.index', ['project' => $p->id]) }}"><i class="bi bi-receipt me-2"></i>Sub-bills</a></li>@endcan
+                      </ul></span>
+                  </td></tr>
+              @empty
+                <tr><td colspan="7" class="text-secondary py-3">No projects yet.@can('manage-masters') Use <a href="{{ route('contracts.show', $c) }}#add-project">Add Project</a> to enter them with their PI, posts and staff.@endcan</td></tr>
+              @endforelse
+              </tbody></table></div>
+              @can('manage-masters')<div class="text-end mt-2"><a class="btn btn-sm wo-btn-line" href="{{ route('contracts.edit', $c) }}"><i class="bi bi-pencil me-1"></i>Edit contract</a></div>@endcan
+            </div>
+          </div>
+        </article>
+      @empty
+        <div class="wo-empty"><i class="bi bi-inbox fs-3 d-block mb-2"></i>No contracts match these filters.@if(request()->query()) <a href="{{ route('contracts.index') }}">Clear filters</a>@endif</div>
+      @endforelse
+    </div>
+    @if($contracts->hasPages())<div class="mt-3">{{ $contracts->links() }}</div>@endif
+  </div>
+  <script>
+    (function () {   // list / grid, remembered on this computer only
+      const list = document.getElementById('wo-list'), btns = document.querySelectorAll('.wo-views [data-view]');
+      let view = 'list';
+      try { view = localStorage.getItem('wo-view') || 'list'; } catch (e) {}
+      const apply = v => { list.classList.toggle('grid', v === 'grid'); btns.forEach(b => b.classList.toggle('on', b.dataset.view === v)); };
+      btns.forEach(b => b.addEventListener('click', () => { apply(b.dataset.view); try { localStorage.setItem('wo-view', b.dataset.view); } catch (e) {} }));
+      apply(view);
+    })();
+  </script>
 </x-layouts.app>

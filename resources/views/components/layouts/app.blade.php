@@ -47,6 +47,7 @@ body{font-size:.9rem}
 .menu-btn{display:none}
 @media (max-width:900px){.z-app{grid-template-columns:1fr}.z-rail{position:fixed;inset:0 auto 0 0;width:250px;z-index:1040;transform:translateX(-105%);transition:transform .2s}.z-rail.open{transform:none}.menu-btn{display:inline-flex}}
 </style>
+{{ $head ?? '' }}
 </head>
 <body>
 <div class="z-app">
@@ -123,7 +124,7 @@ body{font-size:.9rem}
     <div class="d-flex align-items-start gap-3 flex-wrap mb-3">
       <button class="btn btn-outline-secondary menu-btn" type="button" onclick="document.getElementById('rail').classList.toggle('open')" aria-label="Menu"><i class="bi bi-list"></i></button>
       <div>
-        <h1 class="h4 fw-bold mb-0">{{ $title ?? 'Dashboard' }}</h1>
+        <{{ ($quietTitle ?? false) ? 'div' : 'h1' }} @class(['h4 fw-bold mb-0', 'visually-hidden' => $quietTitle ?? false])>{{ $title ?? 'Dashboard' }}</{{ ($quietTitle ?? false) ? 'div' : 'h1' }}>
         @isset($crumb)<div class="crumb">Dashboard / {!! $crumb !!}</div>@endisset
       </div>
       @unless(auth()->user()->isPi())

@@ -12,6 +12,12 @@ return [
     'timezone' => 'Asia/Kolkata',      // release times are Indian Standard Time
 
     'releases' => [
+        ['version' => '2.30.0', 'date' => '2026-11-22 19:00', 'title' => 'New look for Work Orders (Contracts)', 'type' => 'feature', 'notes' => [
+            'Work Orders page redesigned: heading "Contracts – <agency>" with Add Contract and Export (Excel of the list), figure cards (contracts, projects, posts, filled and open posts with percentages)',
+            'Tabs All / Active / Completed / Draft (no projects yet), Agency, Status (open posts, fully filled, ending within 30 days), Sort, search across contract, bid, project and PI, list or grid view, 10 work orders per page',
+            'Each work order is a card, collapsed by default: contract no., GeM / offline, bid no., agency, filled posts and a progress bar, Add Project and Open; opening it shows the projects with In-Charge, posts filled and View / Edit / more (posts, employees, attendance, sub-bills)',
+            'Nothing else changes: same pages behind the buttons, same data and permissions',
+        ]],
         ['version' => '2.29.0', 'date' => '2026-11-22 17:30', 'title' => 'Bank letter in Excel, appointment no. 001, longer codes', 'type' => 'feature', 'notes' => [
             'Bank Letter: new "Excel" button next to "Bank letter PDF": one sheet for SBI accounts, one for NEFT and one for staff with missing bank details (only after the salary payout is approved, like the PDF)',
             'Appointment letter numbers now have three digits: SWH/NIHR/<short project name>/001/26 (new letters; letters already numbered keep their number)',

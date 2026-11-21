@@ -15,21 +15,100 @@ use Illuminate\View\View;
 
 class GemContractController extends Controller
 {
+    /** Work orders list (owner, 22 Nov 2026 redesign): status tabs, staffing filter, search, sort, pages and figures. */
     public function index(Request $request): View
     {
-        $contracts = GemContract::query()
+        $all = $this->listing($request);
+        $tab = in_array($request->input('tab'), ['active', 'completed', 'draft'], true) ? $request->input('tab') : 'all';
+        $rows = $tab === 'all' ? $all : $all->where('state', $tab)->values();
+        $page = \Illuminate\Pagination\Paginator::resolveCurrentPage();
+        $contracts = new \Illuminate\Pagination\LengthAwarePaginator($rows->forPage($page, 10)->values(), $rows->count(), 10, $page,
+            ['path' => $request->url(), 'query' => $request->query()]);
+
+        return view('contracts.index', [
+            'contracts' => $contracts, 'tab' => $tab,
+            'counts' => ['all' => $all->count()] + collect(['active', 'completed', 'draft'])->mapWithKeys(fn ($t) => [$t => $all->where('state', $t)->count()])->all(),
+            'kpi' => ['contracts' => $rows->count(), 'projects' => $rows->sum('projectCount'), 'posts' => $rows->sum('sanctioned'), 'filled' => $rows->sum('filled'),
+                'open' => $rows->sum(fn ($r) => max(0, $r['sanctioned'] - $r['filled']))],
+            'agencies' => Agency::query()->orderBy('name')->get(),
+            'agencyId' => $request->integer('agency') ?: null, 'staffing' => $request->input('staffing'), 'sort' => $request->input('sort', 'agency'),
+            'workingAgency' => \App\Support\Agency\AgencyContext::agency(),
+        ]);
+    }
+
+    /** The same list as an Excel file: one row per project, with its work order (owner, 22 Nov 2026). */
+    public function export(Request $request): \Symfony\Component\HttpFoundation\Response
+    {
+        $book = new \PhpOffice\PhpSpreadsheet\Spreadsheet;
+        $ws = $book->getActiveSheet()->setTitle('Work orders');
+        $ws->fromArray([['Agency', 'Contract no.', 'Bid no.', 'Type', 'Status', 'Start', 'End', 'Contract value', 'Project', 'Project name', 'Project In-charge', 'Sanctioned', 'Filled']], null, 'A1');
+        $r = 2;
+        foreach ($this->listing($request) as $row) {
+            $c = $row['contract'];
+            $projects = $c->projects->isEmpty() ? collect([null]) : $c->projects;
+            foreach ($projects as $p) {
+                $cells = [$c->agency->name, $c->contract_no, $c->bid_no, $c->typeLabel(), ucfirst($row['state']), $c->start_date?->format('d.m.Y'), $c->end_date?->format('d.m.Y'),
+                    $c->contract_value, $p?->code, $p?->name, $p ? ($p->incharge?->name ?? $p->pi_name) : null,
+                    $p ? $p->posts->sum('sanctioned_qty') : null, $p ? $p->posts->sum('active_employees_count') : null];
+                foreach ($cells as $i => $v) {
+                    is_numeric($v) && $i >= 7 ? $ws->setCellValue([$i + 1, $r], $v)
+                        : $ws->setCellValueExplicit([$i + 1, $r], (string) $v, \PhpOffice\PhpSpreadsheet\Cell\DataType::TYPE_STRING);
+                }
+                $r++;
+            }
+        }
+        $ws->getStyle('A1:M1')->getFont()->setBold(true);
+        foreach (range('A', 'M') as $col) {
+            $ws->getColumnDimension($col)->setAutoSize(true);
+        }
+        $file = tempnam(sys_get_temp_dir(), 'wo');
+        (new \PhpOffice\PhpSpreadsheet\Writer\Xlsx($book))->save($file);
+
+        return response()->download($file, 'work-orders-'.now()->format('Y-m-d').'.xlsx')->deleteFileAfterSend();
+    }
+
+    /**
+     * Work orders matching the filters, with their figures. "state": draft = no projects yet, completed = closed or past its
+     * end date, active = the rest.
+     *
+     * @return \Illuminate\Support\Collection<int, array{contract: GemContract, state: string, projectCount: int, sanctioned: int, filled: int, percent: int}>
+     */
+    private function listing(Request $request): \Illuminate\Support\Collection
+    {
+        $search = $request->string('q')->trim()->value();
+        $rows = GemContract::query()
             ->with(['agency', 'client', 'projects.incharge', 'projects.posts' => fn ($q) => $q->withCount('activeEmployees')])
             ->when($request->integer('agency'), fn ($q, $id) => $q->where('agency_id', $id))
             ->when($request->integer('client'), fn ($q, $id) => $q->where('client_id', $id))
-            ->when($request->string('q')->trim()->value(), fn ($q, $s) => $q->where(fn ($w) => $w
+            ->when($search, fn ($q, $s) => $q->where(fn ($w) => $w
                 ->where('bid_no', 'like', "%{$s}%")->orWhere('contract_no', 'like', "%{$s}%")
-                ->orWhereHas('projects', fn ($p) => $p->where('name', 'like', "%{$s}%")->orWhere('pi_name', 'like', "%{$s}%"))))
+                ->orWhereHas('projects', fn ($p) => $p->where('name', 'like', "%{$s}%")->orWhere('code', 'like', "%{$s}%")->orWhere('pi_name', 'like', "%{$s}%"))))
             ->get()
-            ->sortBy(fn ($c) => $c->agency->name.'|'.$c->client->name.'|'.$c->bid_no)->values();
+            ->map(function (GemContract $c) {
+                $posts = $c->projects->flatMap->posts;
+                $sanctioned = (int) $posts->sum('sanctioned_qty');
+                $filled = (int) $posts->sum('active_employees_count');
+                $state = $c->projects->isEmpty() ? 'draft' : ($c->status === 'closed' || $c->expiry() === 'ended' ? 'completed' : 'active');
 
-        return view('contracts.index', ['contracts' => $contracts, 'agencies' => Agency::query()->orderBy('name')->get(),
-            'clients' => Client::query()->with('agency')->orderBy('name')->get(),
-            'agencyId' => $request->integer('agency') ?: null, 'clientId' => $request->integer('client') ?: null]);
+                return ['contract' => $c, 'state' => $state, 'projectCount' => $c->projects->count(), 'sanctioned' => $sanctioned, 'filled' => $filled,
+                    'percent' => $sanctioned ? (int) min(100, round($filled * 100 / $sanctioned)) : 0];
+            });
+        $rows = match ($request->input('staffing')) {
+            'filled' => $rows->filter(fn ($r) => $r['sanctioned'] > 0 && $r['filled'] >= $r['sanctioned']),
+            'vacant' => $rows->filter(fn ($r) => $r['filled'] < $r['sanctioned']),
+            'ending' => $rows->filter(fn ($r) => $r['contract']->expiry() === 'ending'),
+            default => $rows,
+        };
+
+        $sorted = match ($request->input('sort')) {
+            'contract' => $rows->sortBy(fn ($r) => $r['contract']->contract_no, SORT_NATURAL),
+            'end' => $rows->sortBy(fn ($r) => $r['contract']->end_date?->timestamp ?? PHP_INT_MAX),
+            'filled' => $rows->sortByDesc('percent'),
+            'vacant' => $rows->sortByDesc(fn ($r) => $r['sanctioned'] - $r['filled']),
+            default => $rows->sortBy(fn ($r) => $r['contract']->agency->name.'|'.$r['contract']->bid_no.'|'.$r['contract']->contract_no),
+        };
+
+        return $sorted->values();
     }
 
     public function create(Request $request): View

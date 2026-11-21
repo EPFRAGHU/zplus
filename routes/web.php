@@ -72,6 +72,7 @@ Route::middleware(['auth', 'active', 'role:admin,accounts,supervisor', \App\Http
     Route::get('clients/merge', [\App\Http\Controllers\ClientMergeController::class, 'show'])->name('clients.merge');
     Route::post('clients/merge', [\App\Http\Controllers\ClientMergeController::class, 'store'])->name('clients.merge.store');
     Route::resource('clients', ClientController::class)->except(['show', 'destroy']);
+    Route::get('contracts/export', [GemContractController::class, 'export'])->middleware('throttle:20,1')->name('contracts.export');
     Route::resource('contracts', GemContractController::class)->except(['destroy']);
     Route::resource('incharges', \App\Http\Controllers\ProjectInchargeController::class)->except(['show', 'destroy']);
     Route::get('staff', [\App\Http\Controllers\StaffController::class, 'index'])->name('staff.index');
