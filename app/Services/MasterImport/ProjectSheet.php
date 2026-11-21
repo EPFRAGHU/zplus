@@ -32,7 +32,7 @@ final class ProjectSheet extends MasterSheet
     {
         return [
             new Column('contract_no', 'GeM contract no.', true, 'text', null, 'Must already be in the app (GeM contracts).', 'GEMC-511687731718030', 26, asText: true, identifies: true),
-            new Column('code', 'Project code', true, help: 'Short code used in bill numbers, e.g. MPH. Letters and digits only.', example: 'MPH', width: 12, identifies: true),
+            new Column('code', 'Project code', true, help: 'Short project name, used in sub-bill numbers and appointment letters, e.g. MPH. Letters and digits only.', example: 'MPH', width: 12, identifies: true),
             new Column('name', 'Project name', true, example: 'MPH', width: 22),
             new Column('title', 'Full title', help: 'Printed on the covering letter', example: 'MPH Academic Programme', width: 36),
             new Column('pi_name', 'PI name', example: 'Dr. S. Kanungo', width: 20),

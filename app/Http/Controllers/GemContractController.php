@@ -18,7 +18,7 @@ class GemContractController extends Controller
     public function index(Request $request): View
     {
         $contracts = GemContract::query()
-            ->with(['agency', 'client', 'projects.posts' => fn ($q) => $q->withCount('activeEmployees')])
+            ->with(['agency', 'client', 'projects.incharge', 'projects.posts' => fn ($q) => $q->withCount('activeEmployees')])
             ->when($request->integer('agency'), fn ($q, $id) => $q->where('agency_id', $id))
             ->when($request->integer('client'), fn ($q, $id) => $q->where('client_id', $id))
             ->when($request->string('q')->trim()->value(), fn ($q, $s) => $q->where(fn ($w) => $w

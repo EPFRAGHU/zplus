@@ -401,7 +401,9 @@ class WebFlowTest extends TestCase
 
         foreach (['/agencies', '/clients', '/contracts', '/posts', '/employees', '/attendance?month=2026-10', '/invoices'] as $url) {
             $html = $this->actingAs($admin)->get($url)->assertOk()->getContent();
-            $this->assertStringContainsString('client-block', $html, "No client block on {$url}");
+            if (! in_array($url, ['/agencies', '/contracts'], true)) {   // these two show agency details / projects instead (owner, 21 Nov 2026)
+                $this->assertStringContainsString('client-block', $html, "No client block on {$url}");
+            }
             $this->assertStringContainsString('<span class="badge text-bg-dark">ZPS</span>', $html, "No agency block on {$url}");
             $this->assertDoesNotMatchRegularExpression('/@(else|endif|endforeach|endcan)\b/', strip_tags($html), "Stray template code on {$url}");
         }

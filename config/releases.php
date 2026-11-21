@@ -12,6 +12,13 @@ return [
     'timezone' => 'Asia/Kolkata',      // release times are Indian Standard Time
 
     'releases' => [
+        ['version' => '2.19.0', 'date' => '2026-11-21 13:00', 'title' => 'Agencies page, projects on work orders, short project name', 'type' => 'feature', 'notes' => [
+            'Agencies page shows each agency\'s full details (address, contacts, GSTIN, PAN, registrations, signatory, bank, bill prefix) with an Edit button; client names and Add client removed',
+            'Work orders list shows each work order\'s projects (short name, project name, Project In-charge, posts filled) instead of the client',
+            '"Code" of a project is now called "Short project name" (used in sub-bill numbers and appointment letters)',
+            'Clients no longer need a bill code; one is filled in automatically',
+            'No bill amount, number or data changes',
+        ]],
         ['version' => '2.18.1', 'date' => '2026-11-18 23:55', 'title' => 'Error pages, health check and icon', 'type' => 'fix', 'notes' => [
             'Error pages (not found, not allowed, page expired, too many attempts, something went wrong, maintenance) now match the app\'s design and never show technical details',
             'New /health address for Coolify and uptime monitors; it also checks that the database answers',

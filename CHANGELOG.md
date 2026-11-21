@@ -2,6 +2,14 @@
 
 Versions follow MAJOR.MINOR.PATCH. Dates are Indian Standard Time.
 
+## 2.19.0 (2026-11-21): Agencies page, projects on work orders, short project name
+
+- Agencies page shows each agency's full details (address, contacts, GSTIN, PAN, registrations, signatory, bank, bill prefix) with an Edit button; client names and Add client removed
+- Work orders list shows each work order's projects (short name, project name, Project In-charge, posts filled) instead of the client
+- "Code" of a project is now called "Short project name" (used in sub-bill numbers and appointment letters)
+- Clients no longer need a bill code; one is filled in automatically
+- No bill amount, number or data changes
+
 ## 2.18.1 (2026-11-18): Error pages, health check and icon
 
 - Error pages (not found, not allowed, page expired, too many attempts, something went wrong, maintenance) now match the app's design and never show technical details

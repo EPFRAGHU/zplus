@@ -18,8 +18,7 @@ class AgencyController extends Controller
     public function index(): View
     {
         return view('agencies.index', ['agencies' => Agency::query()
-            ->with(['clients' => fn ($q) => $q->withCount(['contracts', 'employees' => fn ($e) => $e->whereIn('status', ['active', 'notice'])])->orderBy('name')])
-            ->withCount(['contracts', 'clients', 'employees' => fn ($q) => $q->whereIn('status', ['active', 'notice'])])
+            ->withCount(['contracts', 'employees' => fn ($q) => $q->whereIn('status', ['active', 'notice'])])
             ->orderBy('name')->get()]);
     }
 

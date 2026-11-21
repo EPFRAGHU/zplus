@@ -79,7 +79,7 @@ class ProjectController extends Controller
             'pi_name' => ['nullable', 'string', 'max:255'],
             'pi_designation' => ['nullable', 'string', 'max:255'],
             'location' => ['nullable', 'string', 'max:255'],
-        ]);
+        ], [], ['code' => 'short project name']);
         $data['code'] = strtoupper($data['code']);
         $data = \App\Support\PiAllotment::syncNames($data);
         $data['saturday_off'] = $request->boolean('saturday_off');

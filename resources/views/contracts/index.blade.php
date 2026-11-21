@@ -16,9 +16,7 @@
   <form class="z-card p-3 mb-3 row g-2 mx-0 align-items-end">
     <div class="col-md-3"><label class="form-label small text-secondary mb-1" for="f-agency">Agency</label>
       <select id="f-agency" class="form-select" name="agency"><option value="">All agencies</option>@foreach($agencies as $a)<option value="{{ $a->id }}" @selected($agencyId === $a->id)>{{ $a->name }}</option>@endforeach</select></div>
-    <div class="col-md-3"><label class="form-label small text-secondary mb-1" for="f-client">Client</label>
-      <select id="f-client" class="form-select" name="client"><option value="">All clients</option>@foreach($clients as $c)<option value="{{ $c->id }}" data-agency="{{ $c->agency_id }}" @selected($clientId === $c->id)>{{ $c->name }}</option>@endforeach</select></div>
-    <div class="col-md-4"><label class="form-label small text-secondary mb-1" for="f-q">Search</label><input id="f-q" class="form-control" name="q" value="{{ request('q') }}" placeholder="Bid no., contract no., project or PI"></div>
+    <div class="col-md-7"><label class="form-label small text-secondary mb-1" for="f-q">Search</label><input id="f-q" class="form-control" name="q" value="{{ request('q') }}" placeholder="Bid no., contract no., project or PI"></div>
     <div class="col-md-2 d-flex gap-2"><button class="btn btn-outline-secondary flex-fill">Show</button>@if(request()->query())<a class="btn btn-link px-1" href="{{ route('contracts.index') }}">Clear</a>@endif</div>
   </form>
   @php($agencyBlock = null) @php($group = null)
@@ -33,26 +31,16 @@
         @can('manage-masters')<a class="small ms-auto" href="{{ route('contracts.create', ['agency' => $c->agency_id]) }}"><i class="bi bi-plus"></i>Add contract</a>@endcan
       </div>
     @endif
-    @if($group !== $c->client_id)
-      @php($group = $c->client_id)
-      @php($inGroup = $contracts->where('client_id', $c->client_id))
-      @php($cPosts = $inGroup->flatMap(fn ($k) => $k->projects->flatMap->posts))
-      @php($cProj = $inGroup->sum(fn ($k) => $k->projects->count()))
-      <x-client-block :client="$c->client" :meta="$inGroup->count().' '.\Illuminate\Support\Str::plural('contract', $inGroup->count()).' · '.$cProj.' '.\Illuminate\Support\Str::plural('project', $cProj).' · '.$cPosts->sum('active_employees_count').' / '.$cPosts->sum('sanctioned_qty').' posts filled'">
-        @can('manage-masters')<a class="btn btn-sm btn-outline-primary" href="{{ route('contracts.create', ['agency' => $c->agency_id, 'client' => $c->client_id]) }}"><i class="bi bi-plus-lg"></i> Add contract for this client</a>@endcan
-      </x-client-block>
-    @endif
     @php($posts = $c->projects->flatMap->posts) @php($s = $posts->sum('sanctioned_qty')) @php($f = $posts->sum('active_employees_count'))
     <div class="z-card mb-2">
       <div class="z-card-h">
         <div><a class="fw-bold text-decoration-none mono" href="{{ route('contracts.show', $c) }}">{{ $c->contract_no }}</a>
           <span class="badge {{ $c->contract_type === 'offline' ? 'text-bg-secondary' : 'text-bg-info' }} ms-1">{{ $c->typeLabel() }}</span>
           @include('contracts._expiry', ['c' => $c])
-          <div class="mono text-secondary small">{{ $c->bid_no ? 'Bid '.$c->bid_no : '' }} · {{ $c->projects->pluck('code')->implode(', ') ?: 'no projects yet' }}</div></div>
+          <div class="mono text-secondary small">{{ $c->bid_no ? 'Bid '.$c->bid_no : '' }}</div></div>
         <div class="small">
           <div><span class="text-secondary">Agency:</span> <span class="fw-semibold">{{ $c->agency->name }}</span> ({{ $c->agency->code }})</div>
-          <div><span class="text-secondary">Client:</span> <span class="fw-semibold">{{ $c->client->name }}</span></div>
-          <div class="text-secondary">{{ $c->projects->pluck('name')->join(' · ') }}</div>
+
         </div>
         <div class="ms-auto d-flex gap-2 align-items-center">
           @if($c->isDaily())<span class="badge text-bg-light border">Daily rate × days + EPF/ESIC</span>@endif
@@ -61,18 +49,19 @@
           <a class="btn btn-sm btn-outline-secondary" href="{{ route('contracts.show', $c) }}">Open</a>
         </div>
       </div>
+      <div class="table-responsive"><table class="table table-sm mb-0 small">
+        <thead><tr><th style="width:14%">Project</th><th>Project name</th><th>Project In-charge</th><th class="num">Posts filled</th></tr></thead>
+        <tbody>
+        @forelse($c->projects as $p)
+          @php($pp = $p->posts)
+          <tr><td><span class="badge text-bg-primary mono">{{ $p->code }}</span></td><td>{{ $p->name }}</td><td>{{ $p->incharge?->name ?? $p->pi_name ?? '—' }}</td>
+            <td class="num">{{ $pp->sum('active_employees_count') }} / {{ $pp->sum('sanctioned_qty') }}</td></tr>
+        @empty
+          <tr><td colspan="4" class="text-secondary">No projects yet. Use <b>Add project</b>.</td></tr>
+        @endforelse
+        </tbody></table></div>
     </div>
   @empty
     <div class="z-card p-4 text-center text-secondary">No contracts yet. @can('import')<a href="{{ route('import.create') }}">Import your GeM workbook</a> or add one by hand.@endcan</div>
   @endforelse
-  <script>
-    (function () {
-      const agency = document.getElementById('f-agency'), client = document.getElementById('f-client');
-      function update() {
-        [...client.options].forEach(o => { if (o.value) { o.hidden = o.disabled = !!agency.value && o.dataset.agency !== agency.value; } });
-        if (client.selectedOptions[0] && client.selectedOptions[0].disabled) client.value = '';
-      }
-      agency.addEventListener('change', update); update();
-    })();
-  </script>
 </x-layouts.app>

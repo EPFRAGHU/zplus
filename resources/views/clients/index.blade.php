@@ -23,7 +23,7 @@
         </td></tr>
       @endif
       <x-client-block :client="$c" colspan="7"
-        :meta="'Bill code '.$c->short_code.' · '.$c->contracts_count.' '.\Illuminate\Support\Str::plural('contract', $c->contracts_count).' · '.$c->employees_count.' '.\Illuminate\Support\Str::plural('employee', $c->employees_count).($c->contact_person ? ' · '.$c->contact_person : '').($c->phone ? ' '.$c->phone : '').($c->district ? ' · '.$c->district : '').($c->gstin ? ' · GSTIN '.$c->gstin : '').' · '.$c->payment_term_days.'-day term'">
+        :meta="$c->contracts_count.' '.\Illuminate\Support\Str::plural('contract', $c->contracts_count).' · '.$c->employees_count.' '.\Illuminate\Support\Str::plural('employee', $c->employees_count).($c->contact_person ? ' · '.$c->contact_person : '').($c->phone ? ' '.$c->phone : '').($c->district ? ' · '.$c->district : '').($c->gstin ? ' · GSTIN '.$c->gstin : '').' · '.$c->payment_term_days.'-day term'">
         <x-status :value="$c->status" />
         <a class="btn btn-sm btn-outline-secondary" href="{{ route('employees.index', ['agency' => $c->agency_id, 'client' => $c->id]) }}" title="Employees of this client">{{ $c->employees_count }} <i class="bi bi-people"></i></a>
         @can('manage-masters')

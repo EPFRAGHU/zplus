@@ -76,10 +76,10 @@ class ClientController extends Controller
 
     private function validated(Request $request, ?Client $client = null): array
     {
-        return $request->validate([
+        $data = $request->validate([
             'agency_id' => ['required', new \App\Rules\ExistsInMyAgency(\App\Models\Agency::class)],
             'name' => ['required', 'string', 'max:255'],
-            'short_code' => ['required', \App\Support\Codes::PATTERN, 'max:16',
+            'short_code' => ['nullable', \App\Support\Codes::PATTERN, 'max:16',
                 Rule::unique('clients')->where('agency_id', $request->input('agency_id'))->ignore($client)],
             'letter_code' => ['nullable', \App\Support\Codes::PATTERN, 'max:16'],
             'addressee' => ['nullable', 'string', 'max:255'],
@@ -97,6 +97,25 @@ class ClientController extends Controller
             'short_code.unique' => 'This agency already has a client with this bill code.',
             'gstin.regex' => 'Enter a 15-character GSTIN, e.g. 21AAAGO1234F1Z5.',
         ]);
+        // The owner does not use a client code any more (21 Nov 2026); the column still needs a unique value per agency.
+        $data['short_code'] = blank($data['short_code'] ?? null)
+            ? ($client?->short_code ?? $this->freeShortCode((int) $data['agency_id'], $data['letter_code'] ?? null, $data['name']))
+            : strtoupper($data['short_code']);
+
+        return $data;
+    }
+
+    private function freeShortCode(int $agencyId, ?string $letterCode, string $name): string
+    {
+        $base = strtoupper($letterCode ?: (preg_replace('/[^A-Z0-9]/', '', strtoupper(implode('', array_map(fn ($w) => $w[0] ?? '', preg_split('/\s+/', $name))))) ?: 'CLIENT'));
+        $base = substr($base, 0, 12);
+        $taken = \App\Support\Agency\AgencyContext::unscoped(fn () => Client::query()->where('agency_id', $agencyId)->pluck('short_code')->all());
+        $code = $base;
+        for ($i = 2; in_array($code, $taken, true); $i++) {
+            $code = $base.'-'.$i;
+        }
+
+        return $code;
     }
 
     /** Super Admin: deletes a client only when nothing depends on it (owner, 17 Nov 2026). */

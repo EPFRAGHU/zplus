@@ -39,7 +39,7 @@
             @foreach($pickProjects as $p)<option value="{{ $p->id }}" data-contract="{{ $p->gem_contract_id }}">{{ $p->name }}{{ $p->pi_name ? ' · '.$p->pi_name : '' }}</option>@endforeach</select></div>
           <div class="col-12" id="qa-project-new" hidden><div class="row g-2">
             <div class="col-md-5"><input class="form-control" name="project_name" id="qa-pname" placeholder="Project name, e.g. MPH" aria-label="Project name"></div>
-            <div class="col-md-3"><input class="form-control mono" name="project_code" maxlength="12" placeholder="Code for bill no." aria-label="Project code"></div>
+            <div class="col-md-3"><input class="form-control mono" name="project_code" maxlength="12" placeholder="Short project name, e.g. MPH" aria-label="Short project name"></div>
             <div class="col-md-4"><input class="form-control" name="pi_name" placeholder="PI name" aria-label="PI name"></div>
           </div></div>
 
