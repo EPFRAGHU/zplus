@@ -20,12 +20,13 @@ class StaffController extends Controller
     public function index(Request $request, SalaryPayoutSheet $payouts): View
     {
         // "All employees" list: click Emp ID, Name or Post · project to sort A→Z, again for Z→A (natural order: SW-1002 before SW-1010).
-        $sort = in_array($request->query('sort'), ['emp_code', 'name', 'pi', 'post'], true) ? $request->query('sort') : null;
+        $sort = in_array($request->query('sort'), ['emp_code', 'name', 'pi', 'post', 'project'], true) ? $request->query('sort') : null;
         $dir = $request->query('dir') === 'desc' ? 'desc' : 'asc';
         $key = fn ($e) => match ($sort) {
             'emp_code' => (string) $e->emp_code,
             'name' => (string) $e->name,
             'post' => $e->post ? $e->post->designation.' · '.$e->post->project->code : "\u{FFFF}",   // no post: last
+            'project' => $e->post ? $e->post->project->code.' · '.$e->post->designation : "\u{FFFF}",   // own column since 22 Nov 2026
             'pi' => self::inchargeName($e) ?? "\u{FFFF}",                                          // no PI: last
             default => ($e->agency?->name ?? 'zz').'|'.$e->name,
         };
@@ -59,7 +60,7 @@ class StaffController extends Controller
 
         return view('staff.index', [
             'sort' => $sort, 'dir' => $dir,
-            'sortLinks' => collect(['emp_code', 'name', 'pi', 'post'])->mapWithKeys(fn ($col) => [$col => [
+            'sortLinks' => collect(['emp_code', 'name', 'pi', 'post', 'project'])->mapWithKeys(fn ($col) => [$col => [
                 'url' => route('staff.index', array_filter(['employee' => $request->integer('employee') ?: null, 'sort' => $col,
                     'dir' => $sort === $col && $dir === 'asc' ? 'desc' : 'asc'])),
                 'icon' => $sort === $col ? ($dir === 'asc' ? 'bi-sort-alpha-down' : 'bi-sort-alpha-up-alt') : 'bi-arrow-down-up text-secondary',

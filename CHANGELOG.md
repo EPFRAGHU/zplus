@@ -2,6 +2,13 @@
 
 Versions follow MAJOR.MINOR.PATCH. Dates are Indian Standard Time.
 
+## 2.36.2 (2026-11-22): Employee Management: Project in its own column
+
+- All employees list: Post and Project are now separate columns (Project right after Post), and both can be sorted by clicking the heading
+- The employee details card shows Post and Project on separate lines
+- Fixed column widths so every column lines up; EPF / ESIC / TDS shown as small green (on) or grey (off) tags on one line
+- No data changes
+
 ## 2.36.1 (2026-11-22): Correct times in the version history; Posts columns lined up
 
 - Version history and the sidebar now show the real Indian time (IST) of each release; versions 2.2.0 to 2.3.1 and 2.16.1 to 2.36.0 had wrong times, some even dated a day or two ahead

@@ -12,6 +12,12 @@ return [
     'timezone' => 'Asia/Kolkata',      // release times are Indian Standard Time
 
     'releases' => [
+        ['version' => '2.36.2', 'date' => '2026-11-22 01:07', 'title' => 'Employee Management: Project in its own column', 'type' => 'fix', 'notes' => [
+            'All employees list: Post and Project are now separate columns (Project right after Post), and both can be sorted by clicking the heading',
+            'The employee details card shows Post and Project on separate lines',
+            'Fixed column widths so every column lines up; EPF / ESIC / TDS shown as small green (on) or grey (off) tags on one line',
+            'No data changes',
+        ]],
         ['version' => '2.36.1', 'date' => '2026-11-22 01:01', 'title' => 'Correct times in the version history; Posts columns lined up', 'type' => 'fix', 'notes' => [
             'Version history and the sidebar now show the real Indian time (IST) of each release; versions 2.2.0 to 2.3.1 and 2.16.1 to 2.36.0 had wrong times, some even dated a day or two ahead',
             'A check now stops any version being dated in the future',

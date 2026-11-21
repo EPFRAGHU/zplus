@@ -75,7 +75,8 @@
         <dl class="row small mb-0 mt-2">
           <dt class="col-sm-4 text-secondary fw-normal">Agency</dt><dd class="col-sm-8">{{ $employee->agency?->name ?? '—' }}</dd>
           <dt class="col-sm-4 text-secondary fw-normal">Client</dt><dd class="col-sm-8">{{ $employee->client?->name ?? '—' }}</dd>
-          <dt class="col-sm-4 text-secondary fw-normal">Post · project</dt><dd class="col-sm-8">{{ $employee->post ? $employee->post->designation.' · '.$employee->post->project->name.' ('.$employee->post->project->code.')' : '—' }}</dd>
+          <dt class="col-sm-4 text-secondary fw-normal">Post</dt><dd class="col-sm-8">{{ $employee->post?->designation ?? '—' }}</dd>
+          <dt class="col-sm-4 text-secondary fw-normal">Project</dt><dd class="col-sm-8">@if($employee->post)<span class="wo-code">{{ $employee->post->project->code }}</span> {{ $employee->post->project->name }}@else—@endif</dd>
           <dt class="col-sm-4 text-secondary fw-normal">Work order</dt><dd class="col-sm-8 mono">{{ $employee->post?->project->contract->contract_no ?? '—' }}</dd>
           <dt class="col-sm-4 text-secondary fw-normal">Monthly rate</dt><dd class="col-sm-8">{{ inr($employee->rate()) }}</dd>
           <dt class="col-sm-4 text-secondary fw-normal">Joined · left</dt><dd class="col-sm-8">{{ $employee->joining_date?->format('d M Y') ?? '—' }} · {{ $employee->exit_date?->format('d M Y') ?? '—' }}</dd>
@@ -136,8 +137,10 @@
 
   <div class="wo-card">
     <div class="wo-row border-bottom"><b><i class="bi bi-people me-1 text-primary"></i>All employees</b><span class="wo-meta">{{ $employees->count() }} in total · click a name to see their details</span></div>
-    <div class="table-responsive"><table class="table table-hover align-middle wo-table m-0">
-      <thead><tr><th><a class="text-reset text-decoration-none text-nowrap" href="{{ $sortLinks['emp_code']['url'] }}" title="{{ $sortLinks['emp_code']['title'] }}">Emp ID <i class="bi {{ $sortLinks['emp_code']['icon'] }}"></i></a></th><th><a class="text-reset text-decoration-none text-nowrap" href="{{ $sortLinks['name']['url'] }}" title="{{ $sortLinks['name']['title'] }}">Name <i class="bi {{ $sortLinks['name']['icon'] }}"></i></a></th><th>Agency</th><th><a class="text-reset text-decoration-none text-nowrap" href="{{ $sortLinks['pi']['url'] }}" title="{{ $sortLinks['pi']['title'] }}">Project In-charge <i class="bi {{ $sortLinks['pi']['icon'] }}"></i></a></th><th><a class="text-reset text-decoration-none text-nowrap" href="{{ $sortLinks['post']['url'] }}" title="{{ $sortLinks['post']['title'] }}">Post · project <i class="bi {{ $sortLinks['post']['icon'] }}"></i></a></th><th>Mobile</th><th>Bank</th><th>EPF / ESIC / TDS</th><th>Status</th></tr></thead>
+    <div class="table-responsive"><table class="table table-hover align-middle wo-table m-0 wo-staff">
+      {{-- Fixed widths so every column lines up (owner, 22 Nov 2026). --}}
+      <colgroup><col style="width:8%"><col style="width:11%"><col style="width:6%"><col style="width:13%"><col style="width:15%"><col style="width:7%"><col style="width:9%"><col style="width:11%"><col style="width:13%"><col style="width:7%"></colgroup>
+      <thead><tr><th><a class="text-reset text-decoration-none text-nowrap" href="{{ $sortLinks['emp_code']['url'] }}" title="{{ $sortLinks['emp_code']['title'] }}">Emp ID <i class="bi {{ $sortLinks['emp_code']['icon'] }}"></i></a></th><th><a class="text-reset text-decoration-none text-nowrap" href="{{ $sortLinks['name']['url'] }}" title="{{ $sortLinks['name']['title'] }}">Name <i class="bi {{ $sortLinks['name']['icon'] }}"></i></a></th><th>Agency</th><th><a class="text-reset text-decoration-none text-nowrap" href="{{ $sortLinks['pi']['url'] }}" title="{{ $sortLinks['pi']['title'] }}">Project In-charge <i class="bi {{ $sortLinks['pi']['icon'] }}"></i></a></th><th><a class="text-reset text-decoration-none text-nowrap" href="{{ $sortLinks['post']['url'] }}" title="{{ $sortLinks['post']['title'] }}">Post <i class="bi {{ $sortLinks['post']['icon'] }}"></i></a></th><th><a class="text-reset text-decoration-none text-nowrap" href="{{ $sortLinks['project']['url'] }}" title="{{ $sortLinks['project']['title'] }}">Project <i class="bi {{ $sortLinks['project']['icon'] }}"></i></a></th><th>Mobile</th><th>Bank</th><th class="text-nowrap">EPF / ESIC / TDS</th><th>Status</th></tr></thead>
       <tbody>
       @foreach($employees as $e)
         <tr @class(['table-active' => $employee?->id === $e->id])>
@@ -145,10 +148,11 @@
           <td><a href="{{ route('staff.index', array_filter(['employee' => $e->id, 'sort' => $sort, 'dir' => $sort ? $dir : null])) }}">{{ $e->name }}</a></td>
           <td><span class="wo-type off">{{ $e->agency?->code }}</span></td>
           <td class="small">{{ \App\Http\Controllers\StaffController::inchargeName($e) ?? '—' }}</td>
-          <td class="small">@if($e->post){{ $e->post->designation }} <span class="wo-code">{{ $e->post->project->code }}</span>@else—@endif</td>
+          <td class="small">{{ $e->post?->designation ?? '—' }}</td>
+          <td class="small">@if($e->post)<span class="wo-code" title="{{ $e->post->project->name }}">{{ $e->post->project->code }}</span>@else—@endif</td>
           <td class="small">{{ $e->mobile ?? '—' }}</td>
           <td class="small">{{ $e->bank_name ?? '—' }} <span class="mono">{{ $e->maskedAccount() }}</span></td>
-          <td class="small">{{ $e->pf_applicable ? 'EPF' : '—' }} / {{ $e->esic_applicable ? 'ESIC' : '—' }} / {{ $e->tds_applicable ? 'TDS' : '—' }}</td>
+          <td class="small text-nowrap">@foreach(['pf_applicable' => 'EPF', 'esic_applicable' => 'ESIC', 'tds_applicable' => 'TDS'] as $f => $l)<span @class(['wo-sw', 'on' => $e->{$f}]) title="{{ $l }} {{ $e->{$f} ? 'on' : 'off' }}">{{ $l }}</span>@endforeach</td>
           <td><x-status :value="$e->status" /></td>
         </tr>
       @endforeach

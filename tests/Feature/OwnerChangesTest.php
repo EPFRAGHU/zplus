@@ -400,9 +400,11 @@ class OwnerChangesTest extends TestCase
             $post = $k->projects()->create(['name' => $name, 'code' => strtoupper($name), 'project_incharge_id' => $pi->id])->posts()->create(['designation' => 'X', 'sanctioned_qty' => 1, 'rate' => 1]);
             Employee::query()->where('name', $name)->update(['post_id' => $post->id]);
         }
-        $this->get('/staff')->assertSeeInOrder(['Agency', 'Project In-charge', 'Post · project'])->assertSee('Dr. Zeta');
+        $this->get('/staff')->assertSeeInOrder(['Agency', 'Project In-charge', 'Post <i', 'Project <i'], false)->assertSee('Dr. Zeta');
         $order('sort=pi&dir=asc', ['Zara', 'Anil', 'Mohan']);   // Dr. Alpha, Dr. Zeta, none
         $order('sort=pi&dir=desc', ['Anil', 'Zara', 'Mohan']);   // Dr. Zeta, Dr. Alpha, none still last
+        $order('sort=project&dir=asc', ['Anil', 'Zara', 'Mohan']);   // Project column of its own (22 Nov 2026): ANIL, ZARA, none last
+        $order('sort=project&dir=desc', ['Zara', 'Anil', 'Mohan']);
     }
 
     public function test_a_saved_work_order_is_reused_for_more_projects(): void
