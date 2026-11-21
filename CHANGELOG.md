@@ -2,6 +2,11 @@
 
 Versions follow MAJOR.MINOR.PATCH. Dates are Indian Standard Time.
 
+## 2.31.4 (2026-11-23): Delete button next to Status
+
+- Project In-charge edit page: the Delete button is now at the top, next to Status; pointing at it explains why it is greyed out when projects are still allotted
+- Deleting removes only the Project In-charge card; projects are never deleted
+
 ## 2.31.3 (2026-11-23): Delete a Project In-charge from its edit page
 
 - "Edit / allot projects" page of a Project In-charge now has a Delete button (Super Admins and Accounts); it works only when no project is allotted, otherwise it explains what to untick first

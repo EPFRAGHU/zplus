@@ -12,6 +12,10 @@ return [
     'timezone' => 'Asia/Kolkata',      // release times are Indian Standard Time
 
     'releases' => [
+        ['version' => '2.31.4', 'date' => '2026-11-23 12:30', 'title' => 'Delete button next to Status', 'type' => 'fix', 'notes' => [
+            'Project In-charge edit page: the Delete button is now at the top, next to Status; pointing at it explains why it is greyed out when projects are still allotted',
+            'Deleting removes only the Project In-charge card; projects are never deleted',
+        ]],
         ['version' => '2.31.3', 'date' => '2026-11-23 11:45', 'title' => 'Delete a Project In-charge from its edit page', 'type' => 'fix', 'notes' => [
             '"Edit / allot projects" page of a Project In-charge now has a Delete button (Super Admins and Accounts); it works only when no project is allotted, otherwise it explains what to untick first',
             'Recorded in the Activity log; no other data changes',

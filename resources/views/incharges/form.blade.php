@@ -8,6 +8,16 @@
       <x-field name="mobile" label="Mobile" :value="$incharge->mobile" col="col-md-3" maxlength="10" />
       <x-field name="email" label="E-mail" type="email" :value="$incharge->email" col="col-md-5" />
       <x-select name="status" label="Status" :options="['active' => 'Active', 'inactive' => 'Inactive']" :value="$incharge->status" required col="col-md-2" />
+      @if($incharge->exists)
+        @can('delete-masters')
+          {{-- Next to Status (owner, 23 Nov 2026). The button submits the separate delete form below (forms cannot be nested). --}}
+          @php($blocked = \App\Support\SafeDelete::incharge($incharge))
+          <div class="col-md-auto d-flex align-items-end" style="padding-bottom:1px">
+            <span class="d-inline-block" tabindex="0" title="{{ $blocked ?: 'No projects are allotted, so this Project In-charge can be deleted.' }}">
+              <button type="submit" form="delete-incharge" class="btn btn-outline-danger" @disabled($blocked)><i class="bi bi-trash me-1"></i>Delete</button></span>
+          </div>
+        @endcan
+      @endif
       @can('manage-users')
       <x-select name="user_id" label="PI portal login" :options="$piUsers->mapWithKeys(fn ($u) => [$u->id => $u->name.' · '.$u->email])" :value="$incharge->user_id" placeholder="None" col="col-md-6"
         hint="If linked, this login sees exactly the projects ticked below in the PI portal. Create logins under Users." />
@@ -37,16 +47,9 @@
   </form>
   @if($incharge->exists)
     @can('delete-masters')
-      {{-- Delete from here too (owner, 23 Nov 2026); only a Project In-charge with no projects allotted can go. --}}
-      @php($blocked = \App\Support\SafeDelete::incharge($incharge))
-      <div class="z-card p-3 mt-3 d-flex align-items-center gap-3 flex-wrap" id="delete-incharge">
-        <div class="me-auto"><b>Delete this Project In-charge</b>
-          <div class="small text-secondary">{{ $blocked ?: 'No projects are allotted, so this Project In-charge can be deleted. This cannot be undone.' }}</div></div>
-        <form method="post" action="{{ route('incharges.destroy', $incharge) }}" data-confirm="Delete Project In-charge {{ $incharge->name }}? This cannot be undone." onsubmit="return confirm(this.dataset.confirm)">
-          @csrf @method('delete')
-          <button class="btn btn-outline-danger" @disabled($blocked) @if($blocked) title="{{ $blocked }}" @endif><i class="bi bi-trash me-1"></i>Delete</button>
-        </form>
-      </div>
+      <form method="post" action="{{ route('incharges.destroy', $incharge) }}" id="delete-incharge" data-confirm="Delete Project In-charge {{ $incharge->name }}? Only this name card is removed; no project is deleted. This cannot be undone." onsubmit="return confirm(this.dataset.confirm)">
+        @csrf @method('delete')
+      </form>
     @endcan
   @endif
   <script>
