@@ -2,6 +2,13 @@
 
 Versions follow MAJOR.MINOR.PATCH. Dates are Indian Standard Time.
 
+## 2.38.0 (2026-11-22): Coloured post rows and click-to-see names
+
+- Post rows now carry a coloured strip: green = exactly filled, amber = vacant, red = more staff than sanctioned (Posts page, work order page, project rows on Work Orders)
+- The Filled number is coloured the same way and can be clicked: a small list opens with the staff names (each opens the employee) and their Emp IDs; click anywhere else or press Esc to close
+- Same click-to-see list on: the "x/y Filled" tag of each project card on Posts, Filled / Total on the Work Orders project rows, the staff tag on Attendance cards, and on Project In-charge the "N projects" tag (project names, open the work order) and "N staff" tag
+- Look only: no data, amounts or numbers change
+
 ## 2.37.0 (2026-11-22): Over-filled posts highlighted
 
 - A post with more staff placed than sanctioned is now highlighted in red: the row is shaded with a red edge, the Filled number is red and the Vacant column says "N over"

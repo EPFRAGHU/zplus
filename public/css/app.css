@@ -178,3 +178,19 @@ div.client-block{background:#f2f7ff!important;border-color:#dbe6fb!important;bor
 .wo-fill.over{background:#fee2e2;color:#b91c1c}
 tr.wo-over > td{background:#fff1f2!important}
 tr.wo-over > td:first-child{box-shadow:inset 3px 0 0 #dc2626}
+/* Row strips by staffing (owner, 22 Nov 2026): green = exactly filled, amber = vacant, red (wo-over) = more than sanctioned */
+tr.wo-full > td{background:#f0fdf4!important}
+tr.wo-full > td:first-child{box-shadow:inset 3px 0 0 #16a34a}
+tr.wo-vacant > td{background:#fffbeb!important}
+tr.wo-vacant > td:first-child{box-shadow:inset 3px 0 0 #f59e0b}
+/* Counts that open a list of names */
+.wo-pop-btn{border:0;background:none;padding:0 2px;font:inherit;font-weight:700;text-decoration:underline dotted;text-underline-offset:3px;cursor:pointer;color:inherit}
+.wo-pop-btn:hover,.wo-pop-btn:focus-visible{text-decoration-style:solid}
+.wo-pop-btn.n-full{color:#15803d} .wo-pop-btn.n-vacant{color:#b45309} .wo-pop-btn.n-over{color:#dc2626}
+button.wo-fill.wo-pop-btn{text-decoration:none;font-weight:600}
+.wo-pop{--bs-popover-max-width:340px;--bs-popover-border-color:#e3e8f0;font-family:Inter,system-ui,sans-serif;box-shadow:0 8px 24px rgba(15,23,42,.12)}
+.wo-pop .popover-header{background:#f8fafc;font-size:.82rem;font-weight:600}
+.wo-pop-list{list-style:none;margin:0;padding:0;max-height:260px;overflow-y:auto}
+.wo-pop-list li{padding:4px 0;border-bottom:1px solid #f1f5f9;font-size:.86rem}
+.wo-pop-list li:last-child{border-bottom:0}
+.wo-pop-sub{color:#64748b;font-size:.78rem;font-family:ui-monospace,monospace;white-space:nowrap}

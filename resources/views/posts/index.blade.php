@@ -71,7 +71,8 @@
             </span>
           </button>
           <div class="wo-right">
-            <span @class(['wo-fill', 'full' => $fill >= $sanc && $sanc > 0, 'part' => $fill > 0 && $fill < $sanc, 'none' => $fill === 0])>@if($fill >= $sanc && $sanc > 0)<i class="bi bi-check2 me-1"></i>@endif{{ $fill }}/{{ $sanc }} Filled</span>
+            <x-names-pop :class="\Illuminate\Support\Arr::toCssClasses(['wo-fill', 'full' => $fill >= $sanc && $sanc > 0, 'part' => $fill > 0 && $fill < $sanc, 'none' => $fill === 0])" :title="'Staff on '.$pj->code"
+              :items="$projectPosts->flatMap(fn ($p) => $p->activeEmployees->map(fn ($e) => ['text' => $e->name, 'url' => route('employees.show', $e), 'sub' => $p->designation]))">@if($fill >= $sanc && $sanc > 0)<i class="bi bi-check2 me-1"></i>@endif{{ $fill }}/{{ $sanc }} Filled</x-names-pop>
             @if($over)<span class="wo-fill over" title="More staff placed than sanctioned"><i class="bi bi-exclamation-triangle-fill me-1"></i>{{ $over }} over</span>@endif
             @can('manage-masters')<button type="button" class="btn btn-sm wo-btn-blue" data-bs-toggle="modal" data-bs-target="#addPostModal" data-agency="{{ $k->agency_id }}" data-client="{{ $k->client_id }}"><i class="bi bi-plus-lg me-1"></i>Add post</button>@endcan
             <a class="btn btn-sm wo-btn-line" href="{{ route('contracts.show', $k) }}"><i class="bi bi-box-arrow-up-right me-1"></i>Open work order</a>
@@ -84,11 +85,12 @@
             <thead><tr><th>Designation</th><th class="num">Sanctioned</th><th class="num">Filled</th><th class="num">Vacant</th><th class="num">Rate</th><th class="text-end">Actions</th></tr></thead>
             <tbody>
             @foreach($projectPosts as $p)
-              @php($extra = $p->active_employees_count - $p->sanctioned_qty)
-              <tr @class(['wo-over' => $extra > 0])>
+              @php($extra = (int) $p->active_employees_count - (int) $p->sanctioned_qty)
+              <tr @class(['wo-over' => $extra > 0, 'wo-full' => $extra === 0 && $p->sanctioned_qty > 0, 'wo-vacant' => $extra < 0])>
                 <td class="fw-semibold">{{ $p->designation }}</td>
                 <td class="num">{{ $p->sanctioned_qty }}</td>
-                <td class="num">@if($extra > 0)<span class="text-danger fw-bold" title="More staff placed than sanctioned">{{ $p->active_employees_count }}</span>@elseif($extra < 0)<span class="text-warning-emphasis">{{ $p->active_employees_count }}</span>@else{{ $p->active_employees_count }}@endif</td>
+                <td class="num"><x-names-pop :class="$extra > 0 ? 'n-over' : ($extra < 0 ? 'n-vacant' : 'n-full')" :title="'Staff on '.$p->designation.' ('.$pj->code.')'"
+                  :items="$p->activeEmployees->map(fn ($e) => ['text' => $e->name, 'url' => route('employees.show', $e), 'sub' => $e->emp_code])">{{ $p->active_employees_count }}</x-names-pop></td>
                 <td class="num">@if($extra > 0)<span class="badge text-bg-danger">{{ $extra }} over</span>@else{{ max(0, -$extra) ?: '—' }}@endif</td>
                 <td class="num">{{ inr($p->rate) }}{{ $k->billing_type === 'daily' ? '/day' : '' }}</td>
                 <td class="text-end text-nowrap">@can('manage-masters')<a class="btn btn-sm wo-btn-blue" href="{{ route('contracts.show', $k) }}#edit-post{{ $p->id }}"><i class="bi bi-pencil me-1"></i>Edit</a>@endcan

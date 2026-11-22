@@ -12,6 +12,12 @@ return [
     'timezone' => 'Asia/Kolkata',      // release times are Indian Standard Time
 
     'releases' => [
+        ['version' => '2.38.0', 'date' => '2026-11-22 09:16', 'title' => 'Coloured post rows and click-to-see names', 'type' => 'feature', 'notes' => [
+            'Post rows now carry a coloured strip: green = exactly filled, amber = vacant, red = more staff than sanctioned (Posts page, work order page, project rows on Work Orders)',
+            'The Filled number is coloured the same way and can be clicked: a small list opens with the staff names (each opens the employee) and their Emp IDs; click anywhere else or press Esc to close',
+            'Same click-to-see list on: the "x/y Filled" tag of each project card on Posts, Filled / Total on the Work Orders project rows, the staff tag on Attendance cards, and on Project In-charge the "N projects" tag (project names, open the work order) and "N staff" tag',
+            'Look only: no data, amounts or numbers change',
+        ]],
         ['version' => '2.37.0', 'date' => '2026-11-22 01:30', 'title' => 'Over-filled posts highlighted', 'type' => 'feature', 'notes' => [
             'A post with more staff placed than sanctioned is now highlighted in red: the row is shaded with a red edge, the Filled number is red and the Vacant column says "N over"',
             'Posts page: new tab Over-filled, a red "N over" tag on the project card, and "N more staff than sanctioned" in the Filled box',

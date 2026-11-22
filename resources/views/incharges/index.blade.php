@@ -57,8 +57,11 @@
             </span>
           </button>
           <div class="wo-right">
-            <span @class(['wo-fill', 'full' => $i->projects->isNotEmpty(), 'none' => $i->projects->isEmpty()])><i class="bi bi-stack me-1"></i>{{ $i->projects->count() }} {{ \Illuminate\Support\Str::plural('project', $i->projects->count()) }}</span>
-            <span class="wo-fill none"><i class="bi bi-people me-1"></i>{{ $staff }} staff</span>
+            {{-- Click to see the names (owner, 22 Nov 2026). --}}
+            <x-names-pop :class="'wo-fill '.($i->projects->isNotEmpty() ? 'full' : 'none')" :title="'Projects of '.$i->name" empty="No project allotted yet"
+              :items="$i->projects->map(fn ($p) => ['text' => $p->code.' – '.$p->name, 'url' => route('contracts.show', $p->gem_contract_id), 'sub' => $p->contract->contract_no])"><i class="bi bi-stack me-1"></i>{{ $i->projects->count() }} {{ \Illuminate\Support\Str::plural('project', $i->projects->count()) }}</x-names-pop>
+            <x-names-pop class="wo-fill none" :title="'Staff under '.$i->name"
+              :items="$i->projects->flatMap(fn ($p) => $p->posts->flatMap(fn ($post) => $post->activeEmployees->map(fn ($e) => ['text' => $e->name, 'url' => route('employees.show', $e), 'sub' => $p->code.' · '.$post->designation])))"><i class="bi bi-people me-1"></i>{{ $staff }} staff</x-names-pop>
             @can('manage-masters')<a class="btn btn-sm wo-btn-blue" href="{{ route('incharges.edit', $i) }}"><i class="bi bi-pencil me-1"></i>Edit / allot projects</a>@endcan
             @can('show-delete')<x-delete-button :action="route('incharges.destroy', $i)" :blocked="\App\Support\SafeDelete::incharge($i)" :confirm="'Delete Project In-charge '.$i->name.'? Only this name card is removed; no project is deleted.'" />@endcan
           </div>

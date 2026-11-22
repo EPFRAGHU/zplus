@@ -45,4 +45,26 @@ class OverFilledPostTest extends TestCase
         $this->get('/posts')->assertOk()->assertSee('Over-filled (0)')->assertDontSee('class="wo-over"', false)->assertDontSee('more staff than sanctioned');
         $this->get(route('contracts.show', GemContract::query()->firstOrFail()))->assertDontSee('same name?')->assertDontSee('class="wo-over"', false);
     }
+
+    public function test_rows_get_green_or_amber_strips_and_counts_open_the_names(): void
+    {
+        $this->seed(DemoSeeder::class);
+        $placed = Employee::query()->whereNotNull('post_id')->orderBy('id')->firstOrFail();
+        $placed->post->update(['sanctioned_qty' => 2]);   // one placed of two: vacant
+        $placed->update(['name' => '<script>alert(1)</script> Kumar']);   // a name with HTML in it is shown as text only
+        $this->actingAs(User::factory()->create(['role' => 'admin']));
+
+        $html = $this->get('/posts')->assertOk()->getContent();
+        $this->assertStringContainsString('class="wo-vacant"', $html);   // amber strip
+        $this->assertStringContainsString('class="wo-full"', $html);     // the other demo post: exactly filled, green strip
+        $this->assertStringContainsString('data-pop', $html);
+        $this->assertStringContainsString('n-vacant', $html);
+        $this->assertStringContainsString('n-full', $html);
+        $this->assertStringNotContainsString('<script>alert(1)</script>', $html);
+        $this->assertStringContainsString('&amp;lt;script&amp;gt;alert(1)&amp;lt;/script&amp;gt; Kumar', $html);   // escaped inside the pop-up list
+
+        $this->get('/contracts')->assertOk()->assertSee('data-pop', false)->assertSee('wo-vacant', false);
+        $this->get(route('contracts.show', GemContract::query()->firstOrFail()))->assertSee('class="wo-vacant"', false)->assertSee('class="wo-full"', false);
+        $this->get('/attendance?month=2026-10')->assertOk()->assertSee('data-pop', false);
+    }
 }

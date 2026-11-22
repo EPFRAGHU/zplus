@@ -31,6 +31,7 @@ class AttendanceController extends Controller
         $clientId = $request->integer('client') ?: null;
         $projects = Project::query()->with('contract.agency', 'contract.client')
             ->withCount(['employees' => fn ($q) => $q->whereIn('employees.status', ['active', 'notice'])])
+            ->with(['employees' => fn ($q) => $q->whereIn('employees.status', ['active', 'notice'])->orderBy('employees.name')])   // names behind the staff count (22 Nov 2026)
             ->when($agencyId, fn ($q) => $q->whereHas('contract', fn ($c) => $c->where('agency_id', $agencyId)))
             ->when($clientId, fn ($q) => $q->whereHas('contract', fn ($c) => $c->where('client_id', $clientId)))
             ->when($request->integer('contract'), fn ($q, $id) => $q->where('gem_contract_id', $id))

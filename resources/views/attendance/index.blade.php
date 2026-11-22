@@ -54,7 +54,7 @@
             </span>
           </div>
           <div class="wo-right">
-            <span class="wo-fill none"><i class="bi bi-people me-1"></i>{{ $sheet?->entries_count ?? $p->employees_count }} staff</span>
+            <x-names-pop class="wo-fill none" :title="'Staff on '.$p->code" :items="$p->employees->map(fn ($e) => ['text' => $e->name, 'url' => route('employees.show', $e), 'sub' => $e->emp_code])"><i class="bi bi-people me-1"></i>{{ $sheet?->entries_count ?? $p->employees_count }} staff</x-names-pop>
             @if($sheet)
               @if($sheet->invoice)<a class="btn btn-sm wo-btn-line" href="{{ route('invoices.show', $sheet->invoice) }}"><i class="bi bi-receipt me-1"></i>{{ $sheet->invoice->invoice_no }}</a>@endif
               <a @class(['btn btn-sm', 'wo-btn-primary' => $state !== 'locked', 'wo-btn-blue' => $state === 'locked']) href="{{ route('attendance.show', $sheet) }}"><i class="bi bi-box-arrow-up-right me-1"></i>Open sheet</a>

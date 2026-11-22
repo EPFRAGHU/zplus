@@ -131,7 +131,7 @@
           {{-- Over-filled posts in red; names that repeat on the post (capitals and Dr./Mr./Mrs./Ms. ignored) flagged as possible duplicates (owner, 22 Nov 2026). --}}
           @php($nameKey = fn ($name) => preg_replace('/\s+/', ' ', trim(preg_replace('/^(dr|mr|mrs|ms|miss|shri|smt)\.?\s+/i', '', mb_strtolower(trim($name))))))
           @php($repeats = $post->activeEmployees->countBy(fn ($e) => $nameKey($e->name))->filter(fn ($c) => $c > 1))
-          <tr @class(['wo-over' => $n > $post->sanctioned_qty])>
+          <tr @class(['wo-over' => $n > (int) $post->sanctioned_qty, 'wo-full' => $n === (int) $post->sanctioned_qty && $n > 0, 'wo-vacant' => $n < (int) $post->sanctioned_qty])>
             <td class="fw-semibold">{{ $post->designation }}</td><td class="num">{{ $post->sanctioned_qty }}</td><td class="num">{{ inr($post->rate) }}</td>
             <td>@forelse($post->activeEmployees as $e)<a href="{{ route('employees.show', $e) }}" class="me-2">{{ $e->name }}</a>@if($repeats->has($nameKey($e->name)))<span class="badge text-bg-warning me-2" title="Another employee on this post has the same name: probably entered twice">same name?</span>@endif @empty<span class="text-secondary">—</span>@endforelse</td>
             <td>@if($n < $post->sanctioned_qty)<span class="badge text-bg-warning">{{ $post->sanctioned_qty - $n }} due</span>@elseif($n > $post->sanctioned_qty)<span class="badge text-bg-danger">{{ $n - $post->sanctioned_qty }} over</span>@else<span class="text-secondary small">Filled</span>@endif</td>

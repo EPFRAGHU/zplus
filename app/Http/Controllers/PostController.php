@@ -22,7 +22,7 @@ class PostController extends Controller
     {
         $agencyId = $request->integer('agency') ?: null;
         $clientId = $request->integer('client') ?: null;
-        $posts = Post::query()->with('project.contract.agency', 'project.contract.client')->withCount('activeEmployees')
+        $posts = Post::query()->with(['project.contract.agency', 'project.contract.client', 'activeEmployees' => fn ($q) => $q->orderBy('name')])->withCount('activeEmployees')
             ->whereHas('project.contract', fn ($q) => $q
                 ->when($agencyId, fn ($c) => $c->where('agency_id', $agencyId))
                 ->when($clientId, fn ($c) => $c->where('client_id', $clientId)))

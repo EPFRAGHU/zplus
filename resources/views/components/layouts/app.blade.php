@@ -106,6 +106,18 @@
   </main>
 </div>
 <script src="{{ asset('vendor/bootstrap/bootstrap.bundle.min.js') }}"></script>
+<script>
+  // Click a count (staff on a post, projects of a PI) to see the names; click anywhere else or press Esc to close (owner, 22 Nov 2026).
+  (function () {
+    const pops = [...document.querySelectorAll('[data-pop]')].map(el => new bootstrap.Popover(el, {
+      html: true, trigger: 'click', placement: el.dataset.popPlace || 'bottom', container: 'body', customClass: 'wo-pop'
+    }));
+    const hideAll = except => pops.forEach(p => { if (p !== except) p.hide(); });
+    document.querySelectorAll('[data-pop]').forEach(el => el.addEventListener('show.bs.popover', () => hideAll(bootstrap.Popover.getInstance(el))));
+    document.addEventListener('click', e => { if (!e.target.closest('[data-pop]') && !e.target.closest('.popover')) hideAll(); });
+    document.addEventListener('keydown', e => { if (e.key === 'Escape') hideAll(); });
+  })();
+</script>
 @if(! auth()->user()->isPi() && \App\Support\Agency\AgencyContext::id())
 <script>
   // Single-agency login (or a both-agency login that chose one company): every agency dropdown in a form is filled with the user's own agency and locked.

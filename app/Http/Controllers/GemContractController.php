@@ -77,7 +77,7 @@ class GemContractController extends Controller
     {
         $search = $request->string('q')->trim()->value();
         $rows = GemContract::query()
-            ->with(['agency', 'client', 'projects.incharge', 'projects.posts' => fn ($q) => $q->withCount('activeEmployees')])
+            ->with(['agency', 'client', 'projects.incharge', 'projects.posts' => fn ($q) => $q->withCount('activeEmployees')->with(['activeEmployees' => fn ($e) => $e->orderBy('name')])])
             ->when($request->integer('agency'), fn ($q, $id) => $q->where('agency_id', $id))
             ->when($request->integer('client'), fn ($q, $id) => $q->where('client_id', $id))
             ->when($search, fn ($q, $s) => $q->where(fn ($w) => $w

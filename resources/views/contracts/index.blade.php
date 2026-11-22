@@ -89,9 +89,10 @@
               @forelse($c->projects as $i => $p)
                 @php($pf = $p->posts->sum('active_employees_count')) @php($pt = $p->posts->sum('sanctioned_qty'))
                 @php($po = $p->posts->sum(fn ($x) => max(0, $x->active_employees_count - $x->sanctioned_qty)))
-                <tr @class(['wo-over' => $po > 0])><td>{{ $i + 1 }}</td><td><span class="wo-code">{{ $p->code }}</span></td><td>{{ $p->name }}</td>
+                <tr @class(['wo-over' => $po > 0, 'wo-full' => ! $po && $pt > 0 && $pf >= $pt, 'wo-vacant' => ! $po && $pf < $pt])><td>{{ $i + 1 }}</td><td><span class="wo-code">{{ $p->code }}</span></td><td>{{ $p->name }}</td>
                   <td>@if($p->incharge?->name ?? $p->pi_name)<i class="bi bi-person me-1 text-secondary"></i>{{ $p->incharge?->name ?? $p->pi_name }}@else<span class="text-secondary">—</span>@endif</td>
-                  <td class="text-center fw-semibold">{{ $pf }} / {{ $pt }}@if($po)<div><span class="badge text-bg-danger">{{ $po }} over</span></div>@endif</td>
+                  <td class="text-center fw-semibold"><x-names-pop :class="$po ? 'n-over' : ($pf < $pt ? 'n-vacant' : 'n-full')" :title="'Staff on '.$p->code"
+                    :items="$p->posts->flatMap(fn ($x) => $x->activeEmployees->map(fn ($e) => ['text' => $e->name, 'url' => route('employees.show', $e), 'sub' => $x->designation]))">{{ $pf }}</x-names-pop> / {{ $pt }}@if($po)<div><span class="badge text-bg-danger">{{ $po }} over</span></div>@endif</td>
                   <td><x-fill-progress :filled="$pf" :total="$pt" style="min-width:130px" /></td>
                   <td class="text-end text-nowrap">
                     <a class="wo-icon-btn" href="{{ route('contracts.show', $c) }}" title="View" aria-label="View {{ $p->code }}"><i class="bi bi-eye"></i></a>
