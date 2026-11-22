@@ -109,7 +109,8 @@
         <tr class="wo-group contract-group"><td colspan="{{ $cols }}"><i class="bi bi-file-earmark-text me-1"></i>Work order <a class="mono fw-semibold text-decoration-none" href="{{ route('contracts.show', $i->contract) }}">{{ $i->contract->contract_no }}</a>
           @if($kt)<span class="wo-meta ms-2">{{ $kt->bills }} {{ \Illuminate\Support\Str::plural('sub-bill', $kt->bills) }} · {{ inr($kt->billed) }}</span>@endif
           @can('billing')<a class="btn btn-sm wo-btn-blue ms-2 py-0" href="{{ route('tax-invoices.create', ['contract' => $i->gem_contract_id, 'month' => $i->month->format('Y-m')]) }}"><i class="bi bi-file-earmark-ruled me-1"></i>Make tax invoice</a>
-            @if(request('month'))<a class="btn btn-sm wo-btn-line ms-1 py-0" href="{{ route('month-documents.zip', ['agency' => $i->agency_id, 'month' => substr((string) request('month'), 0, 7), 'contract' => $i->gem_contract_id]) }}" title="This work order's sub-bills, covering letters, attendance sheets and tax invoice"><i class="bi bi-file-zip me-1"></i>Download PDFs (ZIP)</a>@endif @endcan</td></tr>
+            @if(request('month'))<a class="btn btn-sm wo-btn-line ms-1 py-0" href="{{ route('month-documents.zip', ['agency' => $i->agency_id, 'month' => substr((string) request('month'), 0, 7), 'contract' => $i->gem_contract_id]) }}" title="This work order's sub-bills, covering letters, attendance sheets and tax invoice"><i class="bi bi-file-zip me-1"></i>Download PDFs (ZIP)</a>@endif
+            <a class="btn btn-sm wo-btn-green ms-1 py-0" href="{{ route('post-summary.show', ['contract' => $i->gem_contract_id, 'month' => $i->month->format('Y-m')]) }}" title="Wages, EPF, ESIC, service charge and GST per post, for GeM returns (Excel and PDF)"><i class="bi bi-diagram-3 me-1"></i>Post-wise summary</a> @endcan</td></tr>
       @endif
       @php($openGroup = $i)
       <tr><td class="text-nowrap"><a class="mono" href="{{ route('invoices.show', $i) }}">{{ $i->invoice_no }}</a></td>
@@ -149,7 +150,8 @@
         <a class="btn wo-btn-primary" href="{{ route('month-bill.show', ['agency' => $a->id, 'month' => $mbMonth]) }}"><i class="bi bi-journal-text me-1"></i>Show {{ \Carbon\CarbonImmutable::parse($mbMonth.'-01')->format('F Y') }} month bill{{ $mbAgencies->count() > 1 ? ' – '.$a->name : '' }}</a>
         <a class="btn wo-btn-green" href="{{ route('month-bill.sub-bills', ['agency' => $a->id, 'month' => $mbMonth]) }}" target="_blank"><i class="bi bi-table me-1"></i>Sub-bills statement (PDF){{ $mbAgencies->count() > 1 ? ' – '.$a->code : '' }}</a>
       @endforeach
-      <span class="small text-secondary">All tax invoices of the month in one sheet, one row per work order, with PDF.</span>
+      <a class="btn wo-btn-line" href="{{ route('post-summary.show', array_filter(['month' => $mbMonth, 'contract' => request()->integer('contract') ?: null])) }}"><i class="bi bi-diagram-3 me-1"></i>Post-wise summary for GeM (Excel / PDF)</a>
+      <span class="small text-secondary">All tax invoices of the month in one sheet, one row per work order, with PDF. Post-wise summary: work order → sub-bill → post.</span>
     </div>
   @endif
   @endcan

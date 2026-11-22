@@ -160,6 +160,11 @@ Route::middleware(['auth', 'active', 'role:admin,accounts,supervisor', \App\Http
     Route::get('month-bill/sub-bills', [\App\Http\Controllers\MonthBillController::class, 'subBills'])->name('month-bill.sub-bills');
     Route::get('month-bill/consolidated-tax-invoice', [\App\Http\Controllers\MonthBillController::class, 'consolidated'])->name('month-bill.consolidated');
 
+    // Post-wise summary of sub-bills for GeM returns: work order → sub-bill → post (owner, 22 Nov 2026)
+    Route::get('post-summary', [\App\Http\Controllers\PostSummaryController::class, 'show'])->name('post-summary.show');
+    Route::get('post-summary/pdf', [\App\Http\Controllers\PostSummaryController::class, 'pdf'])->name('post-summary.pdf');
+    Route::get('post-summary/excel', [\App\Http\Controllers\PostSummaryController::class, 'excel'])->name('post-summary.excel');
+
     // Tax invoices (combine a client's sub-bills for a month)
     Route::get('tax-invoices', [TaxInvoiceController::class, 'index'])->name('tax-invoices.index');
     Route::get('tax-invoices/create', [TaxInvoiceController::class, 'create'])->name('tax-invoices.create');

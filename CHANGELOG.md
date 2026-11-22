@@ -2,6 +2,14 @@
 
 Versions follow MAJOR.MINOR.PATCH. Dates are Indian Standard Time.
 
+## 2.50.0 (2026-11-22): Post-wise summary for GeM returns (Excel and PDF)
+
+- New page Sub-bills → "Post-wise summary": choose the month, the work order, then one sub-bill or all, and one post or all
+- One row per post: staff, days paid, wages, EPF, ESIC, sub total, service charge, value before GST, CGST/SGST (or IGST) and total, with a total row and, below it, the same figures as stored on the sub-bills to compare
+- Wages, EPF and ESIC are as billed for each person; the service charge and GST are worked out per post with each sub-bill's own rates, so the posts add up to the bills
+- Download Excel and Download PDF (landscape, agency header) for filing GeM returns online; "Post-wise summary" button on each work order row of the Sub-bills list
+- Read only: no amounts or numbers change. Each login sees only its own agency's work orders
+
 ## 2.49.0 (2026-11-22): Attendance sheets in the month and work order ZIPs
 
 - The work order ZIP and the whole-month ZIP now also hold each project's attendance sheet for the month (attendance-sheets/attendance-SW-001-26-27-HTA.pdf, the same Monthly Attendance and Working Certificate as on the attendance page, without bank details)
