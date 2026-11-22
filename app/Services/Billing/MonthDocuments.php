@@ -32,31 +32,59 @@ final class MonthDocuments
             throw new RuntimeException("No sub-bills or tax invoices for {$agency->name} in {$month->format('F Y')}.");
         }
 
+        // Each PDF goes to its own temp file as soon as it is made (addFromString would keep them all in memory until the
+        // ZIP is closed: a month of 50+ PDFs ran out of memory, owner 22 Nov 2026). A higher limit just for this download.
+        self::raiseMemoryLimit('512M');
         $tmp = tempnam(sys_get_temp_dir(), 'zplus-zip-');
+        $dir = $tmp.'-files';
+        @mkdir($dir, 0700, true);
         $zip = new ZipArchive;
         if ($zip->open($tmp, ZipArchive::OVERWRITE) !== true) {
             throw new RuntimeException('Could not make the ZIP file.');
         }
-        $count = 0;
-        foreach ($bills as $bill) {
-            $data = InvoiceController::pdfData($bill);
-            $zip->addFromString('sub-bills/'.Codes::fileSafe($bill->invoice_no).'.pdf', Pdf::loadView('pdf.invoice', $data)->setPaper('a4')->output());
-            $zip->addFromString('covering-letters/covering-letter-'.Codes::fileSafe($bill->invoice_no).'.pdf', Pdf::loadView('pdf.covering-letter', $data)->setPaper('a4')->output());
-            $count += 2;
-        }
-        foreach ($taxes as $tax) {
-            $zip->addFromString('tax-invoices/'.Codes::fileSafe($tax->number).'.pdf', Pdf::loadView('pdf.tax-invoice', TaxInvoiceController::pdfData($tax))->setPaper('a4')->output());
-            $count++;
-        }
-        if ($withBankLetter) {
-            [$locked] = $this->letters->sheets($agency, $month);
-            if ($locked->isNotEmpty()) {
-                $zip->addFromString('bank-letter-'.$month->format('Y-m').'.pdf', Pdf::loadView('pdf.bank-letter', $this->letters->build($agency, $month, $locked))->setPaper('a4')->output());
-                $count++;
+        $parts = [];
+        $add = function (string $name, string $view, array $data) use ($zip, $dir, &$parts) {
+            $file = $dir.'/'.count($parts).'.pdf';
+            file_put_contents($file, Pdf::loadView($view, $data)->setPaper('a4')->output());
+            $zip->addFile($file, $name);
+            $parts[] = $file;
+            gc_collect_cycles();
+        };
+        try {
+            foreach ($bills as $bill) {
+                $data = InvoiceController::pdfData($bill);
+                $add('sub-bills/'.Codes::fileSafe($bill->invoice_no).'.pdf', 'pdf.invoice', $data);
+                $add('covering-letters/covering-letter-'.Codes::fileSafe($bill->invoice_no).'.pdf', 'pdf.covering-letter', $data);
+                unset($data);
             }
+            foreach ($taxes as $tax) {
+                $add('tax-invoices/'.Codes::fileSafe($tax->number).'.pdf', 'pdf.tax-invoice', TaxInvoiceController::pdfData($tax));
+            }
+            if ($withBankLetter) {
+                [$locked] = $this->letters->sheets($agency, $month);
+                if ($locked->isNotEmpty()) {
+                    $add('bank-letter-'.$month->format('Y-m').'.pdf', 'pdf.bank-letter', $this->letters->build($agency, $month, $locked));
+                }
+            }
+            $count = count($parts);
+            $zip->close();   // reads the temp files into the ZIP one by one
+        } finally {
+            foreach ($parts as $file) {
+                @unlink($file);
+            }
+            @rmdir($dir);
         }
-        $zip->close();
 
         return [$tmp, $agency->numberPrefix().'-documents-'.$month->format('Y-m').'.zip', $count];
+    }
+
+    /** Raises PHP's memory limit for this request only, never lowers it (-1 = no limit stays). */
+    private static function raiseMemoryLimit(string $limit): void
+    {
+        $current = (string) ini_get('memory_limit');
+        $bytes = fn (string $v) => $v === '-1' ? PHP_INT_MAX : (int) $v * match (strtolower(substr($v, -1))) { 'g' => 1 << 30, 'm' => 1 << 20, 'k' => 1 << 10, default => 1 };
+        if ($bytes($current) < $bytes($limit)) {
+            ini_set('memory_limit', $limit);
+        }
     }
 }

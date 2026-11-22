@@ -12,6 +12,11 @@ return [
     'timezone' => 'Asia/Kolkata',      // release times are Indian Standard Time
 
     'releases' => [
+        ['version' => '2.44.1', 'date' => '2026-11-22 12:58', 'title' => 'Month ZIP no longer runs out of memory; much smaller PDFs', 'type' => 'fix', 'notes' => [
+            'Fixed: "Download all PDFs of this month (ZIP)" stopped with "Allowed memory size exhausted" for a full month (all PDFs were held in memory); now each PDF is written to a temporary file as it is made (tested with 88 PDFs)',
+            'PDFs embed only the letters they use: a sub-bill or tax invoice PDF is now about 40–70 KB instead of about 1.5 MB, so the month ZIP went from about 133 MB to about 3 MB in the test; the look of every PDF is unchanged',
+            'No amounts or numbers change',
+        ]],
         ['version' => '2.44.0', 'date' => '2026-11-22 12:45', 'title' => 'Month bill: all tax invoices of the month in one sheet', 'type' => 'feature', 'notes' => [
             'New Month bill (Billing): for one agency and month, one row per work order with its tax invoice no., sub-bills, staff, wages, EPF, ESIC, service charge, before GST, CGST, SGST, sub-bills total and tax invoice amount, and the month total',
             'Button "Show <month> month bill" at the end of the Sub-bills list (one per agency when both are listed)',
