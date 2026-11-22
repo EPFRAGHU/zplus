@@ -27,7 +27,7 @@ final class MonthDocuments
     {
         $month = $month->startOfMonth();
         // One work order only (owner, 22 Nov 2026), or the whole month with a folder per work order.
-        $bills = Invoice::query()->with('contract')->where('agency_id', $agency->id)->where('month', $month->toDateString())
+        $bills = Invoice::query()->with('contract', 'sheet')->where('agency_id', $agency->id)->where('month', $month->toDateString())
             ->when($contract, fn ($q) => $q->where('gem_contract_id', $contract->id))->orderBy('invoice_no')->get();
         $taxes = TaxInvoice::query()->with('contract')->where('agency_id', $agency->id)->where('month', $month->toDateString())
             ->when($contract, fn ($q) => $q->where('gem_contract_id', $contract->id))->orderBy('number')->get();
@@ -62,6 +62,21 @@ final class MonthDocuments
                 $add($folder($bill->contract).'sub-bills/'.Codes::fileSafe($bill->invoice_no).'.pdf', 'pdf.invoice', $data);
                 $add($folder($bill->contract).'covering-letters/covering-letter-'.Codes::fileSafe($bill->invoice_no).'.pdf', 'pdf.covering-letter', $data);
                 unset($data);
+                // The month's attendance sheet of the project, and the PI's signed certificate if uploaded (owner, 22 Nov 2026).
+                $sheet = $bill->sheet;
+                if ($sheet) {
+                    $name = $folder($bill->contract).'attendance-sheets/attendance-'.Codes::fileSafe($bill->invoice_no);
+                    $file = $dir.'/'.count($parts).'.pdf';
+                    file_put_contents($file, app(\App\Services\Attendance\AttendanceService::class)->certificatePdf($sheet, false));
+                    $zip->addFile($file, $name.'.pdf');
+                    $parts[] = $file;
+                    $disk = \Illuminate\Support\Facades\Storage::disk('local');
+                    if ($sheet->certificate_path && $disk->exists($sheet->certificate_path)) {
+                        $zip->addFile($disk->path($sheet->certificate_path), $name.'-signed-by-PI.'.strtolower(pathinfo($sheet->certificate_path, PATHINFO_EXTENSION) ?: 'pdf'));
+                        $signed = ($signed ?? 0) + 1;
+                    }
+                    gc_collect_cycles();
+                }
             }
             foreach ($taxes as $tax) {
                 $add($folder($tax->contract).'tax-invoice/'.Codes::fileSafe($tax->number).'.pdf', 'pdf.tax-invoice', TaxInvoiceController::pdfData($tax));
@@ -72,7 +87,7 @@ final class MonthDocuments
                     $add('bank-letter-'.$month->format('Y-m').'.pdf', 'pdf.bank-letter', $this->letters->build($agency, $month, $locked));
                 }
             }
-            $count = count($parts);
+            $count = count($parts) + ($signed ?? 0);
             $zip->close();   // reads the temp files into the ZIP one by one
         } finally {
             foreach ($parts as $file) {

@@ -63,7 +63,7 @@
   @if(request('month') && $zipAgency)
     <div class="mb-3 d-flex flex-wrap gap-2 align-items-center">
       <a class="btn btn-outline-secondary" href="{{ route('month-documents.zip', ['agency' => $zipAgency, 'month' => substr(request('month'), 0, 7)]) }}"><i class="bi bi-file-zip me-1"></i>Download all PDFs of this month (ZIP)</a>
-      <span class="small text-secondary">A folder per work order with its sub-bills, covering letters and tax invoice{{ \Illuminate\Support\Facades\Gate::allows('view-bank-details') ? ', plus the bank letter' : '' }}. One work order only: <b>Download PDFs (ZIP)</b> on its row below. Sign them with the DSC token, then upload each signed copy on its page.</span>
+      <span class="small text-secondary">A folder per work order with its sub-bills, covering letters, attendance sheets (and the PI's signed certificates) and tax invoice{{ \Illuminate\Support\Facades\Gate::allows('view-bank-details') ? ', plus the bank letter' : '' }}. One work order only: <b>Download PDFs (ZIP)</b> on its row below. Sign them with the DSC token, then upload each signed copy on its page.</span>
       @error('zip')<span class="small text-danger">{{ $message }}</span>@enderror
     </div>
   @elseif(request('month'))
@@ -109,7 +109,7 @@
         <tr class="wo-group contract-group"><td colspan="{{ $cols }}"><i class="bi bi-file-earmark-text me-1"></i>Work order <a class="mono fw-semibold text-decoration-none" href="{{ route('contracts.show', $i->contract) }}">{{ $i->contract->contract_no }}</a>
           @if($kt)<span class="wo-meta ms-2">{{ $kt->bills }} {{ \Illuminate\Support\Str::plural('sub-bill', $kt->bills) }} · {{ inr($kt->billed) }}</span>@endif
           @can('billing')<a class="btn btn-sm wo-btn-blue ms-2 py-0" href="{{ route('tax-invoices.create', ['contract' => $i->gem_contract_id, 'month' => $i->month->format('Y-m')]) }}"><i class="bi bi-file-earmark-ruled me-1"></i>Make tax invoice</a>
-            @if(request('month'))<a class="btn btn-sm wo-btn-line ms-1 py-0" href="{{ route('month-documents.zip', ['agency' => $i->agency_id, 'month' => substr((string) request('month'), 0, 7), 'contract' => $i->gem_contract_id]) }}" title="This work order's sub-bills, covering letters and tax invoice"><i class="bi bi-file-zip me-1"></i>Download PDFs (ZIP)</a>@endif @endcan</td></tr>
+            @if(request('month'))<a class="btn btn-sm wo-btn-line ms-1 py-0" href="{{ route('month-documents.zip', ['agency' => $i->agency_id, 'month' => substr((string) request('month'), 0, 7), 'contract' => $i->gem_contract_id]) }}" title="This work order's sub-bills, covering letters, attendance sheets and tax invoice"><i class="bi bi-file-zip me-1"></i>Download PDFs (ZIP)</a>@endif @endcan</td></tr>
       @endif
       @php($openGroup = $i)
       <tr><td class="text-nowrap"><a class="mono" href="{{ route('invoices.show', $i) }}">{{ $i->invoice_no }}</a></td>

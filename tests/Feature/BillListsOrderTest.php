@@ -119,8 +119,15 @@ class BillListsOrderTest extends TestCase
         [$path, $name] = $docs->zip($agency, \Carbon\CarbonImmutable::parse('2026-10-01'), true, $second);
         $one = $entries($path);
         $this->assertSame('ZP-GEMC-000000000000002-documents-2026-10.zip', $name);
-        $this->assertSame(['covering-letters/covering-letter-ZP-001-26-27-AAA.pdf', 'covering-letters/covering-letter-ZP-001-26-27-BBB.pdf',
-            'sub-bills/ZP-001-26-27-AAA.pdf', 'sub-bills/ZP-001-26-27-BBB.pdf', 'tax-invoice/ZP-001-26-27.pdf'], $one, 'only this work order, no bank letter');
+        $this->assertSame(['attendance-sheets/attendance-ZP-001-26-27-AAA.pdf', 'attendance-sheets/attendance-ZP-001-26-27-BBB.pdf',
+            'covering-letters/covering-letter-ZP-001-26-27-AAA.pdf', 'covering-letters/covering-letter-ZP-001-26-27-BBB.pdf',
+            'sub-bills/ZP-001-26-27-AAA.pdf', 'sub-bills/ZP-001-26-27-BBB.pdf', 'tax-invoice/ZP-001-26-27.pdf'], $one, 'only this work order with its attendance sheets, no bank letter');
+
+        // The PI's signed certificate goes in too when it was uploaded on the attendance sheet.
+        \Illuminate\Support\Facades\Storage::disk('local')->put('certificates/aaa.pdf', '%PDF-1.4 signed');
+        \App\Models\AttendanceSheet::query()->whereHas('project', fn ($q) => $q->where('code', 'AAA'))->update(['certificate_path' => 'certificates/aaa.pdf']);
+        [$path] = $docs->zip($agency, \Carbon\CarbonImmutable::parse('2026-10-01'), false, $second);
+        $this->assertContains('attendance-sheets/attendance-ZP-001-26-27-AAA-signed-by-PI.pdf', $entries($path));
 
         $this->get('/invoices?month=2026-10&agency='.$agency->id)->assertSee(route('month-documents.zip', ['agency' => $agency->id, 'month' => '2026-10', 'contract' => $second->id]));
         $this->get(route('month-documents.zip', ['agency' => $agency->id, 'month' => '2026-10', 'contract' => $second->id]))->assertOk()->assertHeader('content-type', 'application/zip');

@@ -2,6 +2,12 @@
 
 Versions follow MAJOR.MINOR.PATCH. Dates are Indian Standard Time.
 
+## 2.49.0 (2026-11-22): Attendance sheets in the month and work order ZIPs
+
+- The work order ZIP and the whole-month ZIP now also hold each project's attendance sheet for the month (attendance-sheets/attendance-SW-001-26-27-HTA.pdf, the same Monthly Attendance and Working Certificate as on the attendance page, without bank details)
+- If the PI's signed certificate was uploaded on the attendance sheet, it is added next to it (…-signed-by-PI.pdf / .jpg)
+- No amounts or numbers change
+
 ## 2.48.0 (2026-11-22): Post-wise sub-bills: all posts in one PDF
 
 - Post-wise sub-bills page: green "All posts (PDF)" button gives every post of the month in one PDF, whatever post is chosen on the page; "This post (PDF)" when a post is chosen

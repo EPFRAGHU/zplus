@@ -12,6 +12,11 @@ return [
     'timezone' => 'Asia/Kolkata',      // release times are Indian Standard Time
 
     'releases' => [
+        ['version' => '2.49.0', 'date' => '2026-11-22 18:46', 'title' => 'Attendance sheets in the month and work order ZIPs', 'type' => 'feature', 'notes' => [
+            'The work order ZIP and the whole-month ZIP now also hold each project\'s attendance sheet for the month (attendance-sheets/attendance-SW-001-26-27-HTA.pdf, the same Monthly Attendance and Working Certificate as on the attendance page, without bank details)',
+            'If the PI\'s signed certificate was uploaded on the attendance sheet, it is added next to it (…-signed-by-PI.pdf / .jpg)',
+            'No amounts or numbers change',
+        ]],
         ['version' => '2.48.0', 'date' => '2026-11-22 18:01', 'title' => 'Post-wise sub-bills: all posts in one PDF', 'type' => 'feature', 'notes' => [
             'Post-wise sub-bills page: green "All posts (PDF)" button gives every post of the month in one PDF, whatever post is chosen on the page; "This post (PDF)" when a post is chosen',
             'The PDF (landscape) starts with a summary line per post (projects, staff, days paid, wages), then each post\'s projects and sub-bills with a total per post, the grand total and the wages in words',

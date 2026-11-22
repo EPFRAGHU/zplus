@@ -641,7 +641,8 @@ class OwnerChangesTest extends TestCase
         $names = collect(range(0, $zip->numFiles - 1))->map(fn ($i) => $zip->getNameIndex($i))->sort()->values()->all();
         $zip->close();
         $k = 'GEMC-511687731718030/';   // a folder per work order since 22 Nov 2026; the bank letter at the top
-        $this->assertSame(['GEMC-511687731718030/covering-letters/covering-letter-SW-001-26-27-CCRH.pdf', $k.'covering-letters/covering-letter-SW-001-26-27-HTA.pdf',
+        $this->assertSame([$k.'attendance-sheets/attendance-SW-001-26-27-CCRH.pdf', $k.'attendance-sheets/attendance-SW-001-26-27-HTA.pdf',
+            'GEMC-511687731718030/covering-letters/covering-letter-SW-001-26-27-CCRH.pdf', $k.'covering-letters/covering-letter-SW-001-26-27-HTA.pdf',
             $k.'sub-bills/SW-001-26-27-CCRH.pdf', $k.'sub-bills/SW-001-26-27-HTA.pdf', $k.'tax-invoice/SW-001-26-27.pdf', 'bank-letter-2026-10.pdf'], $names);
         $this->get("/month-documents.zip?agency={$agency->id}&month=2026-12")->assertSessionHasErrors('zip');   // nothing that month
 
