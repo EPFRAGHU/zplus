@@ -147,7 +147,7 @@
     <div class="d-flex flex-wrap gap-2 align-items-center mt-3 month-bill-buttons">
       @foreach($mbAgencies as $a)
         <a class="btn wo-btn-primary" href="{{ route('month-bill.show', ['agency' => $a->id, 'month' => $mbMonth]) }}"><i class="bi bi-journal-text me-1"></i>Show {{ \Carbon\CarbonImmutable::parse($mbMonth.'-01')->format('F Y') }} month bill{{ $mbAgencies->count() > 1 ? ' – '.$a->name : '' }}</a>
-        <a class="btn wo-btn-line" href="{{ route('month-bill.sub-bills', ['agency' => $a->id, 'month' => $mbMonth]) }}" target="_blank"><i class="bi bi-table me-1"></i>Sub-bills statement (PDF){{ $mbAgencies->count() > 1 ? ' – '.$a->code : '' }}</a>
+        <a class="btn wo-btn-green" href="{{ route('month-bill.sub-bills', ['agency' => $a->id, 'month' => $mbMonth]) }}" target="_blank"><i class="bi bi-table me-1"></i>Sub-bills statement (PDF){{ $mbAgencies->count() > 1 ? ' – '.$a->code : '' }}</a>
       @endforeach
       <span class="small text-secondary">All tax invoices of the month in one sheet, one row per work order, with PDF.</span>
     </div>

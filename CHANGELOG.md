@@ -2,6 +2,10 @@
 
 Versions follow MAJOR.MINOR.PATCH. Dates are Indian Standard Time.
 
+## 2.47.1 (2026-11-22): Green Sub-bills statement button
+
+- The "Sub-bills statement (PDF)" button is green on the Sub-bills page and the Month bill page
+
 ## 2.47.0 (2026-11-22): Sub-bills statement PDF
 
 - New "Sub-bills statement (PDF)": every sub-bill of the agency's month in columns, as on the Sub-bills page: sub-bill no., project, staff, wages, EPF, ESIC, service charge, before GST, CGST, SGST, bill amount, tax invoice and status

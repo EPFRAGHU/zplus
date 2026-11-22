@@ -12,6 +12,9 @@ return [
     'timezone' => 'Asia/Kolkata',      // release times are Indian Standard Time
 
     'releases' => [
+        ['version' => '2.47.1', 'date' => '2026-11-22 17:32', 'title' => 'Green Sub-bills statement button', 'type' => 'fix', 'notes' => [
+            'The "Sub-bills statement (PDF)" button is green on the Sub-bills page and the Month bill page',
+        ]],
         ['version' => '2.47.0', 'date' => '2026-11-22 16:28', 'title' => 'Sub-bills statement PDF', 'type' => 'feature', 'notes' => [
             'New "Sub-bills statement (PDF)": every sub-bill of the agency\'s month in columns, as on the Sub-bills page: sub-bill no., project, staff, wages, EPF, ESIC, service charge, before GST, CGST, SGST, bill amount, tax invoice and status',
             'Grouped by GeM contract in serial order, a total row per work order and the month total with the amount in words; landscape A4, the heading repeats on each page',

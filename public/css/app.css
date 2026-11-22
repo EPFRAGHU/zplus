@@ -96,6 +96,8 @@ div.client-block{background:#f2f7ff!important;border-color:#dbe6fb!important;bor
 .wo-btn-line:hover{border-color:#c7d2e3;background:#f8fafc;color:var(--wo-text)}
 .wo-btn-blue{background:#fff;border:1px solid #bfd0f5;color:var(--wo-blue);font-weight:600}
 .wo-btn-blue:hover{background:var(--wo-blue-50);color:var(--wo-blue)}
+.wo-btn-green{background:#16a34a;border-color:#16a34a;color:#fff;font-weight:600}
+.wo-btn-green:hover,.wo-btn-green:focus{background:#15803d;border-color:#15803d;color:#fff}
 .wo-kpis{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:14px;margin-bottom:18px}
 .wo-kpi{display:flex;align-items:center;gap:14px;padding:16px 18px;border-radius:14px;border:1px solid var(--wo-line);background:var(--k-bg)}
 .wo-kpi > i{width:46px;height:46px;border-radius:50%;display:grid;place-items:center;font-size:1.3rem;color:var(--k-fg);background:var(--k-ring)}
