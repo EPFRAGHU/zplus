@@ -1,5 +1,7 @@
 <x-layouts.app title="Post-wise sub-bills" crumb="Operations / <a href='{{ route('invoices.index') }}'>Sub-bills</a> / <span class='text-danger'>Post-wise</span>">
-  <x-slot:actions><a class="btn btn-outline-secondary" target="_blank" href="{{ route('reports.post-wise.pdf', array_filter(['month' => $month->format('Y-m'), 'agency' => $agencyId, 'post' => $post])) }}"><i class="bi bi-file-earmark-pdf me-1"></i>PDF</a></x-slot:actions>
+  {{-- All posts in one PDF whatever post is chosen (owner, 22 Nov 2026); with a post chosen, its own PDF too. --}}
+  <x-slot:actions><a class="btn wo-btn-green" target="_blank" href="{{ route('reports.post-wise.pdf', array_filter(['month' => $month->format('Y-m'), 'agency' => $agencyId])) }}"><i class="bi bi-file-earmark-pdf me-1"></i>All posts (PDF)</a>
+    @if($post)<a class="btn btn-outline-secondary" target="_blank" href="{{ route('reports.post-wise.pdf', array_filter(['month' => $month->format('Y-m'), 'agency' => $agencyId, 'post' => $post])) }}"><i class="bi bi-file-earmark-pdf me-1"></i>This post (PDF)</a>@endif</x-slot:actions>
   <form class="z-card p-3 mb-3 d-flex gap-2 align-items-end flex-wrap">
     <div><label class="form-label small text-secondary mb-1" for="f-month">Month</label><input id="f-month" type="month" name="month" class="form-control" value="{{ $month->format('Y-m') }}"></div>
     <div><label class="form-label small text-secondary mb-1" for="f-agency">Agency</label>

@@ -2,6 +2,13 @@
 
 Versions follow MAJOR.MINOR.PATCH. Dates are Indian Standard Time.
 
+## 2.48.0 (2026-11-22): Post-wise sub-bills: all posts in one PDF
+
+- Post-wise sub-bills page: green "All posts (PDF)" button gives every post of the month in one PDF, whatever post is chosen on the page; "This post (PDF)" when a post is chosen
+- The PDF (landscape) starts with a summary line per post (projects, staff, days paid, wages), then each post's projects and sub-bills with a total per post, the grand total and the wages in words
+- Fixed: the post name cell no longer spans rows, so the columns stay in place when the PDF runs onto the next page
+- Internal report; nothing in the bills changes
+
 ## 2.47.1 (2026-11-22): Green Sub-bills statement button
 
 - The "Sub-bills statement (PDF)" button is green on the Sub-bills page and the Month bill page

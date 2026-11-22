@@ -28,8 +28,8 @@ class ReportController extends Controller
         Gate::authorize('billing');
         $data = $this->postWiseData($request, $report);
 
-        return Pdf::loadView('pdf.post-wise', $data)->setPaper('a4')
-            ->stream('post-wise-sub-bills-'.$data['month']->format('Y-m').'.pdf');
+        return Pdf::loadView('pdf.post-wise', $data)->setPaper('a4', 'landscape')
+            ->stream('post-wise-sub-bills-'.$data['month']->format('Y-m').($data['post'] ? '-'.\App\Support\Codes::fileSafe($data['post']) : '-all-posts').'.pdf');
     }
 
     private function postWiseData(Request $request, PostWiseBills $report): array

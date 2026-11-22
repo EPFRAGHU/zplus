@@ -53,6 +53,15 @@ class PostWiseTest extends TestCase
         $this->assertStringContainsString('2 projects · 2 staff', $html);
         $this->assertStringNotContainsString('Academic Programme Assistant</h2>', $html);
         $this->get(route('reports.post-wise.pdf', ['month' => '2026-10']))->assertOk()->assertHeader('content-type', 'application/pdf');
+        // All posts in one PDF, whatever post is chosen on the page (owner, 22 Nov 2026).
+        $this->assertStringContainsString('All posts (PDF)', $html);
+        $this->assertStringContainsString(e(route('reports.post-wise.pdf', ['month' => '2026-10'])), $html);
+        $this->assertStringContainsString('This post (PDF)', $html);
+        $view = view('pdf.post-wise', (fn () => $this->postWiseData(request()->merge(['month' => '2026-10']), app(\App\Services\Reports\PostWiseBills::class)))->call(app(\App\Http\Controllers\ReportController::class)))->render();
+        $this->assertStringContainsString('ALL POSTS', $view);
+        $this->assertStringContainsString('Academic Programme Manager', $view);
+        $this->assertStringContainsString('Academic Programme Assistant', $view);
+        $this->assertStringNotContainsString('rowspan', $view, 'no cell spans rows, so columns stay in place on every page');
 
         $this->actingAs(User::factory()->create(['role' => 'supervisor']))->get(route('reports.post-wise'))->assertForbidden();
     }
