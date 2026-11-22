@@ -1,5 +1,16 @@
 <x-layouts.app title="Approvals" crumb="Approvals (owner)">
   @error('approval')<div class="alert alert-danger small">{{ $message }}</div>@enderror
+  {{-- Payments received waiting for a Super Admin (owner, 22 Nov 2026): approved on each payment's page. --}}
+  @php($waitingPayments = \App\Models\PaymentReceipt::query()->where('status', 'pending')->with('contract:id,contract_no', 'agency:id,code', 'enteredBy:id,name')->oldest()->get())
+  @if($waitingPayments->isNotEmpty())
+    <div class="z-card mb-3">
+      <div class="z-card-h"><h2><i class="bi bi-cash-coin me-1"></i>Payments received waiting for approval</h2><span class="small text-secondary">{{ $waitingPayments->count() }}. Open each, check it against the bank statement and payment advice, then Approve or Return.</span></div>
+      @foreach($waitingPayments as $p)
+        <div class="px-3 py-2 border-top d-flex flex-wrap gap-2 align-items-center"><span class="badge text-bg-dark">{{ $p->agency?->code }}</span>
+          <a class="fw-semibold" href="{{ route('payments.show', $p) }}">{{ $p->label() }}</a><span class="small text-secondary">credited {{ $p->credit_date->format('d M Y') }} · work order {{ $p->contract?->contract_no }} · entered by {{ $p->enteredBy?->name ?? '—' }}</span></div>
+      @endforeach
+    </div>
+  @endif
   @if($canApprove)
     <div class="z-card mb-3">
       <div class="z-card-h"><h2><i class="bi bi-inbox me-1"></i>Waiting for your approval</h2><span class="small text-secondary">{{ $pending->count() }} {{ \Illuminate\Support\Str::plural('item', $pending->count()) }}. Open each to check it, then Approve or Return with a reason.</span></div>

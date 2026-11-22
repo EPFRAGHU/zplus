@@ -2,6 +2,17 @@
 
 Versions follow MAJOR.MINOR.PATCH. Dates are Indian Standard Time.
 
+## 2.51.0 (2026-11-22): Payments received from the client (UTR, cheque, TDS, GST TDS)
+
+- New menu Operations → Payments received: enter each bank credit or cheque once (mode, UTR, NEFT/RTGS date, cheque no., date and bank, credit date, our account credited, amount, payment advice PDF, remarks) and split it over the sub-bills it pays
+- Per sub-bill the client's deductions are filled in as expected (TDS 2% and GST TDS 1% CGST + 1% SGST, or 2% IGST, of the value before GST, rounded to the rupee) and can be changed to what was actually deducted; other deductions need a reason. Received + deductions cannot be more than what is still due, and the amount credited must equal the total received
+- Maker–checker: Accounts enters, a Super Admin (never the one who entered it) approves or returns it; waiting payments are listed on Approvals. Only approved payments count
+- On approval a sub-bill paid in full (within ₹1) turns Paid with the credit date, and its tax invoice too when all its sub-bills are paid; a part payment leaves the rest due, and the next payment suggests only what is left
+- Tabs Receipts, Outstanding (unpaid sub-bills with days and 0–30 / 31–60 / 61–90 / 90+ ageing) and TDS & GST TDS (ticks for Form 16A / 26AS seen and GSTR-7A accepted), each with Excel and PDF
+- "Payments received" box with "Enter payment" on every sub-bill and tax invoice page; payments line on the dashboard
+- Delete a wrong payment: Super Admin only; sub-bills it had paid go back to Submitted. A sub-bill with a payment cannot be deleted or its month reset until the payment is deleted
+- New tables only (payment_receipts, payment_receipt_lines); existing bills, numbers and amounts do not change, and bills already marked Paid stay as they are
+
 ## 2.50.0 (2026-11-22): Post-wise summary for GeM returns (Excel and PDF)
 
 - New page Sub-bills → "Post-wise summary": choose the month, the work order, then one sub-bill or all, and one post or all

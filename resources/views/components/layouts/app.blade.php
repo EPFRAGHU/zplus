@@ -45,6 +45,7 @@
       <a class="{{ $is('attendance.*') }}" href="{{ route('attendance.index') }}"><i class="bi bi-calendar-check"></i>Attendance</a>
       <a class="{{ $is('invoices.*') }}" href="{{ route('invoices.index') }}"><i class="bi bi-receipt"></i>Sub-bills</a>
       <a class="{{ $is('tax-invoices.*') }}" href="{{ route('tax-invoices.index') }}"><i class="bi bi-file-earmark-ruled"></i>Tax Invoices</a>
+      @can('billing')<a class="{{ $is('payments.*') }}" href="{{ route('payments.index') }}"><i class="bi bi-cash-coin"></i>Payments received</a>@endcan
       @can('view-bank-details')<a class="{{ $is('bank-letters.*') }}" href="{{ route('bank-letters.index') }}"><i class="bi bi-bank"></i>Bank Letter</a>@endcan
       @can('import')
       <div class="z-label">Setup</div>

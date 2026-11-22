@@ -174,6 +174,9 @@ class InvoiceController extends Controller
     public function destroy(Invoice $invoice): RedirectResponse
     {
         Gate::authorize('billing');
+        if (\App\Models\PaymentReceiptLine::query()->withoutGlobalScopes()->where('invoice_id', $invoice->id)->exists()) {
+            return back()->withErrors(['invoice' => 'A payment received is entered against this sub-bill. A Super Admin must delete that payment first.']);
+        }
         // Super Admin (owner, 17 Nov 2026): any bill that is not paid; it is taken out of its tax invoice first.
         if (Gate::allows('delete-records') && $invoice->status !== 'draft') {
             if ($invoice->status === 'paid') {

@@ -57,6 +57,18 @@
     <x-kpi label="Billed this year" icon="receipt" :value="inr($stats['billedThisYear'])" color="#1d1a1c" />
     <x-kpi label="Awaiting payment" icon="hourglass-split" :value="inr($stats['unpaid'])" meta="Approved and submitted bills" color="#5b3fd1" />
   </div>
+  {{-- Payments received (owner, 22 Nov 2026): this month's approved credits and what is still due after part payments. --}}
+  @can('billing')
+    @php($payMonth = \App\Models\PaymentReceiptLine::query()->whereHas('receipt', fn ($q) => $q->where('status', 'approved')->whereBetween('credit_date', [now()->startOfMonth()->toDateString(), now()->endOfMonth()->toDateString()]))->sum('received'))
+    @php($payDue = app(\App\Services\Payments\PaymentReports::class)->outstanding(null))
+    @php($payWaiting = \App\Models\PaymentReceipt::query()->where('status', 'pending')->count())
+    <div class="z-card px-3 py-2 mb-3 d-flex flex-wrap gap-3 align-items-center small dash-payments">
+      <span><i class="bi bi-cash-coin me-1 text-success"></i>Received in {{ now()->format('F') }}: <b>{{ inr((float) $payMonth, true) }}</b></span>
+      <span><i class="bi bi-hourglass-split me-1 text-danger"></i>Still due from the client: <b>{{ inr((float) $payDue['total']['due'], true) }}</b> ({{ $payDue['rows']->count() }} sub-bills{{ (float) $payDue['ages']['90+'] > 0 ? ', '.inr((float) $payDue['ages']['90+'], true).' over 90 days' : '' }})</span>
+      @if($payWaiting)<span class="badge text-bg-warning">{{ $payWaiting }} {{ \Illuminate\Support\Str::plural('payment', $payWaiting) }} waiting for approval</span>@endif
+      <a class="ms-auto" href="{{ route('payments.index') }}">Payments received →</a>
+    </div>
+  @endcan
   @include('dashboard._reminders')
   <div class="row g-3">
     <div class="col-xl-8">

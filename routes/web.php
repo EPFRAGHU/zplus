@@ -160,6 +160,20 @@ Route::middleware(['auth', 'active', 'role:admin,accounts,supervisor', \App\Http
     Route::get('month-bill/sub-bills', [\App\Http\Controllers\MonthBillController::class, 'subBills'])->name('month-bill.sub-bills');
     Route::get('month-bill/consolidated-tax-invoice', [\App\Http\Controllers\MonthBillController::class, 'consolidated'])->name('month-bill.consolidated');
 
+    // Payments received from the client: receipts split over sub-bills with TDS / GST TDS (owner, 22 Nov 2026)
+    Route::get('payments', [\App\Http\Controllers\PaymentReceiptController::class, 'index'])->name('payments.index');
+    Route::get('payments/create', [\App\Http\Controllers\PaymentReceiptController::class, 'create'])->name('payments.create');
+    Route::post('payments', [\App\Http\Controllers\PaymentReceiptController::class, 'store'])->name('payments.store');
+    Route::get('payments/export/{tab}.{format}', [\App\Http\Controllers\PaymentReceiptController::class, 'export'])->name('payments.export');
+    Route::get('payments/{receipt}', [\App\Http\Controllers\PaymentReceiptController::class, 'show'])->name('payments.show');
+    Route::get('payments/{receipt}/edit', [\App\Http\Controllers\PaymentReceiptController::class, 'edit'])->name('payments.edit');
+    Route::put('payments/{receipt}', [\App\Http\Controllers\PaymentReceiptController::class, 'update'])->name('payments.update');
+    Route::post('payments/{receipt}/approve', [\App\Http\Controllers\PaymentReceiptController::class, 'approve'])->name('payments.approve');
+    Route::post('payments/{receipt}/return', [\App\Http\Controllers\PaymentReceiptController::class, 'sendBack'])->name('payments.return');
+    Route::post('payments/{receipt}/checks', [\App\Http\Controllers\PaymentReceiptController::class, 'checks'])->name('payments.checks');
+    Route::delete('payments/{receipt}', [\App\Http\Controllers\PaymentReceiptController::class, 'destroy'])->name('payments.destroy');
+    Route::get('payments/{receipt}/advice', [\App\Http\Controllers\PaymentReceiptController::class, 'advice'])->name('payments.advice');
+
     // Post-wise summary of sub-bills for GeM returns: work order → sub-bill → post (owner, 22 Nov 2026)
     Route::get('post-summary', [\App\Http\Controllers\PostSummaryController::class, 'show'])->name('post-summary.show');
     Route::get('post-summary/pdf', [\App\Http\Controllers\PostSummaryController::class, 'pdf'])->name('post-summary.pdf');

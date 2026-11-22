@@ -197,6 +197,9 @@ final class AttendanceService
         if ($invoice?->taxInvoice && $invoice->taxInvoice->status === 'paid') {
             throw new RuntimeException("Tax invoice {$invoice->taxInvoice->number} is paid, so this month cannot be reset.");
         }
+        if ($invoice && \App\Models\PaymentReceiptLine::query()->withoutGlobalScopes()->where('invoice_id', $invoice->id)->exists()) {
+            throw new RuntimeException("A payment received is entered against sub-bill {$invoice->invoice_no}. A Super Admin must delete that payment first.");
+        }
         $files = array_filter([$sheet->certificate_path, $sheet->submitted_pdf_path]);
         $summary = [];
 

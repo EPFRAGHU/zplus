@@ -26,6 +26,7 @@
           @endforeach</tbody>
         </table></div>
       </div>
+      @include('payments._box', ['bills' => collect([$invoice])])
     </div>
     <div class="col-lg-4">
       <div class="z-card p-3">
@@ -43,7 +44,7 @@
         @if($next)
           <form method="post" action="{{ route('invoices.status', $invoice) }}" class="d-grid gap-2">@csrf
             <input type="hidden" name="status" value="{{ $next[0] }}">
-            @if($next[0] === 'paid')<label class="small text-secondary" for="paid_on">Payment received on</label><input id="paid_on" type="date" name="paid_on" class="form-control" value="{{ now()->toDateString() }}" required>@endif
+            @if($next[0] === 'paid')<label class="small text-secondary" for="paid_on">Payment received on</label><input id="paid_on" type="date" name="paid_on" class="form-control" value="{{ now()->toDateString() }}" required><div class="small text-secondary mt-1">Better: <a href="#payments">Enter payment</a> with the UTR and the client's TDS; the bill turns Paid when it is approved. Use this button only for bills paid before payments were entered in the app.</div>@endif
             <button class="btn btn-primary">{{ $next[1] }}</button>
           </form>
         @endif

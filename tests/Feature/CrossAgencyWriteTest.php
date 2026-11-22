@@ -26,7 +26,7 @@ class CrossAgencyWriteTest extends TestCase
     use RefreshDatabase;
 
     private const TABLES = ['agencies', 'clients', 'gem_contracts', 'projects', 'posts', 'employees', 'employee_documents',
-        'attendance_sheets', 'attendance_entries', 'invoices', 'invoice_lines', 'tax_invoices', 'users', 'project_user', 'project_incharges', 'signed_documents', 'sent_emails', 'monthly_papers', 'approvals'];
+        'attendance_sheets', 'attendance_entries', 'invoices', 'invoice_lines', 'tax_invoices', 'users', 'project_user', 'project_incharges', 'signed_documents', 'sent_emails', 'monthly_papers', 'approvals', 'payment_receipts', 'payment_receipt_lines'];
 
     private User $owner;
 
@@ -73,7 +73,11 @@ class CrossAgencyWriteTest extends TestCase
         $approval = \App\Models\Approval::query()->create(['agency_id' => $agency->id, 'type' => 'sub_bill', 'invoice_id' => $invoice->id, 'month' => '2026-10-01',
             'label' => "Sub-bill {$code}", 'fingerprint' => 'x', 'status' => 'pending', 'submitted_by' => $admin->id, 'submitted_at' => now()]);
 
-        return compact('agency', 'client', 'contract', 'project', 'post', 'employee', 'document', 'open', 'locked', 'invoice', 'tax', 'admin', 'pi', 'incharge', 'paper', 'approval');
+        $payment = \App\Models\PaymentReceipt::query()->create(['agency_id' => $agency->id, 'client_id' => $client->id, 'gem_contract_id' => $contract->id, 'mode' => 'neft',
+            'utr_no' => "UTR{$code}", 'credit_date' => '2026-10-20', 'amount' => '100.00', 'status' => 'pending', 'entered_by' => $admin->id]);
+        $payment->lines()->create(['agency_id' => $agency->id, 'invoice_id' => $invoice->id, 'bill_amount' => $invoice->rounded_total, 'taxable' => $invoice->taxable, 'received' => '100.00']);
+
+        return compact('agency', 'client', 'contract', 'project', 'post', 'employee', 'document', 'open', 'locked', 'invoice', 'tax', 'admin', 'pi', 'incharge', 'paper', 'approval', 'payment');
     }
 
     private function fingerprint(): string
@@ -151,6 +155,13 @@ class CrossAgencyWriteTest extends TestCase
             'move their project' => fn () => $this->post("/projects/{$o['project']->id}/move", ['gem_contract_id' => $o['contract']->id]),
             'merge their clients' => fn () => $this->post('/clients/merge', ['agency_id' => $o['agency']->id, 'target_id' => $o['client']->id, 'name' => 'Hacked', 'confirm' => 'MERGE']),
             'switch to their company' => fn () => $this->post('/choose-company', ['agency' => (string) $o['agency']->id]),
+            'enter a payment for their work order' => fn () => $this->post('/payments', ['gem_contract_id' => $o['contract']->id, 'mode' => 'neft', 'utr_no' => 'X1', 'credit_date' => '2026-10-21', 'amount' => '10', 'lines' => [$o['invoice']->id => ['pick' => 1, 'received' => '10']]]),
+            'pay their bill under my work order' => fn () => $this->post('/payments', ['gem_contract_id' => $this->mine['contract']->id, 'mode' => 'neft', 'utr_no' => 'X2', 'credit_date' => '2026-10-21', 'amount' => '10', 'lines' => [$o['invoice']->id => ['pick' => 1, 'received' => '10']]]),
+            'change their payment' => fn () => $this->put("/payments/{$o['payment']->id}", ['mode' => 'neft', 'utr_no' => 'HACK', 'credit_date' => '2026-10-21', 'amount' => '100', 'lines' => [$o['invoice']->id => ['pick' => 1, 'received' => '100']]]),
+            'approve their payment' => fn () => $this->post("/payments/{$o['payment']->id}/approve"),
+            'return their payment' => fn () => $this->post("/payments/{$o['payment']->id}/return", ['note' => 'not mine']),
+            'tick TDS on their payment' => fn () => $this->post("/payments/{$o['payment']->id}/checks", ['form16a' => [1, 2], 'gstr7a' => [1, 2]]),
+            'delete their payment' => fn () => $this->delete("/payments/{$o['payment']->id}"),
             'edit their admin login' => fn () => $this->put("/users/{$o['admin']->id}", ['name' => 'Hacked', 'email' => $o['admin']->email, 'role' => 'admin', 'active' => '0']),
         ];
     }
@@ -205,6 +216,9 @@ class CrossAgencyWriteTest extends TestCase
         $this->get("/contracts/{$swh['contract']->id}/bill-pack?month=2026-09")->assertNotFound();
         $this->get("/contracts/{$swh['contract']->id}/import")->assertNotFound();
         $this->get('/')->assertOk()->assertDontSee($swh['contract']->contract_no);
+        $this->get("/payments/{$swh['payment']->id}")->assertNotFound();
+        $this->get("/payments/{$swh['payment']->id}/advice")->assertNotFound();
+        $this->get('/payments')->assertOk()->assertDontSee('UTRSWH')->assertSee('UTRZPS');
         $this->get("/attendance/{$zps['locked']->id}/bank-letter")->assertOk()->assertHeader('content-type', 'application/pdf');
     }
 }
