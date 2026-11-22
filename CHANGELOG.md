@@ -2,6 +2,13 @@
 
 Versions follow MAJOR.MINOR.PATCH. Dates are Indian Standard Time.
 
+## 2.39.0 (2026-11-22): Laptop demo: full month, sub-bills and tax invoices
+
+- New command for a laptop copy of the data: php artisan demo:full-month 2026-10 gives every active employee full attendance, locks the month, makes a sub-bill per project (SW/001/26-27(HTA) …) and one tax invoice per work order clubbing them, with demo approvals marked "(demo)"
+- Refuses to run on the live site; asks to type DEMO first; months already locked or billed are left as they are
+- Guide docs/guides/LAPTOP_DEMO.md: copy the live database to the laptop safely, run the demo, look at the bills
+- Nothing changes on the live site
+
 ## 2.38.0 (2026-11-22): Coloured post rows and click-to-see names
 
 - Post rows now carry a coloured strip: green = exactly filled, amber = vacant, red = more staff than sanctioned (Posts page, work order page, project rows on Work Orders)

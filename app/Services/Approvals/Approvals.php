@@ -159,6 +159,24 @@ final class Approvals
         return $message;
     }
 
+    /**
+     * Laptop demo only (`php artisan demo:full-month`, owner 22 Nov 2026): records an approval sent and decided by the same
+     * person, its label marked "(demo)", so the demo's sub-bills and tax invoices open straight away. Refused on the live site.
+     */
+    public function approveForDemo(string $type, AttendanceSheet|Invoice|TaxInvoice|array $subject, User $user): Approval
+    {
+        if (app()->environment('production')) {
+            throw new RuntimeException('Demo approvals are for a laptop copy only, never the live site.');
+        }
+        [$month, $where, $agencyId, $label] = $this->key($type, $subject);
+        [$fingerprint, $details] = $this->fingerprint($type, $subject);
+        Approval::query()->where('type', $type)->where($where)->whereIn('status', ['pending', 'approved'])->update(['status' => 'superseded']);
+
+        return Approval::query()->create($where + ['type' => $type, 'agency_id' => $agencyId, 'month' => $month->toDateString(), 'label' => $label.' (demo)',
+            'fingerprint' => $fingerprint, 'details' => $details, 'status' => 'approved',
+            'submitted_by' => $user->id, 'submitted_at' => now(), 'decided_by' => $user->id, 'decided_at' => now()]);
+    }
+
     public function returnBack(Approval $approval, User $checker, string $reason): string
     {
         $this->assertDecidable($approval, $checker);

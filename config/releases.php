@@ -12,6 +12,12 @@ return [
     'timezone' => 'Asia/Kolkata',      // release times are Indian Standard Time
 
     'releases' => [
+        ['version' => '2.39.0', 'date' => '2026-11-22 09:30', 'title' => 'Laptop demo: full month, sub-bills and tax invoices', 'type' => 'feature', 'notes' => [
+            'New command for a laptop copy of the data: php artisan demo:full-month 2026-10 gives every active employee full attendance, locks the month, makes a sub-bill per project (SW/001/26-27(HTA) …) and one tax invoice per work order clubbing them, with demo approvals marked "(demo)"',
+            'Refuses to run on the live site; asks to type DEMO first; months already locked or billed are left as they are',
+            'Guide docs/guides/LAPTOP_DEMO.md: copy the live database to the laptop safely, run the demo, look at the bills',
+            'Nothing changes on the live site',
+        ]],
         ['version' => '2.38.0', 'date' => '2026-11-22 09:16', 'title' => 'Coloured post rows and click-to-see names', 'type' => 'feature', 'notes' => [
             'Post rows now carry a coloured strip: green = exactly filled, amber = vacant, red = more staff than sanctioned (Posts page, work order page, project rows on Work Orders)',
             'The Filled number is coloured the same way and can be clicked: a small list opens with the staff names (each opens the employee) and their Emp IDs; click anywhere else or press Esc to close',
