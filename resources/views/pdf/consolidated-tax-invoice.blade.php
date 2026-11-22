@@ -54,7 +54,8 @@
   <tbody>
   @foreach($c['rows'] as $i => $row)
     <tr><td class="c">{{ $i + 1 }}</td>
-      @if($i === 0)<td class="c mid" rowspan="{{ count($c['rows']) }}">{{ $c['taxes']->first()->contract?->sac_code ?: '998514' }}</td>@endif
+      {{-- One HSN cell per row (no rowspan: a cell spanning rows shifted every column left once the table ran onto the next page, owner 22 Nov 2026); the code in the first row, inner lines hidden so it reads as one box. --}}
+      <td class="c" style="{{ $i > 0 ? 'border-top:0;' : '' }}{{ ! $loop->last ? 'border-bottom:0;' : '' }}">{{ $i === 0 ? ($c['taxes']->first()->contract?->sac_code ?: '998514') : '' }}</td>
       <td>{{ strtoupper($row['designation']) }}</td>
       <td class="c">{{ $row['manpower'] }}</td><td class="c">{{ $row['days'] }}</td><td class="c">{{ $row['perDay'] }}</td><td class="r">{{ $row['amount'] }}</td></tr>
   @endforeach
@@ -73,8 +74,8 @@
   @if($c['igst'])
     <tr><td></td><td colspan="5">GST @ {{ $c['gst'] }}% (IGST)</td><td class="r">{{ $t['igst'] }}</td></tr>
   @else
-    <tr><td rowspan="2"></td><td colspan="3" rowspan="2" class="mid">GST @ {{ $c['gst'] }}%</td><td colspan="2">CGST{{ '@'.$gstHalf }}%</td><td class="r">{{ $t['cgst'] }}</td></tr>
-    <tr><td colspan="2">SGST{{ '@'.$gstHalf }}%</td><td class="r">{{ $t['sgst'] }}</td></tr>
+    <tr><td style="border-bottom:0"></td><td colspan="3" style="border-bottom:0">GST @ {{ $c['gst'] }}%</td><td colspan="2">CGST{{ '@'.$gstHalf }}%</td><td class="r">{{ $t['cgst'] }}</td></tr>
+    <tr><td style="border-top:0"></td><td colspan="3" style="border-top:0"></td><td colspan="2">SGST{{ '@'.$gstHalf }}%</td><td class="r">{{ $t['sgst'] }}</td></tr>
   @endif
   <tr><td></td><td colspan="5">GRAND TOTAL</td><td class="r b">{{ $t['total'] }}</td></tr>
   <tr><td></td><td colspan="5">Total of the tax invoices (each rounded off)</td><td class="r b">{{ $t['roundedTotal'] }}</td></tr>

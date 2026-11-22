@@ -12,6 +12,10 @@ return [
     'timezone' => 'Asia/Kolkata',      // release times are Indian Standard Time
 
     'releases' => [
+        ['version' => '2.46.1', 'date' => '2026-11-22 14:14', 'title' => 'PDF tables keep their columns on the next page', 'type' => 'fix', 'notes' => [
+            'Fixed: when the consolidated tax invoice statement (or a long tax invoice) ran onto a second page, every row there shifted one column left and the Amount column was empty; the HSN code cell no longer spans many rows, so the columns stay in place on every page',
+            'The HSN code still shows once at the top and the GST rows still read as one block; no amounts or numbers change',
+        ]],
         ['version' => '2.46.0', 'date' => '2026-11-22 13:27', 'title' => 'Consolidated tax invoice statement for the month', 'type' => 'feature', 'notes' => [
             'Month bill page: new "Consolidated tax invoice statement" (screen and PDF) in the regular tax invoice layout: agency header, FROM / TO, bank details, posts of all work orders, EPF 12% / EDLI 0.5% / admin 0.5%, ESI, sub total, service charge, CGST / SGST, grand total and amount in words',
             'The same post at the same rate across all work orders is one row (manpower and days added up), as on each tax invoice',

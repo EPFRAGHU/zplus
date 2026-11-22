@@ -2,6 +2,11 @@
 
 Versions follow MAJOR.MINOR.PATCH. Dates are Indian Standard Time.
 
+## 2.46.1 (2026-11-22): PDF tables keep their columns on the next page
+
+- Fixed: when the consolidated tax invoice statement (or a long tax invoice) ran onto a second page, every row there shifted one column left and the Amount column was empty; the HSN code cell no longer spans many rows, so the columns stay in place on every page
+- The HSN code still shows once at the top and the GST rows still read as one block; no amounts or numbers change
+
 ## 2.46.0 (2026-11-22): Consolidated tax invoice statement for the month
 
 - Month bill page: new "Consolidated tax invoice statement" (screen and PDF) in the regular tax invoice layout: agency header, FROM / TO, bank details, posts of all work orders, EPF 12% / EDLI 0.5% / admin 0.5%, ESI, sub total, service charge, CGST / SGST, grand total and amount in words
