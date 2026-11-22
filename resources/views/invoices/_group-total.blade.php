@@ -2,7 +2,7 @@
 @if($t)
 <tr class="bills-group-total">
   <td colspan="3">Total {{ $bill->contract->contract_no }} · {{ $t->bills }} {{ \Illuminate\Support\Str::plural('sub-bill', $t->bills) }}</td>
-  <td class="num">{{ $money($t->wages) }}</td><td class="num">{{ $money($t->epf) }}</td><td class="num">{{ $money($t->esic) }}</td>
+  <td class="text-center">{{ (int) $t->staff }}</td><td class="num">{{ $money($t->wages) }}</td><td class="num">{{ $money($t->epf) }}</td><td class="num">{{ $money($t->esic) }}</td>
   <td class="num">{{ $money($t->service_charge) }}</td><td class="num">{{ $money($t->taxable) }}</td>
   <td class="num">{{ $money($t->cgst) }}</td><td class="num">{{ $money($t->sgst) }}</td>@if($igst)<td class="num">{{ $money($t->igst) }}</td>@endif
   <td class="num">{{ $money($t->billed) }}</td><td></td>

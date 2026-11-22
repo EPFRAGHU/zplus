@@ -72,10 +72,10 @@
   @endcan
   {{-- Bill components in columns, a total row closing each work order and a total of everything listed (owner, 22 Nov 2026). --}}
   @php($igst = (float) ($grandTotal->igst ?? 0) > 0)
-  @php($cols = $igst ? 13 : 12)
+  @php($cols = $igst ? 14 : 13)
   @php($money = fn ($v) => inr((float) $v, true))
   <div class="z-card"><div class="table-responsive"><table class="table table-hover align-middle bills-table">
-    <thead><tr><th>Bill no.</th><th>Project</th><th>Month</th><th class="num">Wages</th><th class="num">EPF</th><th class="num">ESIC</th><th class="num">Service charge</th>
+    <thead><tr><th>Bill no.</th><th>Project</th><th>Month</th><th class="text-center">Staff</th><th class="num">Wages</th><th class="num">EPF</th><th class="num">ESIC</th><th class="num">Service charge</th>
       <th class="num">Before GST</th><th class="num">CGST</th><th class="num">SGST</th>@if($igst)<th class="num">IGST</th>@endif<th class="num">Bill amount</th><th>Status</th></tr></thead>
     <tbody>
     @php($block = false) @php($contractBlock = false) @php($openGroup = null)
@@ -114,6 +114,9 @@
       <tr><td class="text-nowrap"><a class="mono" href="{{ route('invoices.show', $i) }}">{{ $i->invoice_no }}</a></td>
         <td><span class="fw-semibold">{{ $i->project->name }}</span>@if($i->project->pi_name) <div class="small text-secondary">PI: {{ $i->project->pi_name }}</div> @endif</td>
         <td class="text-nowrap">{{ $i->month->format('M Y') }}</td>
+        {{-- How many employees the bill is worked out for; click to see them (owner, 22 Nov 2026). --}}
+        <td class="text-center"><x-names-pop class="n-full" :title="'Staff on '.$i->invoice_no"
+          :items="$i->lines->map(fn ($l) => ['text' => $l->employee_name, 'sub' => $l->designation.' · '.rtrim(rtrim(number_format((float) $l->paid_days, 1, '.', ''), '0'), '.').' days'])">{{ $i->lines_count }}</x-names-pop></td>
         <td class="num">{{ $money($i->wages) }}</td><td class="num">{{ $money($i->epf) }}</td><td class="num">{{ $money($i->esic) }}</td>
         <td class="num">{{ $money($i->service_charge) }}</td><td class="num">{{ $money($i->taxable) }}</td>
         <td class="num">{{ $money($i->cgst) }}</td><td class="num">{{ $money($i->sgst) }}</td>@if($igst)<td class="num">{{ $money($i->igst) }}</td>@endif
@@ -129,7 +132,7 @@
     @if($grandTotal && $grandTotal->bills)
     <tfoot><tr class="bills-grand">
       <td colspan="3">Total of all {{ $grandTotal->bills }} {{ \Illuminate\Support\Str::plural('sub-bill', $grandTotal->bills) }} listed{{ request('month') ? ' for '.\Carbon\CarbonImmutable::parse(request('month').'-01')->format('F Y') : '' }}</td>
-      <td class="num">{{ $money($grandTotal->wages) }}</td><td class="num">{{ $money($grandTotal->epf) }}</td><td class="num">{{ $money($grandTotal->esic) }}</td>
+      <td class="text-center">{{ (int) $grandTotal->staff }}</td><td class="num">{{ $money($grandTotal->wages) }}</td><td class="num">{{ $money($grandTotal->epf) }}</td><td class="num">{{ $money($grandTotal->esic) }}</td>
       <td class="num">{{ $money($grandTotal->service_charge) }}</td><td class="num">{{ $money($grandTotal->taxable) }}</td>
       <td class="num">{{ $money($grandTotal->cgst) }}</td><td class="num">{{ $money($grandTotal->sgst) }}</td>@if($igst)<td class="num">{{ $money($grandTotal->igst) }}</td>@endif
       <td class="num">{{ $money($grandTotal->billed) }}</td><td></td></tr></tfoot>

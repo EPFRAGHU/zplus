@@ -49,6 +49,10 @@ class BillListsOrderTest extends TestCase
         $this->assertStringContainsString('<th class="num">Service charge</th>', $html);
         $this->assertSame(2, substr_count($html, 'bills-group-total'));
         $this->assertStringContainsString('Total of all 3 sub-bills listed', $html);
+        // Staff column: employees per bill (click for names), added up in the totals.
+        $this->assertStringContainsString('<th>Month</th><th class="text-center">Staff</th>', $html);
+        $this->assertStringContainsString('Staff on ZP/001/26-27(AAA)', $html);
+        $this->assertStringContainsString('<td class="text-center">'.\App\Models\InvoiceLine::query()->count().'</td>', $html);
         $this->assertStringContainsString(inr((float) Invoice::query()->sum('rounded_total'), true), $html);
         $this->assertStringContainsString(inr((float) Invoice::query()->sum('service_charge'), true), $html);
     }

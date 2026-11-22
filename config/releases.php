@@ -12,6 +12,11 @@ return [
     'timezone' => 'Asia/Kolkata',      // release times are Indian Standard Time
 
     'releases' => [
+        ['version' => '2.43.1', 'date' => '2026-11-22 11:54', 'title' => 'Staff column on the Sub-bills list', 'type' => 'fix', 'notes' => [
+            'Sub-bills list: new Staff column after Month with the number of employees each sub-bill is worked out for; click it to see their names, posts and paid days',
+            'The work order total rows and the total at the bottom add up the staff too',
+            'Look only: no amounts or numbers change',
+        ]],
         ['version' => '2.43.0', 'date' => '2026-11-22 11:42', 'title' => 'Sub-bills take a project\'s new short name', 'type' => 'feature', 'notes' => [
             'Changing a project\'s short name (Edit project) now renames its open sub-bills: SW/004/26-27(SW/007/26-27) becomes SW/004/26-27(SDOH); the serial (004) never changes',
             'Paid bills, and bills in a paid tax invoice, keep their number; the message lists what was renamed and what was kept',

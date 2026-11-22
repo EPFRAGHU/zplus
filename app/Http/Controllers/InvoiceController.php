@@ -47,7 +47,7 @@ class InvoiceController extends Controller
         $firstNo = Invoice::query()->from('invoices as first_bills')->selectRaw('min(first_bills.invoice_no)')->whereColumn('first_bills.gem_contract_id', 'invoices.gem_contract_id');
         $sorted = fn () => (clone $filtered)->orderByRaw('agency_id is null')->orderBy($agencyName)->orderBy($clientName)
             ->orderBy($firstNo)->orderBy('gem_contract_id')->orderBy('invoice_no')->orderBy('id');
-        $invoices = $sorted()->with('project', 'contract.agency', 'contract.client')->paginate(50)->withQueryString();
+        $invoices = $sorted()->with(['project', 'contract.agency', 'contract.client', 'lines' => fn ($q) => $q->orderBy('id')])->withCount('lines')->paginate(50)->withQueryString();
         $blockTotals = (clone $filtered)->groupBy('agency_id')
             ->selectRaw("agency_id, count(*) as bills, sum(rounded_total) as billed, sum(case when status in ('approved','submitted') then rounded_total else 0 end) as unpaid")
             ->get()->keyBy('agency_id');
@@ -55,7 +55,7 @@ class InvoiceController extends Controller
             ->selectRaw("gem_contracts.client_id, count(*) as bills, sum(invoices.rounded_total) as billed, sum(case when invoices.status in ('approved','submitted') then invoices.rounded_total else 0 end) as unpaid")
             ->get()->keyBy('client_id');
         // Column totals per work order and for everything listed (owner, 22 Nov 2026).
-        $sums = 'count(*) as bills, sum(wages) as wages, sum(epf) as epf, sum(esic) as esic, sum(service_charge) as service_charge, sum(taxable) as taxable, '
+        $sums = 'count(*) as bills, sum((select count(*) from invoice_lines where invoice_lines.invoice_id = invoices.id)) as staff, sum(wages) as wages, sum(epf) as epf, sum(esic) as esic, sum(service_charge) as service_charge, sum(taxable) as taxable, '
             .'sum(cgst) as cgst, sum(sgst) as sgst, sum(igst) as igst, sum(total) as total, sum(rounded_total) as billed';
         $contractTotals = (clone $filtered)->groupBy('gem_contract_id')->selectRaw('gem_contract_id, '.$sums)->get()->keyBy('gem_contract_id');
         $grandTotal = (clone $filtered)->selectRaw($sums)->first();
