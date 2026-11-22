@@ -640,8 +640,9 @@ class OwnerChangesTest extends TestCase
         $zip->open($zipPath);
         $names = collect(range(0, $zip->numFiles - 1))->map(fn ($i) => $zip->getNameIndex($i))->sort()->values()->all();
         $zip->close();
-        $this->assertSame(['bank-letter-2026-10.pdf', 'covering-letters/covering-letter-SW-001-26-27-CCRH.pdf', 'covering-letters/covering-letter-SW-001-26-27-HTA.pdf',
-            'sub-bills/SW-001-26-27-CCRH.pdf', 'sub-bills/SW-001-26-27-HTA.pdf', 'tax-invoices/SW-001-26-27.pdf'], $names);
+        $k = 'GEMC-511687731718030/';   // a folder per work order since 22 Nov 2026; the bank letter at the top
+        $this->assertSame(['GEMC-511687731718030/covering-letters/covering-letter-SW-001-26-27-CCRH.pdf', $k.'covering-letters/covering-letter-SW-001-26-27-HTA.pdf',
+            $k.'sub-bills/SW-001-26-27-CCRH.pdf', $k.'sub-bills/SW-001-26-27-HTA.pdf', $k.'tax-invoice/SW-001-26-27.pdf', 'bank-letter-2026-10.pdf'], $names);
         $this->get("/month-documents.zip?agency={$agency->id}&month=2026-12")->assertSessionHasErrors('zip');   // nothing that month
 
         // Upload signed copies: PDF only; the latest is shown; "changed after signing" when the bill changes later.
