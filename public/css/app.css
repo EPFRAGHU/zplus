@@ -194,3 +194,9 @@ button.wo-fill.wo-pop-btn{text-decoration:none;font-weight:600}
 .wo-pop-list li{padding:4px 0;border-bottom:1px solid #f1f5f9;font-size:.86rem}
 .wo-pop-list li:last-child{border-bottom:0}
 .wo-pop-sub{color:#64748b;font-size:.78rem;font-family:ui-monospace,monospace;white-space:nowrap}
+/* Sub-bills / Tax invoices lists: work order total rows and the grand total (owner, 22 Nov 2026) */
+.bills-table{font-size:.86rem}
+.bills-table td.num,.bills-table th.num{white-space:nowrap}
+tr.contract-group > td{border-bottom:2px solid #334155}
+tr.bills-group-total > td{background:#f8fafc!important;font-weight:700;border-top:1px solid #94a3b8;border-bottom:2px solid #334155}
+tfoot tr.bills-grand > td{background:#0f2a5c!important;color:#fff;font-weight:700;border:0}

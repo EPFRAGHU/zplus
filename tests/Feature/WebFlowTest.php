@@ -306,8 +306,8 @@ class WebFlowTest extends TestCase
         $other = $mph->contract->projects()->create(['name' => 'Second Project', 'code' => 'SECOND']);
 
         $this->actingAs($admin)->get('/invoices')->assertOk()
-            ->assertSee('<th>Work order</th><th>Project</th>', false)
-            ->assertSee('GEMC-511687731718030</a>', false)->assertSee('PI: Dr. S. Kanungo')
+            ->assertSee('<th>Bill no.</th><th>Project</th><th>Month</th><th class="num">Wages</th>', false)   // work order now heads its group (22 Nov 2026)
+            ->assertSee('GEMC-511687731718030</a>', false)->assertSee('PI: Dr. S. Kanungo')->assertSee('Total GEMC-511687731718030')
             ->assertSee('id="f-contract"', false)->assertSee('id="f-project"', false);
         $this->get('/invoices?contract='.$mph->gem_contract_id)->assertSee('ZP/001/26-27(MPH)');
         $this->get('/invoices?project='.$other->id)->assertDontSee('ZP/001/26-27(MPH)</a>', false);

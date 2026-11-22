@@ -45,6 +45,12 @@ class BillListsOrderTest extends TestCase
         $this->assertSame($positions, collect($positions)->sort()->values()->all(), 'bills listed in serial order');
         $this->assertSame(2, substr_count($html, 'contract-group'), 'one group row per work order');
         $this->assertStringContainsString('2 sub-bills', $html);
+        // Components in columns, a total row per work order and the total of everything listed.
+        $this->assertStringContainsString('<th class="num">Service charge</th>', $html);
+        $this->assertSame(2, substr_count($html, 'bills-group-total'));
+        $this->assertStringContainsString('Total of all 3 sub-bills listed', $html);
+        $this->assertStringContainsString(inr((float) Invoice::query()->sum('rounded_total'), true), $html);
+        $this->assertStringContainsString(inr((float) Invoice::query()->sum('service_charge'), true), $html);
     }
 
     public function test_tax_invoices_in_serial_order_with_clickable_sub_bill_count(): void
@@ -57,6 +63,9 @@ class BillListsOrderTest extends TestCase
         $this->assertStringContainsString('data-pop', $html);
         $two = TaxInvoice::query()->withCount('subBills')->get()->firstWhere('sub_bills_count', 2);
         $this->assertStringContainsString('Sub-bills in '.$two->number, $html);
+        $this->assertStringContainsString('<th class="num">CGST</th><th class="num">SGST</th>', $html);
+        $this->assertStringContainsString('Total of all 2 tax invoices listed', $html);
+        $this->assertStringContainsString(inr((float) TaxInvoice::query()->sum('rounded_total'), true), $html);
     }
 
     public function test_tax_invoice_pdf_with_many_posts_stays_on_one_page(): void

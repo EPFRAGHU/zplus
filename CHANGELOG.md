@@ -2,6 +2,14 @@
 
 Versions follow MAJOR.MINOR.PATCH. Dates are Indian Standard Time.
 
+## 2.42.0 (2026-11-22): Bill components and totals on the Sub-bills and Tax Invoices lists
+
+- Sub-bills list: columns Wages, EPF, ESIC, Service charge, Before GST, CGST, SGST (IGST when any) and Bill amount for every sub-bill (Agency, Client and Work order columns dropped: they head their blocks)
+- Each work order's group ends with a total row of every column and a dark line; "Make tax invoice" on the work order's heading row
+- Dark total row at the bottom: all sub-bills listed (choose a month for the month total)
+- Tax Invoices list: CGST and SGST (IGST when any) in their own columns, and a dark total row at the bottom (count of sub-bills, before GST, GST, invoice amount)
+- Look only: no amounts or numbers change
+
 ## 2.41.0 (2026-11-22): One-page tax invoice, bills listed in serial order
 
 - Tax invoice PDF always fits one page: with more post rows (and the contract balance) the type and spacing get smaller on their own; checked with 12 and 20 posts

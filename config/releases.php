@@ -12,6 +12,13 @@ return [
     'timezone' => 'Asia/Kolkata',      // release times are Indian Standard Time
 
     'releases' => [
+        ['version' => '2.42.0', 'date' => '2026-11-22 11:29', 'title' => 'Bill components and totals on the Sub-bills and Tax Invoices lists', 'type' => 'feature', 'notes' => [
+            'Sub-bills list: columns Wages, EPF, ESIC, Service charge, Before GST, CGST, SGST (IGST when any) and Bill amount for every sub-bill (Agency, Client and Work order columns dropped: they head their blocks)',
+            'Each work order\'s group ends with a total row of every column and a dark line; "Make tax invoice" on the work order\'s heading row',
+            'Dark total row at the bottom: all sub-bills listed (choose a month for the month total)',
+            'Tax Invoices list: CGST and SGST (IGST when any) in their own columns, and a dark total row at the bottom (count of sub-bills, before GST, GST, invoice amount)',
+            'Look only: no amounts or numbers change',
+        ]],
         ['version' => '2.41.0', 'date' => '2026-11-22 11:06', 'title' => 'One-page tax invoice, bills listed in serial order', 'type' => 'feature', 'notes' => [
             'Tax invoice PDF always fits one page: with more post rows (and the contract balance) the type and spacing get smaller on their own; checked with 12 and 20 posts',
             'Sub-bills menu: inside each agency and client, a group per GeM contract (contract no., number of sub-bills, total), bills in serial order SW/001/26-27(HTA), SW/001/26-27(NTM), SW/002/26-27(…), …; groups follow the serial of their first bill',

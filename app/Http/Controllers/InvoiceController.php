@@ -54,8 +54,11 @@ class InvoiceController extends Controller
         $clientTotals = (clone $filtered)->join('gem_contracts', 'gem_contracts.id', '=', 'invoices.gem_contract_id')->groupBy('gem_contracts.client_id')
             ->selectRaw("gem_contracts.client_id, count(*) as bills, sum(invoices.rounded_total) as billed, sum(case when invoices.status in ('approved','submitted') then invoices.rounded_total else 0 end) as unpaid")
             ->get()->keyBy('client_id');
-        $contractTotals = (clone $filtered)->groupBy('gem_contract_id')
-            ->selectRaw('gem_contract_id, count(*) as bills, sum(rounded_total) as billed')->get()->keyBy('gem_contract_id');
+        // Column totals per work order and for everything listed (owner, 22 Nov 2026).
+        $sums = 'count(*) as bills, sum(wages) as wages, sum(epf) as epf, sum(esic) as esic, sum(service_charge) as service_charge, sum(taxable) as taxable, '
+            .'sum(cgst) as cgst, sum(sgst) as sgst, sum(igst) as igst, sum(total) as total, sum(rounded_total) as billed';
+        $contractTotals = (clone $filtered)->groupBy('gem_contract_id')->selectRaw('gem_contract_id, '.$sums)->get()->keyBy('gem_contract_id');
+        $grandTotal = (clone $filtered)->selectRaw($sums)->first();
         $carriedAgency = $invoices->onFirstPage() ? false
             : $sorted()->skip(($invoices->currentPage() - 1) * $invoices->perPage() - 1)->take(1)->value('agency_id');
 
@@ -67,7 +70,7 @@ class InvoiceController extends Controller
             ->with('project.contract.agency', 'project.contract.client')->orderByDesc('month')->limit(20)->get();
 
         return view('invoices.index', [
-            'invoices' => $invoices, 'ready' => $ready, 'drafts' => $drafts, 'blockTotals' => $blockTotals, 'carriedAgency' => $carriedAgency, 'clientTotals' => $clientTotals, 'contractTotals' => $contractTotals,
+            'invoices' => $invoices, 'ready' => $ready, 'drafts' => $drafts, 'blockTotals' => $blockTotals, 'carriedAgency' => $carriedAgency, 'clientTotals' => $clientTotals, 'contractTotals' => $contractTotals, 'grandTotal' => $grandTotal,
             'agencies' => Agency::query()->orderBy('name')->get(),
             'clients' => Client::query()->with('agency')->orderBy('name')->get(),
             'agencyId' => $agencyId, 'clientId' => $clientId,

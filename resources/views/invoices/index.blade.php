@@ -70,17 +70,26 @@
     <div class="small text-secondary mb-3">Choose one agency to download this month's PDFs as a ZIP.</div>
   @endif
   @endcan
-  <div class="z-card"><div class="table-responsive"><table class="table table-hover">
-    <thead><tr><th>Bill no.</th><th>Agency</th><th>Client</th><th>Work order</th><th>Project</th><th>Month</th><th class="num">Before GST</th><th class="num">Bill amount</th><th>Status</th></tr></thead>
+  {{-- Bill components in columns, a total row closing each work order and a total of everything listed (owner, 22 Nov 2026). --}}
+  @php($igst = (float) ($grandTotal->igst ?? 0) > 0)
+  @php($cols = $igst ? 13 : 12)
+  @php($money = fn ($v) => inr((float) $v, true))
+  <div class="z-card"><div class="table-responsive"><table class="table table-hover align-middle bills-table">
+    <thead><tr><th>Bill no.</th><th>Project</th><th>Month</th><th class="num">Wages</th><th class="num">EPF</th><th class="num">ESIC</th><th class="num">Service charge</th>
+      <th class="num">Before GST</th><th class="num">CGST</th><th class="num">SGST</th>@if($igst)<th class="num">IGST</th>@endif<th class="num">Bill amount</th><th>Status</th></tr></thead>
     <tbody>
-    @php($block = false)
+    @php($block = false) @php($contractBlock = false) @php($openGroup = null)
     @forelse($invoices as $i)
+      @if($openGroup !== null && ($openGroup->gem_contract_id !== $i->gem_contract_id || $block !== $i->agency_id || $clientBlock !== $i->contract->client_id))
+        @include('invoices._group-total', ['bill' => $openGroup, 't' => $contractTotals[$openGroup->gem_contract_id] ?? null])
+        @php($openGroup = null)
+      @endif
       @if($block === false || $block !== $i->agency_id)
         @php($clientBlock = false)
         @php($continued = $block === false && $carriedAgency !== false && $carriedAgency === $i->agency_id)
         @php($block = $i->agency_id)
         @php($t = $blockTotals[$i->agency_id] ?? null)
-        <tr class="table-secondary"><td colspan="9" class="py-2">
+        <tr class="table-secondary"><td colspan="{{ $cols }}" class="py-2">
           <b class="fs-6">{{ $i->contract->agency->name }}</b> <span class="badge text-bg-dark">{{ $i->contract->agency->code }}</span>
           @if($t)<span class="small text-secondary ms-2">{{ $t->bills }} {{ \Illuminate\Support\Str::plural('bill', $t->bills) }} · {{ inr($t->billed) }} billed · {{ inr($t->unpaid) }} awaiting payment{{ $continued ? ' · continued from the previous page' : '' }}</span>@endif
         </td></tr>
@@ -89,7 +98,7 @@
         @php($contractBlock = false)
         @php($clientBlock = $i->contract->client_id)
         @php($ct = $clientTotals[$i->contract->client_id] ?? null)
-        <x-client-block :client="$i->contract->client" colspan="9" :meta="$ct ? $ct->bills.' '.\Illuminate\Support\Str::plural('sub-bill', $ct->bills).' · '.inr($ct->billed).' billed · '.inr($ct->unpaid).' awaiting payment' : null">
+        <x-client-block :client="$i->contract->client" :colspan="$cols" :meta="$ct ? $ct->bills.' '.\Illuminate\Support\Str::plural('sub-bill', $ct->bills).' · '.inr($ct->billed).' billed · '.inr($ct->unpaid).' awaiting payment' : null">
           @can('billing')<a class="btn btn-sm btn-outline-primary" href="{{ route('tax-invoices.create', ['contract' => $i->gem_contract_id, 'month' => $i->month->format('Y-m')]) }}"><i class="bi bi-file-earmark-ruled"></i> Make tax invoice</a>@endcan
         </x-client-block>
       @endif
@@ -97,17 +106,35 @@
         @php($contractBlock = $i->gem_contract_id)
         @php($kt = $contractTotals[$i->gem_contract_id] ?? null)
         {{-- One group per GeM contract, its sub-bills in serial order (owner, 22 Nov 2026). --}}
-        <tr class="wo-group contract-group"><td colspan="9"><i class="bi bi-file-earmark-text me-1"></i>Work order <a class="mono fw-semibold text-decoration-none" href="{{ route('contracts.show', $i->contract) }}">{{ $i->contract->contract_no }}</a>
-          @if($kt)<span class="wo-meta ms-2">{{ $kt->bills }} {{ \Illuminate\Support\Str::plural('sub-bill', $kt->bills) }} · {{ inr($kt->billed) }}</span>@endif</td></tr>
+        <tr class="wo-group contract-group"><td colspan="{{ $cols }}"><i class="bi bi-file-earmark-text me-1"></i>Work order <a class="mono fw-semibold text-decoration-none" href="{{ route('contracts.show', $i->contract) }}">{{ $i->contract->contract_no }}</a>
+          @if($kt)<span class="wo-meta ms-2">{{ $kt->bills }} {{ \Illuminate\Support\Str::plural('sub-bill', $kt->bills) }} · {{ inr($kt->billed) }}</span>@endif
+          @can('billing')<a class="btn btn-sm wo-btn-blue ms-2 py-0" href="{{ route('tax-invoices.create', ['contract' => $i->gem_contract_id, 'month' => $i->month->format('Y-m')]) }}"><i class="bi bi-file-earmark-ruled me-1"></i>Make tax invoice</a>@endcan</td></tr>
       @endif
-      <tr><td class="text-nowrap"><a class="mono" href="{{ route('invoices.show', $i) }}">{{ $i->invoice_no }}</a></td><td><span class="badge text-bg-light border" title="{{ $i->contract->agency->name }}">{{ $i->contract->agency->code }}</span></td><td>{{ $i->contract->client->name }}</td>
-        <td><a class="mono text-decoration-none" href="{{ route('contracts.show', $i->contract) }}">{{ $i->contract->contract_no }}</a></td>
-        <td><span class="fw-semibold">{{ $i->project->name }}</span>@if($i->project->pi_name) <div class="small text-secondary">PI: {{ $i->project->pi_name }}</div> @endif</td><td>{{ $i->month->format('M Y') }}</td>
-        <td class="num">{{ inr($i->taxable, true) }}</td><td class="num fw-semibold">{{ inr($i->rounded_total, true) }}</td><td><x-status :value="$i->status" />@if($i->tax_invoice_id) <div class="small"><a href="{{ route('tax-invoices.show', $i->tax_invoice_id) }}">In tax invoice</a></div>@endif</td></tr>
+      @php($openGroup = $i)
+      <tr><td class="text-nowrap"><a class="mono" href="{{ route('invoices.show', $i) }}">{{ $i->invoice_no }}</a></td>
+        <td><span class="fw-semibold">{{ $i->project->name }}</span>@if($i->project->pi_name) <div class="small text-secondary">PI: {{ $i->project->pi_name }}</div> @endif</td>
+        <td class="text-nowrap">{{ $i->month->format('M Y') }}</td>
+        <td class="num">{{ $money($i->wages) }}</td><td class="num">{{ $money($i->epf) }}</td><td class="num">{{ $money($i->esic) }}</td>
+        <td class="num">{{ $money($i->service_charge) }}</td><td class="num">{{ $money($i->taxable) }}</td>
+        <td class="num">{{ $money($i->cgst) }}</td><td class="num">{{ $money($i->sgst) }}</td>@if($igst)<td class="num">{{ $money($i->igst) }}</td>@endif
+        <td class="num fw-semibold">{{ $money($i->rounded_total) }}</td>
+        <td><x-status :value="$i->status" />@if($i->tax_invoice_id) <div class="small"><a href="{{ route('tax-invoices.show', $i->tax_invoice_id) }}">In tax invoice</a></div>@endif</td></tr>
     @empty
-      <tr><td colspan="9" class="text-center text-secondary py-4">No bills match. Bills appear here after you click <b>Make bill</b> on a locked month.</td></tr>
+      <tr><td colspan="{{ $cols }}" class="text-center text-secondary py-4">No bills match. Bills appear here after you click <b>Make bill</b> on a locked month.</td></tr>
     @endforelse
-    </tbody></table></div></div>
+    @if($openGroup)
+      @include('invoices._group-total', ['bill' => $openGroup, 't' => $contractTotals[$openGroup->gem_contract_id] ?? null])
+    @endif
+    </tbody>
+    @if($grandTotal && $grandTotal->bills)
+    <tfoot><tr class="bills-grand">
+      <td colspan="3">Total of all {{ $grandTotal->bills }} {{ \Illuminate\Support\Str::plural('sub-bill', $grandTotal->bills) }} listed{{ request('month') ? ' for '.\Carbon\CarbonImmutable::parse(request('month').'-01')->format('F Y') : '' }}</td>
+      <td class="num">{{ $money($grandTotal->wages) }}</td><td class="num">{{ $money($grandTotal->epf) }}</td><td class="num">{{ $money($grandTotal->esic) }}</td>
+      <td class="num">{{ $money($grandTotal->service_charge) }}</td><td class="num">{{ $money($grandTotal->taxable) }}</td>
+      <td class="num">{{ $money($grandTotal->cgst) }}</td><td class="num">{{ $money($grandTotal->sgst) }}</td>@if($igst)<td class="num">{{ $money($grandTotal->igst) }}</td>@endif
+      <td class="num">{{ $money($grandTotal->billed) }}</td><td></td></tr></tfoot>
+    @endif
+  </table></div></div>
   <div class="mt-3">{{ $invoices->links() }}</div>
   <script>
     (function () {
