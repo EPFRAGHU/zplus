@@ -371,7 +371,7 @@ class OwnerChangesTest extends TestCase
         // The sub-bill PDF names the PI ("Kindly Attention … (P.I)") in the agencies' layout.
         $bill = \App\Models\Invoice::query()->where('invoice_no', 'SW/001/26-27(HTA)')->firstOrFail()->load('lines', 'project.incharge', 'contract.agency', 'contract.client');
         $html = view('pdf.invoice', ['invoice' => $bill, 'agency' => $bill->contract->agency, 'client' => $bill->contract->client, 'project' => $bill->project, 'contract' => $bill->contract])->render();
-        foreach (['SL No:-SW/001/26-27(HTA)', 'Total Monthly Wages', 'Service charge @ 3.26% (excluding GST', '18% GST (as per GST Rule By the GOI)', 'Grand Total Round Up', 'Kindly Attention Dr. D. Sample (P.I)', 'Authorized Signatory'] as $text) {
+        foreach (['SL No:-SW/001/26-27(HTA)', 'Total Monthly Wages', 'Service charge @ 3.85% on sub total (Excluding GST)', '18% GST (as per GST Rule By the GOI)', 'Grand Total Round Up', 'Kindly Attention Dr. D. Sample (P.I)', 'Authorized Signatory'] as $text) {
             $this->assertStringContainsString($text, $html);
         }
     }

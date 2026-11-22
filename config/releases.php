@@ -12,6 +12,11 @@ return [
     'timezone' => 'Asia/Kolkata',      // release times are Indian Standard Time
 
     'releases' => [
+        ['version' => '2.39.1', 'date' => '2026-11-22 09:43', 'title' => 'Sub-bill service charge label same as the tax invoice', 'type' => 'fix', 'notes' => [
+            'Sub-bill PDF now says "Service charge @ 3.85% on sub total (Excluding GST)", exactly like the tax invoice (it said "@ 3.26% (excluding GST @ 18%)")',
+            'Checked: both bills already used the same formula, sub total × 3.85% ÷ 1.18; the sub-bills\' service charges add up to the tax invoice\'s (e.g. 2363.35 + 2926.16 + 1693.35 = 6982.86)',
+            'Wording only: no amount changes; old bills made before the 3.85%-includes-GST rule still say "@ 3.85% on sub total"',
+        ]],
         ['version' => '2.39.0', 'date' => '2026-11-22 09:30', 'title' => 'Laptop demo: full month, sub-bills and tax invoices', 'type' => 'feature', 'notes' => [
             'New command for a laptop copy of the data: php artisan demo:full-month 2026-10 gives every active employee full attendance, locks the month, makes a sub-bill per project (SW/001/26-27(HTA) …) and one tax invoice per work order clubbing them, with demo approvals marked "(demo)"',
             'Refuses to run on the live site; asks to type DEMO first; months already locked or billed are left as they are',

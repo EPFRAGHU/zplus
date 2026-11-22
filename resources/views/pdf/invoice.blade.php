@@ -9,7 +9,6 @@
 @php($phone = $agency->phones ?: $agency->phone)
 @php($gst = (float) $invoice->gst_percent)
 @php($sc = (float) $invoice->service_charge_percent)
-@php($scShown = $invoice->service_charge_includes_gst ? rtrim(rtrim(number_format($sc / (1 + $gst / 100), 2), '0'), '.') : rtrim(rtrim(number_format($sc, 2), '0'), '.'))
 @php($days = $invoice->lines->sum(fn ($l) => (float) $l->paid_days))
 @php($pi = $project->incharge?->name ?: $project->pi_name)
 <html><head><meta charset="utf-8">
@@ -59,7 +58,8 @@
     @if((float) $invoice->esic > 0)
       <tr><td class="c">Add</td><td colspan="5">ESIC @ {{ (float) $contract->esic_percent }}% (employer share)</td><td class="r">{{ $rs($invoice->esic) }}</td></tr>
     @endif
-    <tr><td class="c">Add</td><td colspan="5">Service charge @ {{ $scShown }}% (excluding GST &nbsp;@ {{ rtrim(rtrim(number_format($gst, 2), '0'), '.') }}%)</td><td class="r">{{ $rs($invoice->service_charge) }}</td></tr>
+    {{-- Same wording as the tax invoice (owner, 22 Nov 2026): the contract rate 3.85%, worked out as sub total × 3.85% ÷ 1.18 when it includes GST. --}}
+    <tr><td class="c">Add</td><td colspan="5">Service charge @ {{ rtrim(rtrim(number_format($sc, 2), '0'), '.') }}% on sub total{{ $invoice->service_charge_includes_gst ? ' (Excluding GST)' : '' }}</td><td class="r">{{ $rs($invoice->service_charge) }}</td></tr>
     <tr><td></td><td colspan="5">Total Monthly Wages</td><td class="r b">{{ $rs($invoice->taxable) }}</td></tr>
     <tr><td class="c">Add</td><td colspan="5" style="font-size:11px">{{ rtrim(rtrim(number_format($gst, 2), '0'), '.') }}% GST (as per GST Rule By the GOI){{ (float) $invoice->igst > 0 ? ' – IGST' : '' }}</td><td class="r" style="vertical-align:bottom">{{ $rs((float) $invoice->cgst + (float) $invoice->sgst + (float) $invoice->igst) }}</td></tr>
     <tr><td></td><td colspan="5" class="b i">Grand Total</td><td class="r b i">{{ $rs($invoice->total) }}</td></tr>

@@ -54,6 +54,10 @@ class DemoFullMonthTest extends TestCase
         }
         $tax = TaxInvoice::query()->where('gem_contract_id', $contract->id)->firstOrFail();
         $this->assertSame(2, Invoice::query()->where('tax_invoice_id', $tax->id)->count());
+        // Sub-bills and tax invoice use the same formula (service charge = sub total × 3.85% ÷ 1.18, then GST 18%):
+        // the sub-bills' grand totals add up to the tax invoice's, give or take a paisa of rounding per bill.
+        $sum = Invoice::query()->where('tax_invoice_id', $tax->id)->get()->sum(fn ($b) => (float) $b->total);
+        $this->assertEqualsWithDelta((float) $tax->total, $sum, 0.05);
         $this->assertSame(0, Approval::query()->where('status', 'pending')->count());
         $this->assertTrue(Approval::query()->where('type', 'tax_invoice')->where('status', 'approved')->where('label', 'like', '%(demo)')->exists());
 
