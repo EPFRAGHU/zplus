@@ -10,6 +10,7 @@
         <p>{{ $agency?->name ?? 'Choose an agency' }}@if($rows->isNotEmpty()) · client: {{ $rows->map(fn ($r) => $r['contract']->client?->name)->filter()->unique()->implode('; ') }}@endif · all tax invoices of the month in one sheet, one row per work order. Internal summary, not a GST invoice.</p></div>
       @if($agency && $rows->isNotEmpty())
         <div class="wo-actions d-flex gap-2 flex-wrap"><a class="btn wo-btn-primary" href="{{ route('month-bill.pdf', ['agency' => $agency->id, 'month' => $month->format('Y-m')]) }}" target="_blank"><i class="bi bi-file-earmark-pdf me-1"></i>Download PDF</a>
+          <a class="btn wo-btn-line" href="{{ route('month-bill.sub-bills', ['agency' => $agency->id, 'month' => $month->format('Y-m')]) }}" target="_blank"><i class="bi bi-table me-1"></i>Sub-bills statement (PDF)</a>
           @if($consolidated)<a class="btn wo-btn-line" href="{{ route('month-bill.consolidated', ['agency' => $agency->id, 'month' => $month->format('Y-m')]) }}" target="_blank"><i class="bi bi-file-earmark-ruled me-1"></i>Consolidated tax invoice statement (PDF)</a>@endif</div>
       @endif
     </div>

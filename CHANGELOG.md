@@ -2,6 +2,13 @@
 
 Versions follow MAJOR.MINOR.PATCH. Dates are Indian Standard Time.
 
+## 2.47.0 (2026-11-22): Sub-bills statement PDF
+
+- New "Sub-bills statement (PDF)": every sub-bill of the agency's month in columns, as on the Sub-bills page: sub-bill no., project, staff, wages, EPF, ESIC, service charge, before GST, CGST, SGST, bill amount, tax invoice and status
+- Grouped by GeM contract in serial order, a total row per work order and the month total with the amount in words; landscape A4, the heading repeats on each page
+- Buttons next to "Show <month> month bill" on the Sub-bills page and at the top of the Month bill page
+- Internal statement; figures as stored on the bills, nothing changes
+
 ## 2.46.1 (2026-11-22): PDF tables keep their columns on the next page
 
 - Fixed: when the consolidated tax invoice statement (or a long tax invoice) ran onto a second page, every row there shifted one column left and the Amount column was empty; the HSN code cell no longer spans many rows, so the columns stay in place on every page

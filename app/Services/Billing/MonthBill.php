@@ -110,4 +110,29 @@ final class MonthBill
             'serviceCharge' => rtrim(rtrim((string) $first?->service_charge_percent, '0'), '.'), 'includesGst' => (bool) $first?->service_charge_includes_gst,
             'gst' => rtrim(rtrim((string) $first?->gst_percent, '0'), '.'), 'igst' => (float) $t['igst'] > 0];
     }
+
+    /**
+     * Sub-bills statement (owner, 22 Nov 2026): every sub-bill of the agency's month, grouped by work order in serial order,
+     * with the same columns as the Sub-bills list, a total per work order and the month total. Figures as stored on the bills.
+     *
+     * @return array{groups: Collection, total: array<string, mixed>}
+     */
+    public function subBills(Agency $agency, CarbonImmutable $month): array
+    {
+        $money = ['wages', 'epf', 'esic', 'service_charge', 'taxable', 'cgst', 'sgst', 'igst', 'rounded_total'];
+        $bills = Invoice::query()->with(['project', 'contract', 'taxInvoice'])->withCount('lines')
+            ->where('agency_id', $agency->id)->where('month', $month->startOfMonth()->toDateString())->orderBy('invoice_no')->get();
+        $sum = function (Collection $rows) use ($money): array {
+            $t = ['bills' => $rows->count(), 'staff' => (int) $rows->sum('lines_count')];
+            foreach ($money as $f) {
+                $t[$f] = $rows->reduce(fn ($c, $b) => self::add($c, (string) $b->{$f}), '0');
+            }
+
+            return $t;
+        };
+        $groups = $bills->groupBy('gem_contract_id')->map(fn (Collection $g) => ['contract' => $g->first()->contract, 'bills' => $g->values(), 'total' => $sum($g)])
+            ->sortBy(fn ($g) => $g['bills']->first()->invoice_no, SORT_NATURAL)->values();
+
+        return ['groups' => $groups, 'total' => $sum($bills)];
+    }
 }

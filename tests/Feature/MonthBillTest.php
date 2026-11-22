@@ -95,4 +95,20 @@ class MonthBillTest extends TestCase
         $this->assertSame(1, preg_match_all('#/Type\s*/Page[^s]#', $pdf));
         $this->get(route('month-bill.consolidated', ['agency' => $this->zps->id, 'month' => '2026-12']))->assertNotFound();   // no tax invoices that month
     }
+
+    public function test_sub_bills_statement_lists_every_sub_bill_by_work_order_with_totals(): void
+    {
+        $data = app(\App\Services\Billing\MonthBill::class)->subBills($this->zps, \Carbon\CarbonImmutable::parse('2026-10-01'));
+        $this->assertSame(2, $data['groups']->count());
+        $this->assertSame('GEMC-000000000000002', $data['groups']->first()['contract']->contract_no, 'serial order: the work order with bill 001 first');
+        $this->assertSame(2, $data['groups']->first()['total']['bills']);
+        $this->assertSame(3, $data['total']['bills']);
+        $this->assertSame(number_format((float) Invoice::query()->sum('rounded_total'), 2, '.', ''), $data['total']['rounded_total']);
+        $this->assertSame(\App\Models\InvoiceLine::query()->count(), $data['total']['staff']);
+
+        $this->actingAs($this->dev)->get('/invoices?month=2026-10&agency='.$this->zps->id)->assertSee('Sub-bills statement (PDF)');
+        $this->get(route('month-bill.show', ['agency' => $this->zps->id, 'month' => '2026-10']))->assertSee(route('month-bill.sub-bills', ['agency' => $this->zps->id, 'month' => '2026-10']));
+        $this->get(route('month-bill.sub-bills', ['agency' => $this->zps->id, 'month' => '2026-10']))->assertOk()->assertHeader('content-type', 'application/pdf');
+        $this->get(route('month-bill.sub-bills', ['agency' => $this->zps->id, 'month' => '2026-12']))->assertNotFound();
+    }
 }

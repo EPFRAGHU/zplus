@@ -50,6 +50,20 @@ class MonthBillController extends Controller
             ->setPaper('a4')->stream('consolidated-tax-invoice-statement-'.$agency->code.'-'.$month->format('Y-m').'.pdf');
     }
 
+    /** Sub-bills statement PDF: every sub-bill of the month in columns, grouped by work order (owner, 22 Nov 2026). */
+    public function subBills(Request $request, MonthBill $monthBill): Response
+    {
+        Gate::authorize('billing');
+        [$agency, $month] = $this->pick($request);
+        abort_unless($agency, 404);
+        $data = $monthBill->subBills($agency, $month);
+        abort_if($data['groups']->isEmpty(), 404, 'No sub-bills for this month.');
+        Activity::log('downloaded', $agency, [], 'Sub-bills statement '.$month->format('F Y').' (PDF)', section: 'Billing', label: $agency->code.' '.$month->format('M Y'));
+
+        return Pdf::loadView('pdf.sub-bills-statement', ['agency' => $agency, 'month' => $month] + $data)
+            ->setPaper('a4', 'landscape')->stream('sub-bills-statement-'.$agency->code.'-'.$month->format('Y-m').'.pdf');
+    }
+
     /** Agency (only the login's own: other agencies are out of scope and give 404) and month (default: last month). */
     private function pick(Request $request): array
     {
