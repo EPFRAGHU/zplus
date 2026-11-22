@@ -35,6 +35,7 @@ final class MonthDocuments
         // Each PDF goes to its own temp file as soon as it is made (addFromString would keep them all in memory until the
         // ZIP is closed: a month of 50+ PDFs ran out of memory, owner 22 Nov 2026). A higher limit just for this download.
         self::raiseMemoryLimit('512M');
+        @set_time_limit(600);   // a full month (50+ PDFs) takes longer than PHP's usual 30 seconds (owner, 22 Nov 2026)
         $tmp = tempnam(sys_get_temp_dir(), 'zplus-zip-');
         $dir = $tmp.'-files';
         @mkdir($dir, 0700, true);

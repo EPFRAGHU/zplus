@@ -14,15 +14,58 @@ class Agency extends Model
 {
     use LogsActivity, ScopedToAgency;
 
-    /** Logo as a data URI for PDFs (dompdf cannot read private storage paths), or null. */
+    /** @var array<string, string> logo data URIs already made in this request (the month ZIP prints the logo on every PDF) */
+    private static array $logoCache = [];
+
+    /**
+     * Logo as a data URI for PDFs (dompdf cannot read private storage paths), or null. A large upload (e.g. a 7 MB scan)
+     * is shrunk to at most 1200 px wide for printing, once per request: every PDF used to decode the full image, which made
+     * the month ZIP run out of time and memory (owner, 22 Nov 2026). The uploaded file itself is never changed.
+     */
     public function logoDataUri(): ?string
     {
         $disk = Storage::disk('local');
         if (! $this->logo_path || ! $disk->exists($this->logo_path)) {
             return null;
         }
+        $key = $this->logo_path.'|'.$disk->lastModified($this->logo_path);
+        if (isset(self::$logoCache[$key])) {
+            return self::$logoCache[$key];
+        }
+        $bytes = $disk->get($this->logo_path);
+        $ext = strtolower(pathinfo($this->logo_path, PATHINFO_EXTENSION));
+        $mime = match ($ext) { 'jpg', 'jpeg' => 'image/jpeg', 'gif' => 'image/gif', 'webp' => 'image/webp', 'svg' => 'image/svg+xml', default => 'image/png' };
+        if (strlen($bytes) > 400 * 1024 && $mime !== 'image/svg+xml') {
+            [$bytes, $mime] = self::shrinkForPrint($bytes, $mime);
+        }
 
-        return 'data:'.($disk->mimeType($this->logo_path) ?: 'image/png').';base64,'.base64_encode($disk->get($this->logo_path));
+        return self::$logoCache[$key] = 'data:'.$mime.';base64,'.base64_encode($bytes);
+    }
+
+    /** @return array{0: string, 1: string} smaller image bytes and type, or the original when GD is not available or fails */
+    private static function shrinkForPrint(string $bytes, string $mime): array
+    {
+        if (! function_exists('imagecreatefromstring')) {
+            return [$bytes, $mime];
+        }
+        $img = @imagecreatefromstring($bytes);
+        if (! $img) {
+            return [$bytes, $mime];
+        }
+        $w = imagesx($img);
+        $h = imagesy($img);
+        if ($w > 1200) {
+            $small = imagescale($img, 1200, (int) round($h * 1200 / $w));
+            imagedestroy($img);
+            $img = $small ?: $img;
+        }
+        imagesavealpha($img, true);
+        ob_start();
+        imagepng($img, null, 9);
+        $png = (string) ob_get_clean();
+        imagedestroy($img);
+
+        return $png !== '' && strlen($png) < strlen($bytes) ? [$png, 'image/png'] : [$bytes, $mime];
     }
 
     /** Whether there is enough to print a letterhead instead of a plain name. */

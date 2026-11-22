@@ -12,6 +12,11 @@ return [
     'timezone' => 'Asia/Kolkata',      // release times are Indian Standard Time
 
     'releases' => [
+        ['version' => '2.44.2', 'date' => '2026-11-22 13:06', 'title' => 'Month ZIP: no time-out, faster letterhead', 'type' => 'fix', 'notes' => [
+            'Fixed: the month ZIP stopped with "Maximum execution time of 30 seconds exceeded"; it may now take up to 10 minutes',
+            'A large letterhead logo (e.g. a 7 MB scan) is shrunk to print size (at most 1200 px wide) once per download and reused for every PDF, instead of being read and decoded in full for each one: a 55-PDF month now takes about 14 seconds in the test; the uploaded logo file itself is not changed',
+            'No amounts or numbers change',
+        ]],
         ['version' => '2.44.1', 'date' => '2026-11-22 12:58', 'title' => 'Month ZIP no longer runs out of memory; smaller PDFs; button colours', 'type' => 'fix', 'notes' => [
             'Fixed: "Download all PDFs of this month (ZIP)" stopped with "Allowed memory size exhausted" for a full month (all PDFs were held in memory); now each PDF is written to a temporary file as it is made (tested with 88 PDFs)',
             'PDFs embed only the letters they use: a sub-bill or tax invoice PDF is now about 40–70 KB instead of about 1.5 MB, so the month ZIP went from about 133 MB to about 3 MB in the test; the look of every PDF is unchanged',

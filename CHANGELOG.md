@@ -2,6 +2,12 @@
 
 Versions follow MAJOR.MINOR.PATCH. Dates are Indian Standard Time.
 
+## 2.44.2 (2026-11-22): Month ZIP: no time-out, faster letterhead
+
+- Fixed: the month ZIP stopped with "Maximum execution time of 30 seconds exceeded"; it may now take up to 10 minutes
+- A large letterhead logo (e.g. a 7 MB scan) is shrunk to print size (at most 1200 px wide) once per download and reused for every PDF, instead of being read and decoded in full for each one: a 55-PDF month now takes about 14 seconds in the test; the uploaded logo file itself is not changed
+- No amounts or numbers change
+
 ## 2.44.1 (2026-11-22): Month ZIP no longer runs out of memory; smaller PDFs; button colours
 
 - Fixed: "Download all PDFs of this month (ZIP)" stopped with "Allowed memory size exhausted" for a full month (all PDFs were held in memory); now each PDF is written to a temporary file as it is made (tested with 88 PDFs)
