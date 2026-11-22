@@ -12,6 +12,13 @@ return [
     'timezone' => 'Asia/Kolkata',      // release times are Indian Standard Time
 
     'releases' => [
+        ['version' => '2.44.0', 'date' => '2026-11-22 12:45', 'title' => 'Month bill: all tax invoices of the month in one sheet', 'type' => 'feature', 'notes' => [
+            'New Month bill (Billing): for one agency and month, one row per work order with its tax invoice no., sub-bills, staff, wages, EPF, ESIC, service charge, before GST, CGST, SGST, sub-bills total and tax invoice amount, and the month total',
+            'Button "Show <month> month bill" at the end of the Sub-bills list (one per agency when both are listed)',
+            'Download as PDF: landscape A4 on one page, agency text header, month total in words, signatory',
+            'Internal summary only: not a GST invoice, no number; figures are read from the sub-bills and tax invoices already made, nothing is worked out again. Sub-bills not yet in a tax invoice are pointed out',
+            'Each agency sees only its own month bill',
+        ]],
         ['version' => '2.43.1', 'date' => '2026-11-22 11:54', 'title' => 'Staff column on the Sub-bills list', 'type' => 'fix', 'notes' => [
             'Sub-bills list: new Staff column after Month with the number of employees each sub-bill is worked out for; click it to see their names, posts and paid days',
             'The work order total rows and the total at the bottom add up the staff too',

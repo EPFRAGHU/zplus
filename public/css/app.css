@@ -200,3 +200,7 @@ button.wo-fill.wo-pop-btn{text-decoration:none;font-weight:600}
 tr.contract-group > td{border-bottom:2px solid #334155}
 tr.bills-group-total > td{background:#f8fafc!important;font-weight:700;border-top:1px solid #94a3b8;border-bottom:2px solid #334155}
 tfoot tr.bills-grand > td{background:#0f2a5c!important;color:#fff;font-weight:700;border:0}
+/* Month bill: a wide table, so headings wrap and figures are a little smaller (owner, 22 Nov 2026) */
+.mb-table{font-size:.8rem}
+.mb-table th,.mb-table th.num{white-space:normal;vertical-align:bottom}
+.mb-table td{padding-left:.4rem;padding-right:.4rem}

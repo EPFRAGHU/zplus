@@ -138,6 +138,19 @@
       <td class="num">{{ $money($grandTotal->billed) }}</td><td></td></tr></tfoot>
     @endif
   </table></div></div>
+  {{-- Month bill: all the month's tax invoices of an agency in one sheet (owner, 22 Nov 2026). --}}
+  @can('billing')
+  @if($invoices->isNotEmpty())
+    @php($mbMonth = request('month') ? substr((string) request('month'), 0, 7) : $invoices->max(fn ($x) => $x->month->format('Y-m')))
+    @php($mbAgencies = $agencyId ? $agencies->where('id', $agencyId) : $agencies->whereIn('id', $invoices->pluck('agency_id')->unique()))
+    <div class="d-flex flex-wrap gap-2 align-items-center mt-3 month-bill-buttons">
+      @foreach($mbAgencies as $a)
+        <a class="btn wo-btn-primary" href="{{ route('month-bill.show', ['agency' => $a->id, 'month' => $mbMonth]) }}"><i class="bi bi-journal-text me-1"></i>Show {{ \Carbon\CarbonImmutable::parse($mbMonth.'-01')->format('F Y') }} month bill{{ $mbAgencies->count() > 1 ? ' – '.$a->name : '' }}</a>
+      @endforeach
+      <span class="small text-secondary">All tax invoices of the month in one sheet, one row per work order, with PDF.</span>
+    </div>
+  @endif
+  @endcan
   <div class="mt-3">{{ $invoices->links() }}</div>
   <script>
     (function () {

@@ -2,6 +2,14 @@
 
 Versions follow MAJOR.MINOR.PATCH. Dates are Indian Standard Time.
 
+## 2.44.0 (2026-11-22): Month bill: all tax invoices of the month in one sheet
+
+- New Month bill (Billing): for one agency and month, one row per work order with its tax invoice no., sub-bills, staff, wages, EPF, ESIC, service charge, before GST, CGST, SGST, sub-bills total and tax invoice amount, and the month total
+- Button "Show <month> month bill" at the end of the Sub-bills list (one per agency when both are listed)
+- Download as PDF: landscape A4 on one page, agency text header, month total in words, signatory
+- Internal summary only: not a GST invoice, no number; figures are read from the sub-bills and tax invoices already made, nothing is worked out again. Sub-bills not yet in a tax invoice are pointed out
+- Each agency sees only its own month bill
+
 ## 2.43.1 (2026-11-22): Staff column on the Sub-bills list
 
 - Sub-bills list: new Staff column after Month with the number of employees each sub-bill is worked out for; click it to see their names, posts and paid days
