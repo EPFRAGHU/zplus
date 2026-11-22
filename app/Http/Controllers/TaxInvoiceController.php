@@ -27,14 +27,15 @@ class TaxInvoiceController extends Controller
     {
         $agencyId = $request->integer('agency') ?: null;
         $clientId = $request->integer('client') ?: null;
-        $taxInvoices = TaxInvoice::query()->with('agency', 'client')->withCount('subBills')
+        $taxInvoices = TaxInvoice::query()->with(['agency', 'client', 'subBills' => fn ($q) => $q->with('project:id,code,name')->orderBy('invoice_no')])->withCount('subBills')
             ->when($agencyId, fn ($q) => $q->where('agency_id', $agencyId))
             ->when($clientId, fn ($q) => $q->where('client_id', $clientId))
             ->when($request->input('month'), fn ($q, $m) => $q->where('month', $m.'-01'))
             ->when($request->string('status')->value(), fn ($q, $s) => $q->where('status', $s))
             ->get()
+            // Serial order within each agency and client (owner, 22 Nov 2026): SW/001/26-27, SW/002/26-27, …
             ->sortBy([fn ($a, $b) => strcmp($a->agency->name, $b->agency->name), fn ($a, $b) => strcmp($a->client->name, $b->client->name),
-                fn ($a, $b) => $b->month <=> $a->month])->values();
+                fn ($a, $b) => strnatcmp($a->number, $b->number)])->values();
 
         return view('tax-invoices.index', [
             'taxInvoices' => $taxInvoices, 'agencyId' => $agencyId, 'clientId' => $clientId,

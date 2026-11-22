@@ -86,14 +86,22 @@
         </td></tr>
       @endif
       @if($clientBlock === false || $clientBlock !== $i->contract->client_id)
+        @php($contractBlock = false)
         @php($clientBlock = $i->contract->client_id)
         @php($ct = $clientTotals[$i->contract->client_id] ?? null)
         <x-client-block :client="$i->contract->client" colspan="9" :meta="$ct ? $ct->bills.' '.\Illuminate\Support\Str::plural('sub-bill', $ct->bills).' · '.inr($ct->billed).' billed · '.inr($ct->unpaid).' awaiting payment' : null">
           @can('billing')<a class="btn btn-sm btn-outline-primary" href="{{ route('tax-invoices.create', ['contract' => $i->gem_contract_id, 'month' => $i->month->format('Y-m')]) }}"><i class="bi bi-file-earmark-ruled"></i> Make tax invoice</a>@endcan
         </x-client-block>
       @endif
-      <tr><td><a class="mono" href="{{ route('invoices.show', $i) }}">{{ $i->invoice_no }}</a></td><td><span class="badge text-bg-light border" title="{{ $i->contract->agency->name }}">{{ $i->contract->agency->code }}</span></td><td>{{ $i->contract->client->name }}</td>
-        <td><a class="mono text-decoration-none" href="{{ route('contracts.show', $i->contract) }}">{{ $i->contract->contract_no }}</a>@if($i->contract->bid_no)<div class="small text-secondary">Bid {{ $i->contract->contract_no }}</div>@endif</td>
+      @if($contractBlock === false || $contractBlock !== $i->gem_contract_id)
+        @php($contractBlock = $i->gem_contract_id)
+        @php($kt = $contractTotals[$i->gem_contract_id] ?? null)
+        {{-- One group per GeM contract, its sub-bills in serial order (owner, 22 Nov 2026). --}}
+        <tr class="wo-group contract-group"><td colspan="9"><i class="bi bi-file-earmark-text me-1"></i>Work order <a class="mono fw-semibold text-decoration-none" href="{{ route('contracts.show', $i->contract) }}">{{ $i->contract->contract_no }}</a>
+          @if($kt)<span class="wo-meta ms-2">{{ $kt->bills }} {{ \Illuminate\Support\Str::plural('sub-bill', $kt->bills) }} · {{ inr($kt->billed) }}</span>@endif</td></tr>
+      @endif
+      <tr><td class="text-nowrap"><a class="mono" href="{{ route('invoices.show', $i) }}">{{ $i->invoice_no }}</a></td><td><span class="badge text-bg-light border" title="{{ $i->contract->agency->name }}">{{ $i->contract->agency->code }}</span></td><td>{{ $i->contract->client->name }}</td>
+        <td><a class="mono text-decoration-none" href="{{ route('contracts.show', $i->contract) }}">{{ $i->contract->contract_no }}</a></td>
         <td><span class="fw-semibold">{{ $i->project->name }}</span>@if($i->project->pi_name) <div class="small text-secondary">PI: {{ $i->project->pi_name }}</div> @endif</td><td>{{ $i->month->format('M Y') }}</td>
         <td class="num">{{ inr($i->taxable, true) }}</td><td class="num fw-semibold">{{ inr($i->rounded_total, true) }}</td><td><x-status :value="$i->status" />@if($i->tax_invoice_id) <div class="small"><a href="{{ route('tax-invoices.show', $i->tax_invoice_id) }}">In tax invoice</a></div>@endif</td></tr>
     @empty

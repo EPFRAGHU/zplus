@@ -1,0 +1,79 @@
+<?php
+
+namespace Tests\Feature;
+
+use App\Models\Employee;
+use App\Models\GemContract;
+use App\Models\Invoice;
+use App\Models\TaxInvoice;
+use App\Models\User;
+use Database\Seeders\DemoSeeder;
+use Illuminate\Foundation\Testing\RefreshDatabase;
+use Tests\TestCase;
+
+/** Sub-bills grouped by GeM contract in serial order; tax invoices in serial order with their sub-bills; one-page PDF (owner, 22 Nov 2026). */
+class BillListsOrderTest extends TestCase
+{
+    use RefreshDatabase;
+
+    private User $dev;
+
+    protected function setUp(): void
+    {
+        parent::setUp();
+        $this->seed(DemoSeeder::class);
+        $first = GemContract::query()->firstOrFail();
+        $person = Employee::query()->whereNotNull('post_id')->firstOrFail();
+        // A second work order of the same agency and client, with two projects (so it has two sub-bills).
+        $second = GemContract::query()->create(['agency_id' => $first->agency_id, 'client_id' => $first->client_id, 'bid_no' => 'GEM/2', 'contract_no' => 'GEMC-000000000000002']);
+        foreach (['AAA', 'BBB'] as $i => $code) {
+            $post = $second->projects()->create(['name' => 'Project '.$code, 'code' => $code])
+                ->posts()->create(['designation' => 'Field Worker', 'sanctioned_qty' => 1, 'rate' => 20000]);
+            Employee::query()->create(['emp_code' => 'ZP-80'.$i, 'name' => 'Worker '.$code, 'agency_id' => $person->agency_id, 'client_id' => $person->client_id,
+                'post_id' => $post->id, 'status' => 'active']);
+        }
+        $this->dev = $this->makeDeveloper(User::factory()->create(['role' => 'admin']));
+        $this->artisan('demo:full-month', ['month' => '2026-10', '--force' => true])->assertSuccessful();
+    }
+
+    public function test_sub_bills_are_grouped_by_contract_in_serial_order(): void
+    {
+        $html = $this->actingAs($this->dev)->get('/invoices')->assertOk()->getContent();
+        $numbers = Invoice::query()->orderBy('invoice_no')->pluck('invoice_no')->all();
+        $this->assertCount(3, $numbers);
+        $positions = array_map(fn ($n) => strpos($html, '>'.$n.'</a>'), $numbers);
+        $this->assertSame($positions, collect($positions)->sort()->values()->all(), 'bills listed in serial order');
+        $this->assertSame(2, substr_count($html, 'contract-group'), 'one group row per work order');
+        $this->assertStringContainsString('2 sub-bills', $html);
+    }
+
+    public function test_tax_invoices_in_serial_order_with_clickable_sub_bill_count(): void
+    {
+        $html = $this->actingAs($this->dev)->get('/tax-invoices')->assertOk()->getContent();
+        $numbers = TaxInvoice::query()->pluck('number')->sort(fn ($a, $b) => strnatcmp($a, $b))->values()->all();
+        $this->assertCount(2, $numbers);
+        $this->assertLessThan(strpos($html, '>'.$numbers[1].'</a>'), strpos($html, '>'.$numbers[0].'</a>'));
+        $this->assertStringContainsString('<th>Tax invoice no.</th><th class="text-center">Sub-bills</th>', $html);
+        $this->assertStringContainsString('data-pop', $html);
+        $two = TaxInvoice::query()->withCount('subBills')->get()->firstWhere('sub_bills_count', 2);
+        $this->assertStringContainsString('Sub-bills in '.$two->number, $html);
+    }
+
+    public function test_tax_invoice_pdf_with_many_posts_stays_on_one_page(): void
+    {
+        $contract = GemContract::query()->where('contract_no', 'GEMC-000000000000002')->firstOrFail();
+        $contract->update(['contract_value' => '9000000', 'start_date' => '2026-10-01', 'end_date' => '2027-09-30']);   // the balance box prints too
+        $tax = TaxInvoice::query()->where('gem_contract_id', $contract->id)->firstOrFail();
+        // 18 more posts on the same tax invoice's sub-bill lines would be slow to build; instead render with many particulars rows.
+        $bill = $tax->subBills()->firstOrFail();
+        foreach (range(1, 18) as $i) {
+            $line = $bill->lines()->firstOrFail()->replicate();
+            $line->designation = 'Extra Post '.$i;
+            $line->save();
+        }
+        app(\App\Services\Billing\TaxInvoiceBuilder::class)->refresh($tax->fresh());
+        $this->assertGreaterThanOrEqual(19, count(\App\Http\Controllers\TaxInvoiceController::pdfData($tax->fresh())['p']['rows']), 'many particulars rows');
+        $pdf = $this->actingAs($this->dev)->get(route('tax-invoices.pdf', $tax))->assertOk()->getContent();
+        $this->assertSame(1, preg_match_all('#/Type\s*/Page[^s]#', $pdf), 'one page');
+    }
+}

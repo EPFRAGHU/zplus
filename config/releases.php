@@ -12,6 +12,13 @@ return [
     'timezone' => 'Asia/Kolkata',      // release times are Indian Standard Time
 
     'releases' => [
+        ['version' => '2.41.0', 'date' => '2026-11-22 11:06', 'title' => 'One-page tax invoice, bills listed in serial order', 'type' => 'feature', 'notes' => [
+            'Tax invoice PDF always fits one page: with more post rows (and the contract balance) the type and spacing get smaller on their own; checked with 12 and 20 posts',
+            'Sub-bills menu: inside each agency and client, a group per GeM contract (contract no., number of sub-bills, total), bills in serial order SW/001/26-27(HTA), SW/001/26-27(NTM), SW/002/26-27(…), …; groups follow the serial of their first bill',
+            'Tax Invoices menu: in serial order SW/001/26-27, SW/002/26-27, …; new Sub-bills column right after the number: click the count to see the sub-bills it combines (each opens the sub-bill)',
+            'Fixed: the Sub-bills list showed the contract number again as "Bid …" under each work order',
+            'Look only: no amounts or numbers change',
+        ]],
         ['version' => '2.40.0', 'date' => '2026-11-22 10:30', 'title' => 'No more staff on a post than sanctioned', 'type' => 'feature', 'notes' => [
             'A post with 4 sanctioned takes at most 4 staff: the 5th is refused with "Post already filled: <post> (<project>) has 4 sanctioned and 4 already placed or waiting for approval"',
             'Checked everywhere staff are placed: Add employee, Edit (moving to another post or setting someone Active again), the one-page work order entry, Data Upload (rows above in the same file count too) and the Super Admin\'s approval',

@@ -2,6 +2,14 @@
 
 Versions follow MAJOR.MINOR.PATCH. Dates are Indian Standard Time.
 
+## 2.41.0 (2026-11-22): One-page tax invoice, bills listed in serial order
+
+- Tax invoice PDF always fits one page: with more post rows (and the contract balance) the type and spacing get smaller on their own; checked with 12 and 20 posts
+- Sub-bills menu: inside each agency and client, a group per GeM contract (contract no., number of sub-bills, total), bills in serial order SW/001/26-27(HTA), SW/001/26-27(NTM), SW/002/26-27(…), …; groups follow the serial of their first bill
+- Tax Invoices menu: in serial order SW/001/26-27, SW/002/26-27, …; new Sub-bills column right after the number: click the count to see the sub-bills it combines (each opens the sub-bill)
+- Fixed: the Sub-bills list showed the contract number again as "Bid …" under each work order
+- Look only: no amounts or numbers change
+
 ## 2.40.0 (2026-11-22): No more staff on a post than sanctioned
 
 - A post with 4 sanctioned takes at most 4 staff: the 5th is refused with "Post already filled: <post> (<project>) has 4 sanctioned and 4 already placed or waiting for approval"

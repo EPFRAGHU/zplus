@@ -38,11 +38,15 @@ class InvoiceController extends Controller
             ->when($request->string('status')->value(), fn ($q, $s) => $q->where('status', $s))
             ->when($request->input('month'), fn ($q, $m) => $q->where('month', $m.'-01'));
 
-        // One block per agency: sort by agency name, then newest bill first.
+        // One block per agency and client, then grouped by GeM contract, bills in serial order (owner, 22 Nov 2026):
+        // SW/001/26-27(HTA), SW/001/26-27(NTM), SW/002/26-27(…), …
         $agencyName = Agency::query()->select('name')->whereColumn('agencies.id', 'invoices.agency_id');
         $clientName = Client::query()->select('clients.name')->join('gem_contracts', 'gem_contracts.client_id', '=', 'clients.id')
             ->whereColumn('gem_contracts.id', 'invoices.gem_contract_id');
-        $sorted = fn () => (clone $filtered)->orderByRaw('agency_id is null')->orderBy($agencyName)->orderBy($clientName)->latest('month')->latest('id');
+        // Work order groups follow the serial of their first bill (the group with SW/001 first, then SW/002, …).
+        $firstNo = Invoice::query()->from('invoices as first_bills')->selectRaw('min(first_bills.invoice_no)')->whereColumn('first_bills.gem_contract_id', 'invoices.gem_contract_id');
+        $sorted = fn () => (clone $filtered)->orderByRaw('agency_id is null')->orderBy($agencyName)->orderBy($clientName)
+            ->orderBy($firstNo)->orderBy('gem_contract_id')->orderBy('invoice_no')->orderBy('id');
         $invoices = $sorted()->with('project', 'contract.agency', 'contract.client')->paginate(50)->withQueryString();
         $blockTotals = (clone $filtered)->groupBy('agency_id')
             ->selectRaw("agency_id, count(*) as bills, sum(rounded_total) as billed, sum(case when status in ('approved','submitted') then rounded_total else 0 end) as unpaid")
@@ -50,6 +54,8 @@ class InvoiceController extends Controller
         $clientTotals = (clone $filtered)->join('gem_contracts', 'gem_contracts.id', '=', 'invoices.gem_contract_id')->groupBy('gem_contracts.client_id')
             ->selectRaw("gem_contracts.client_id, count(*) as bills, sum(invoices.rounded_total) as billed, sum(case when invoices.status in ('approved','submitted') then invoices.rounded_total else 0 end) as unpaid")
             ->get()->keyBy('client_id');
+        $contractTotals = (clone $filtered)->groupBy('gem_contract_id')
+            ->selectRaw('gem_contract_id, count(*) as bills, sum(rounded_total) as billed')->get()->keyBy('gem_contract_id');
         $carriedAgency = $invoices->onFirstPage() ? false
             : $sorted()->skip(($invoices->currentPage() - 1) * $invoices->perPage() - 1)->take(1)->value('agency_id');
 
@@ -61,7 +67,7 @@ class InvoiceController extends Controller
             ->with('project.contract.agency', 'project.contract.client')->orderByDesc('month')->limit(20)->get();
 
         return view('invoices.index', [
-            'invoices' => $invoices, 'ready' => $ready, 'drafts' => $drafts, 'blockTotals' => $blockTotals, 'carriedAgency' => $carriedAgency, 'clientTotals' => $clientTotals,
+            'invoices' => $invoices, 'ready' => $ready, 'drafts' => $drafts, 'blockTotals' => $blockTotals, 'carriedAgency' => $carriedAgency, 'clientTotals' => $clientTotals, 'contractTotals' => $contractTotals,
             'agencies' => Agency::query()->orderBy('name')->get(),
             'clients' => Client::query()->with('agency')->orderBy('name')->get(),
             'agencyId' => $agencyId, 'clientId' => $clientId,

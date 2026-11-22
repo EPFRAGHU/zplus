@@ -12,12 +12,18 @@
 @php($first = $tax->subBills->first())
 @php($sc = rtrim(rtrim((string) $first?->service_charge_percent, '0'), '.'))
 @php($gstHalf = rtrim(rtrim(number_format((float) $first?->gst_percent / 2, 2), '0'), '.'))
+@php($bal = \App\Services\Billing\TaxInvoiceBuilder::contractBalance($tax))
+@php($leavers = collect($t->lines)->map(fn ($line) => ['line' => $line->ref['line'], 'bill' => $line->ref['bill']])
+    ->filter(fn ($r) => $r['line']->employee?->exitIn($r['bill']->month))->values())
+{{-- Always one page (owner, 22 Nov 2026): the more post rows (plus contract balance and leavers), the tighter the type. --}}
+@php($lines = count($p['rows']) + ($bal ? 7 : 0) + ($leavers->isNotEmpty() ? 2 + intdiv($leavers->count(), 2) : 0))
+@php($fit = $lines <= 9 ? ['font' => 10, 'pad' => '3px 5px', 'title' => 20, 'gap' => 40] : ($lines <= 16 ? ['font' => 9, 'pad' => '2px 4px', 'title' => 17, 'gap' => 22] : ['font' => 8, 'pad' => '1px 3px', 'title' => 15, 'gap' => 12]))
 <html><head><meta charset="utf-8">
 <style>
-  @page { margin: 26px 34px 40px; }
-  body { font-family: "DejaVu Serif", serif; font-size: 10px; color: #111; }
+  @page { margin: {{ $fit['font'] < 10 ? '20px 30px 26px' : '26px 34px 40px' }}; }
+  body { font-family: "DejaVu Serif", serif; font-size: {{ $fit['font'] }}px; color: #111; }
   table { width: 100%; border-collapse: collapse; }
-  td, th { border: 1px solid #333; padding: 3px 5px; vertical-align: top; }
+  td, th { border: 1px solid #333; padding: {{ $fit['pad'] }}; vertical-align: top; }
   th { font-weight: bold; text-align: center; vertical-align: middle; }
   .r { text-align: right; } .c { text-align: center; } .b { font-weight: bold; } .i { font-style: italic; }
   .nb td { border: 0; padding: 1px 0; }
@@ -25,7 +31,7 @@
 </style></head><body>
 <table>
   <tr><td class="c" style="padding:6px 4px">
-    <div class="b" style="font-size:20px;letter-spacing:1px">"{{ strtoupper($agency->name) }}"</div>
+    <div class="b" style="font-size:{{ $fit['title'] }}px;letter-spacing:1px">"{{ strtoupper($agency->name) }}"</div>
     <div class="b i">{{ $address }}</div>
     <div class="b i">@if($agency->gstin)GSTIN- {{ $agency->gstin }}@endif @if($agency->pan), PAN NO- {{ $agency->pan }},@endif</div>
     @if($epfNo || $esicNo)<div class="b i">@if($epfNo)EPF NO- {{ $epfNo }}@endif @if($esicNo), ESIC NO- {{ $esicNo }}@endif</div>@endif
@@ -37,7 +43,7 @@
   <tr><td style="width:60%;border-top:0">Invoice No- {{ $tax->number }}</td><td style="border-top:0;width:16%"></td><td style="border-top:0">Date:- {{ $tax->invoice_date->format('d.m.Y') }}</td></tr>
   <tr><td colspan="3" class="b" style="border-top:0">{{ ($k?->contract_type === 'offline') ? 'WORK ORDER NO-' : 'GEM CONTRACT NO-' }}{{ $k?->contract_no }}@if($k?->contract_date), Dated- {{ $k->contract_date->format('d.m.Y') }}@endif</td></tr>
 </table>
-<br>
+@if($fit['font'] === 10)<br>@else<div style="height:5px"></div>@endif
 <table>
   <tr><td style="width:55%">Bill for the period from :-</td><td>Month- {{ strtoupper($tax->month->format('M-Y')) }}</td></tr>
   <tr><td class="b i" style="border-bottom:0">FROM</td><td class="b i" style="border-bottom:0">TO</td></tr>
@@ -81,9 +87,8 @@
   <tr><td></td><td colspan="6" class="b">In Words: ( {{ \App\Support\AmountInWords::rupees($t->roundedTotal) }})</td></tr>
   </tbody>
 </table>
-@php($bal = \App\Services\Billing\TaxInvoiceBuilder::contractBalance($tax))
 @if($bal)
-<table style="margin-top:8px;page-break-inside:avoid">
+<table style="margin-top:{{ $fit['font'] === 10 ? 8 : 4 }}px;page-break-inside:avoid">
   <tr><td colspan="2" class="b c">Contract value position: {{ $k?->contract_type === 'offline' ? 'Work order' : 'GeM contract' }} no. {{ $k?->contract_no }}@if($k?->start_date && $k?->end_date) ({{ $k->start_date->format('d.m.Y') }} to {{ $k->end_date->format('d.m.Y') }})@endif</td></tr>
   <tr><td>Total tender value (incl. GST)</td><td class="r" style="width:30%">{{ $bal['value'] }}</td></tr>
   <tr><td>Less: tax invoices billed before this one ({{ $bal['count'] }})</td><td class="r">{{ $bal['previous'] }}</td></tr>
@@ -92,12 +97,10 @@
   <tr><td class="b">Net balance of the contract (opening balance for next month)</td><td class="r b">{{ $bal['closing'] }}</td></tr>
 </table>
 @endif
-@php($leavers = collect($t->lines)->map(fn ($line) => ['line' => $line->ref['line'], 'bill' => $line->ref['bill']])
-    ->filter(fn ($r) => $r['line']->employee?->exitIn($r['bill']->month))->values())
 @if($leavers->isNotEmpty())
 <div style="margin-top:8px;font-size:9px;color:#b02a37"><b>Staff who resigned during {{ $leavers->first()['bill']->month->format('F Y') }} (paid up to the last working day):</b>
   @foreach($leavers as $r){{ $r['line']->employee_name }} – {{ $r['line']->designation }} ({{ $r['bill']->project->code }}), last working day {{ $r['line']->employee->exit_date->format('d.m.Y') }}, {{ rtrim(rtrim((string) $r['line']->paid_days, '0'), '.') }} days paid{{ $loop->last ? '.' : ';' }} @endforeach
 </div>
 @endif
-<table class="nb" style="margin-top:40px;page-break-inside:avoid"><tr><td></td><td class="r b i" style="width:40%">{{ strtoupper($agency->name) }}</td></tr><tr><td></td><td class="r b">Authorized Signatory</td></tr></table>
+<table class="nb" style="margin-top:{{ $fit['gap'] }}px;page-break-inside:avoid"><tr><td></td><td class="r b i" style="width:40%">{{ strtoupper($agency->name) }}</td></tr><tr><td></td><td class="r b">Authorized Signatory</td></tr></table>
 </body></html>

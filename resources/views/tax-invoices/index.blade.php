@@ -11,7 +11,7 @@
     <button class="btn btn-outline-secondary">Filter</button>
   </form>
   <div class="z-card"><div class="table-responsive"><table class="table table-hover">
-    <thead><tr><th>Tax invoice no.</th><th>Month</th><th>Date</th><th class="num">Sub-bills</th><th class="num">Before GST</th><th class="num">GST</th><th class="num">Invoice amount</th><th>Status</th></tr></thead>
+    <thead><tr><th>Tax invoice no.</th><th class="text-center">Sub-bills</th><th>Month</th><th>Date</th><th class="num">Before GST</th><th class="num">GST</th><th class="num">Invoice amount</th><th>Status</th></tr></thead>
     <tbody>
     @php($agencyBlock = false) @php($clientBlock = false)
     @forelse($taxInvoices as $t)
@@ -29,9 +29,11 @@
         </x-client-block>
       @endif
       <tr>
-        <td><a class="mono" href="{{ route('tax-invoices.show', $t) }}">{{ $t->number }}</a></td>
+        <td class="text-nowrap"><a class="mono" href="{{ route('tax-invoices.show', $t) }}">{{ $t->number }}</a></td>
+        {{-- How many sub-bills it combines; click to see and open them (owner, 22 Nov 2026). --}}
+        <td class="text-center"><x-names-pop class="n-full" :title="'Sub-bills in '.$t->number" empty="No sub-bills"
+          :items="$t->subBills->map(fn ($b) => ['text' => $b->invoice_no, 'url' => route('invoices.show', $b), 'sub' => inr($b->rounded_total)])">{{ $t->sub_bills_count }}</x-names-pop></td>
         <td>{{ $t->month->format('M Y') }}</td><td>{{ $t->invoice_date->format('d/m/Y') }}</td>
-        <td class="num">{{ $t->sub_bills_count }}</td>
         <td class="num">{{ inr($t->taxable, true) }}</td>
         <td class="num">{{ inr((float) $t->cgst + (float) $t->sgst + (float) $t->igst, true) }}</td>
         <td class="num fw-semibold">{{ inr($t->rounded_total, true) }}</td>
