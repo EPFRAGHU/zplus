@@ -156,6 +156,7 @@ final class StaffChanges
                 if ($changed = $this->changedFields($approval, $employee)) {
                     throw new RuntimeException('The employee\'s details were changed after sending ('.implode(', ', $changed).'). Return it, or ask for it to be sent again with the employee\'s "Send again for approval" button.');
                 }
+                $this->assertPostRoom($employee, $employee->post_id);
                 $employee->forceFill(['status' => 'active'])->save();
 
                 return "{$employee->name} ({$employee->emp_code}) is now Active.";
@@ -165,6 +166,9 @@ final class StaffChanges
                 $changes = $approval->changes;
                 if ($this->oldHash(array_map(fn ($f) => [self::plain($employee->{$f}), null], array_combine(array_keys($changes), array_keys($changes)))) !== $approval->fingerprint) {
                     throw new RuntimeException('These details were changed in another way after sending. Ask for the change to be made again.');
+                }
+                if (array_key_exists('post_id', $changes) && in_array($employee->status, \App\Services\Masters\PostCapacity::ON_POST, true)) {
+                    $this->assertPostRoom($employee, $changes['post_id'][1]);
                 }
                 $employee->update(array_map(fn ($c) => $c[1], $changes));
 
@@ -180,6 +184,16 @@ final class StaffChanges
                 return "New rate of {$post->designation} applied.";
             })(),
         };
+    }
+
+    /** At approval: the post must still have a free place among the staff already on it (owner, 22 Nov 2026). */
+    private function assertPostRoom(Employee $employee, mixed $postId): void
+    {
+        $post = $postId ? Post::query()->find($postId) : null;
+        $capacity = app(\App\Services\Masters\PostCapacity::class);
+        if ($post && ! $capacity->hasRoom($post, $employee, 1, false)) {
+            throw new RuntimeException($capacity->fullMessage($post, $capacity->taken($post, $employee, false)).' Return this request, or free a place first.');
+        }
     }
 
     /** Is the waiting "new employee" request of this employee out of date with the saved details? */

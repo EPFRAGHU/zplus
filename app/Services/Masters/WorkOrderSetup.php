@@ -39,6 +39,12 @@ class WorkOrderSetup
                     $posts[$i] = $project->posts()->create(['designation' => $p['designation'], 'sanctioned_qty' => $p['sanctioned_qty'], 'rate' => $p['rate']]);
                     $counts['posts']++;
                 }
+                // No more staff on a post than sanctioned (owner, 22 Nov 2026).
+                foreach (collect($row['staff'] ?? [])->countBy(fn ($s) => $s['post']) as $i => $n) {
+                    if (isset($posts[$i]) && $n > (int) $posts[$i]->sanctioned_qty) {
+                        throw \Illuminate\Validation\ValidationException::withMessages(['setup' => "Post already filled: {$posts[$i]->designation} ({$project->code}) has {$posts[$i]->sanctioned_qty} sanctioned but {$n} staff were entered. Raise the sanctioned number or remove a person."]);
+                    }
+                }
                 foreach ($row['staff'] ?? [] as $s) {
                     $this->staffChanges->create([
                         'emp_code' => Employee::nextCode((int) $contract->agency_id),

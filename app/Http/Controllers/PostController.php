@@ -127,8 +127,14 @@ class PostController extends Controller
     public function update(Request $request, Post $post): RedirectResponse
     {
         Gate::authorize('manage-masters');
+        $data = $this->validated($request);
+        // Lowering the sanctioned number below the staff already on the post would over-fill it (owner, 22 Nov 2026).
+        $taken = app(\App\Services\Masters\PostCapacity::class)->taken($post);
+        if ((int) $data['sanctioned_qty'] < (int) $post->sanctioned_qty && (int) $data['sanctioned_qty'] < $taken) {
+            return back()->withInput()->withErrors(['sanctioned_qty' => "{$taken} staff are on this post or waiting for approval, so the sanctioned number cannot go below {$taken}. Move someone off the post or set them Inactive first."]);
+        }
         try {
-            $held = app(\App\Services\Approvals\StaffChanges::class)->updatePost($post, $this->validated($request), $request->user());
+            $held = app(\App\Services\Approvals\StaffChanges::class)->updatePost($post, $data, $request->user());
         } catch (\RuntimeException $e) {
             return back()->withErrors(['approval' => $e->getMessage()]);
         }

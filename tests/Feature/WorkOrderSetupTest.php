@@ -125,6 +125,16 @@ class WorkOrderSetupTest extends TestCase
         $this->assertSame(1, Employee::query()->count());
     }
 
+    public function test_one_page_entry_refuses_more_staff_than_sanctioned(): void
+    {
+        $contract = GemContract::query()->create(['agency_id' => $this->swh->id, 'client_id' => $this->client->id, 'bid_no' => 'GEM/9', 'contract_no' => 'GEMC-CAP-1']);
+        $this->actingAs($this->maker)->post(route('contracts.setup', $contract), ['setup' => [['code' => 'CAP', 'name' => 'Capacity',
+            'posts' => [['designation' => 'DEO', 'sanctioned_qty' => 1, 'rate' => '18000']], 'staff' => [['name' => 'One', 'post' => 0], ['name' => 'Two', 'post' => 0]]]]])
+            ->assertSessionHasErrors(['setup' => 'Post already filled: DEO (CAP) has 1 sanctioned but 2 staff were entered. Raise the sanctioned number or remove a person.']);
+        $this->assertSame(0, $contract->projects()->count(), 'nothing saved');
+        $this->assertSame(0, Employee::query()->count());
+    }
+
     public function test_project_in_charge_page_filters_to_one_pi(): void
     {
         $a = ProjectIncharge::query()->create(['agency_id' => $this->swh->id, 'name' => 'Dr. Alpha', 'status' => 'active']);

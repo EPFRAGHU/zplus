@@ -52,6 +52,7 @@ class EmployeePlacementTest extends TestCase
         $swhIcmr = Client::query()->where('agency_id', $swh->id)->firstOrFail();
         $zpsIcmr = Client::query()->where('agency_id', $zps->id)->firstOrFail();
         $mphPost = Post::query()->firstOrFail();
+        $mphPost->update(['sanctioned_qty' => 2]);   // room for one more (full posts are refused since 22 Nov 2026)
 
         $this->actingAs($admin)->post('/employees', $this->base(['agency_id' => $zps->id, 'client_id' => $swhIcmr->id]))->assertSessionHasErrors('client_id');
         $this->post('/employees', $this->base(['agency_id' => $swh->id, 'post_id' => $mphPost->id]))->assertSessionHasErrors('post_id');

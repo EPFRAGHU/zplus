@@ -12,6 +12,14 @@ return [
     'timezone' => 'Asia/Kolkata',      // release times are Indian Standard Time
 
     'releases' => [
+        ['version' => '2.40.0', 'date' => '2026-11-22 10:30', 'title' => 'No more staff on a post than sanctioned', 'type' => 'feature', 'notes' => [
+            'A post with 4 sanctioned takes at most 4 staff: the 5th is refused with "Post already filled: <post> (<project>) has 4 sanctioned and 4 already placed or waiting for approval"',
+            'Checked everywhere staff are placed: Add employee, Edit (moving to another post or setting someone Active again), the one-page work order entry, Data Upload (rows above in the same file count too) and the Super Admin\'s approval',
+            'New staff waiting for approval, and staff waiting to be moved onto the post, already hold their place, so a post cannot be over-filled through the approval queue',
+            'Employee form: full posts show "— POST FULL" and cannot be chosen (the employee\'s own post stays selectable)',
+            'The sanctioned number of a post cannot be lowered below the staff already on it',
+            'Posts already over-filled from before stay as they are (still red): their staff can be edited, set Inactive or deleted, but nobody new is added until there is room',
+        ]],
         ['version' => '2.39.1', 'date' => '2026-11-22 09:43', 'title' => 'Sub-bill service charge label same as the tax invoice', 'type' => 'fix', 'notes' => [
             'Sub-bill PDF now says "Service charge @ 3.85% on sub total (Excluding GST)", exactly like the tax invoice (it said "@ 3.26% (excluding GST @ 18%)")',
             'Checked: both bills already used the same formula, sub total × 3.85% ÷ 1.18; the sub-bills\' service charges add up to the tax invoice\'s (e.g. 2363.35 + 2926.16 + 1693.35 = 6982.86)',

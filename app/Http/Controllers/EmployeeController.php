@@ -225,6 +225,10 @@ class EmployeeController extends Controller
             'agency_id.required' => 'Choose the agency that employs this person.',
         ]);
         $this->checkPlacement($data);
+        // No more staff on a post than sanctioned (owner, 22 Nov 2026).
+        if (\App\Services\Masters\PostCapacity::placing($employee, $data)) {
+            app(\App\Services\Masters\PostCapacity::class)->assertRoom(Post::query()->findOrFail($data['post_id']), $employee);
+        }
         $data['ifsc'] = Ifsc::normalize($data['ifsc'] ?? null);
         $data['pf_applicable'] = $request->boolean('pf_applicable');
         $data['esic_applicable'] = $request->boolean('esic_applicable');

@@ -55,8 +55,10 @@
             <option value="">Not placed on a post yet</option>
             @foreach($posts as $p)
               @php($k = $p->project->contract)
-              <option value="{{ $p->id }}" data-agency="{{ $k->agency_id }}" data-client="{{ $k->client_id }}" @selected($postId === (string) $p->id)>
-                {{ $k->contract_no }} · {{ $p->label() }} ({{ $p->active_employees_count }}/{{ $p->sanctioned_qty }} filled)</option>
+              {{-- A full post cannot be chosen, except the one this employee is already on (owner, 22 Nov 2026). --}}
+              @php($full = $p->active_employees_count >= $p->sanctioned_qty && (string) $employee->post_id !== (string) $p->id)
+              <option value="{{ $p->id }}" data-agency="{{ $k->agency_id }}" data-client="{{ $k->client_id }}" @if($full) data-full="1" disabled @endif @selected($postId === (string) $p->id)>
+                {{ $k->contract_no }} · {{ $p->label() }} ({{ $p->active_employees_count }}/{{ $p->sanctioned_qty }} filled){{ $full ? ' — POST FULL' : '' }}</option>
             @endforeach
           </select>
           @error('post_id')<div class="invalid-feedback">{{ $message }}</div>@enderror
@@ -132,7 +134,7 @@
     (function () {
       const agency = document.getElementById('f-agency_id'), client = document.getElementById('f-client_id'), post = document.getElementById('f-post_id');
       function narrow(select, test) {
-        [...select.options].forEach(o => { if (o.value) { o.hidden = o.disabled = !test(o); } });
+        [...select.options].forEach(o => { if (o.value) { o.hidden = !test(o); o.disabled = o.hidden || o.dataset.full === '1'; } });   // full posts stay unselectable
         if (select.selectedOptions[0] && select.selectedOptions[0].disabled) select.value = '';
       }
       const warn = document.getElementById('no-posts'), warnText = document.getElementById('no-posts-text');
@@ -140,7 +142,7 @@
         narrow(client, o => !agency.value || o.dataset.agency === agency.value);
         narrow(post, o => (!agency.value || o.dataset.agency === agency.value) && (!client.value || o.dataset.client === client.value));
         // Say why the post list is empty instead of showing a blank dropdown.
-        const left = [...post.options].filter(o => o.value && !o.disabled).length;
+        const left = [...post.options].filter(o => o.value && !o.hidden).length;
         if (agency.value && left === 0) {
           const a = agency.selectedOptions[0].textContent.split(' (')[0];
           warnText.textContent = client.value

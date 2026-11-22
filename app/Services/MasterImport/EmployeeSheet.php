@@ -19,6 +19,9 @@ final class EmployeeSheet extends MasterSheet
 
     private Collection $posts;
 
+    /** @var array<int, int> places taken by earlier rows of this upload, per post */
+    private array $planned = [];
+
     private Collection $byCode;
 
     private Collection $byNameMobile;
@@ -94,6 +97,7 @@ final class EmployeeSheet extends MasterSheet
         $this->clients = Client::query()->get()->keyBy(fn ($c) => $c->agency_id.'|'.strtoupper($c->short_code));
         $this->posts = Post::query()->with('project.contract')->get()
             ->keyBy(fn ($p) => strtoupper((string) $p->project?->contract?->contract_no).'|'.strtoupper((string) $p->project?->code).'|'.mb_strtolower(trim($p->designation)));
+        $this->planned = [];
         $all = Employee::query()->get();
         $this->byCode = $all->keyBy(fn ($e) => strtoupper($e->emp_code));
         $this->byNameMobile = $all->filter(fn ($e) => $e->mobile)->keyBy(fn ($e) => mb_strtolower(trim($e->name)).'|'.$e->mobile);
@@ -158,6 +162,16 @@ final class EmployeeSheet extends MasterSheet
 
         if ($code && ! $existing && \App\Support\Agency\AgencyContext::unscoped(fn () => Employee::query()->where('emp_code', $code)->exists())) {
             $errors[] = "Employee code {$code} is already used by another agency's employee. Leave the code blank for a new person.";
+        }
+        // No more staff on a post than sanctioned (owner, 22 Nov 2026), counting the rows above in this file too.
+        if ($post && ! $errors && \App\Services\Masters\PostCapacity::placing($existing, ['post_id' => $post->id, 'status' => $v['status'] ?: ($existing?->status ?? 'active')])) {
+            $capacity = app(\App\Services\Masters\PostCapacity::class);
+            $taken = $capacity->taken($post, $existing) + ($this->planned[$post->id] ?? 0);
+            if ($taken + 1 > (int) $post->sanctioned_qty) {
+                $errors[] = $capacity->fullMessage($post, $taken);
+            } else {
+                $this->planned[$post->id] = ($this->planned[$post->id] ?? 0) + 1;
+            }
         }
         $data = [
             'emp_code' => $code, 'name' => $v['name'], 'agency_id' => $agency?->id,

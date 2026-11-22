@@ -199,4 +199,17 @@ class MasterImportTest extends TestCase
         $this->upload('employees', [['Mobile' => '9876543211']])->assertSee('Name is required')->assertSee('Agency code is required');
         $this->upload('agencies', [['Agency name' => 'No code']])->assertSee('Agency code is required');
     }
+
+    public function test_upload_cannot_place_more_staff_than_sanctioned(): void
+    {
+        $this->seed(\Database\Seeders\DemoSeeder::class);   // MPH posts: 1 sanctioned, 1 filled each
+        $row = fn ($name) => ['Name' => $name, 'Agency code' => 'ZPS', 'GeM contract no.' => 'GEMC-511687731718030', 'Project code' => 'MPH',
+            'Designation (post)' => 'Academic Programme Manager'];
+
+        $this->upload('employees', [$row('Extra Person')])->assertSee('Post already filled');
+
+        \App\Models\Post::query()->where('designation', 'Academic Programme Manager')->update(['sanctioned_qty' => 2]);   // one free place
+        $this->upload('employees', [$row('First Extra'), $row('Second Extra')])
+            ->assertSee('1 new')->assertSee('Post already filled');   // rows above in the same file count too
+    }
 }
