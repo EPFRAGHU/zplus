@@ -9,7 +9,8 @@
       <div class="me-auto"><h1>Month bill – {{ $month->format('F Y') }}</h1>
         <p>{{ $agency?->name ?? 'Choose an agency' }}@if($rows->isNotEmpty()) · client: {{ $rows->map(fn ($r) => $r['contract']->client?->name)->filter()->unique()->implode('; ') }}@endif · all tax invoices of the month in one sheet, one row per work order. Internal summary, not a GST invoice.</p></div>
       @if($agency && $rows->isNotEmpty())
-        <div class="wo-actions"><a class="btn wo-btn-primary" href="{{ route('month-bill.pdf', ['agency' => $agency->id, 'month' => $month->format('Y-m')]) }}" target="_blank"><i class="bi bi-file-earmark-pdf me-1"></i>Download PDF</a></div>
+        <div class="wo-actions d-flex gap-2 flex-wrap"><a class="btn wo-btn-primary" href="{{ route('month-bill.pdf', ['agency' => $agency->id, 'month' => $month->format('Y-m')]) }}" target="_blank"><i class="bi bi-file-earmark-pdf me-1"></i>Download PDF</a>
+          @if($consolidated)<a class="btn wo-btn-line" href="{{ route('month-bill.consolidated', ['agency' => $agency->id, 'month' => $month->format('Y-m')]) }}" target="_blank"><i class="bi bi-file-earmark-ruled me-1"></i>Consolidated tax invoice statement (PDF)</a>@endif</div>
       @endif
     </div>
 
@@ -62,6 +63,38 @@
           <td class="num">{{ $money($total['rounded_total']) }}</td><td class="num">{{ $money($total['tax_amount']) }}</td></tr></tfoot>
       </table></div></div>
       <p class="small text-secondary mt-2">Tax invoice amounts are worked out once on each work order's combined sub-total, so they can differ by a few paise from the sum of its sub-bills.</p>
+
+      {{-- The month's tax invoices in the tax invoice layout: a statement, not a new tax invoice (owner, 22 Nov 2026). --}}
+      @if($consolidated)
+        @php($ct = $consolidated['t'])
+        <div class="wo-card mt-4" id="consolidated">
+          <div class="wo-row border-bottom">
+            <div class="me-auto"><b><i class="bi bi-file-earmark-ruled me-1 text-primary"></i>Consolidated tax invoice statement – {{ $month->format('F Y') }}</b>
+              <div class="wo-meta">Combines {{ $consolidated['taxes']->count() }} tax {{ \Illuminate\Support\Str::plural('invoice', $consolidated['taxes']->count()) }}: {{ $consolidated['taxes']->pluck('number')->implode(', ') }}. Same layout as a tax invoice; not a separate tax invoice and not numbered (GST is on those tax invoices).</div></div>
+            <a class="btn btn-sm wo-btn-primary" href="{{ route('month-bill.consolidated', ['agency' => $agency->id, 'month' => $month->format('Y-m')]) }}" target="_blank"><i class="bi bi-file-earmark-pdf me-1"></i>Download PDF</a>
+          </div>
+          <div class="row g-0">
+            <div class="col-lg-7 p-2"><div class="table-responsive"><table class="table table-sm align-middle wo-table m-0">
+              <thead><tr><th>#</th><th>Post</th><th class="text-center">Manpower</th><th class="text-center">Working days</th><th class="num">Basic wages / day</th><th class="num">Amount</th></tr></thead>
+              <tbody>@foreach($consolidated['rows'] as $n => $r)<tr><td>{{ $n + 1 }}</td><td>{{ $r['designation'] }}</td><td class="text-center">{{ $r['manpower'] }}</td><td class="text-center">{{ $r['days'] }}</td><td class="num">{{ $money($r['perDay']) }}</td><td class="num">{{ $money($r['amount']) }}</td></tr>@endforeach</tbody>
+              <tfoot><tr class="fw-semibold"><td colspan="2">Total</td><td class="text-center">{{ $consolidated['manpower'] }}</td><td class="text-center">{{ $consolidated['days'] }}</td><td></td><td class="num">{{ $money($ct['wages']) }}</td></tr></tfoot>
+            </table></div></div>
+            <div class="col-lg-5 p-2"><table class="table table-sm wo-table m-0">
+              @if($consolidated['epfSplit'])
+                <tr><td>EPF @ 12%</td><td class="num">{{ $money($consolidated['epfSplit']['epf']) }}</td></tr><tr><td>EDLI @ 0.5%</td><td class="num">{{ $money($consolidated['epfSplit']['edli']) }}</td></tr><tr><td>PF admin charges @ 0.5%</td><td class="num">{{ $money($consolidated['epfSplit']['admin']) }}</td></tr>
+              @else<tr><td>EPF</td><td class="num">{{ $money($ct['epf']) }}</td></tr>@endif
+              <tr><td>ESI</td><td class="num">{{ $money($ct['esic']) }}</td></tr>
+              <tr class="fw-semibold"><td>Sub total</td><td class="num">{{ $money($ct['subtotal']) }}</td></tr>
+              <tr><td>Service charge @ {{ $consolidated['serviceCharge'] }}% on sub total{{ $consolidated['includesGst'] ? ' (excluding GST)' : '' }}</td><td class="num">{{ $money($ct['serviceCharge']) }}</td></tr>
+              <tr class="fw-semibold"><td>Total (before GST)</td><td class="num">{{ $money($ct['taxable']) }}</td></tr>
+              @if($consolidated['igst'])<tr><td>IGST @ {{ $consolidated['gst'] }}%</td><td class="num">{{ $money($ct['igst']) }}</td></tr>
+              @else<tr><td>CGST</td><td class="num">{{ $money($ct['cgst']) }}</td></tr><tr><td>SGST</td><td class="num">{{ $money($ct['sgst']) }}</td></tr>@endif
+              <tr class="fw-semibold"><td>Grand total</td><td class="num">{{ $money($ct['total']) }}</td></tr>
+              <tr class="bills-grand"><td>Total of the tax invoices (each rounded off)</td><td class="num">{{ $money($ct['roundedTotal']) }}</td></tr>
+            </table></div>
+          </div>
+        </div>
+      @endif
     @endif
   </div>
 </x-layouts.app>

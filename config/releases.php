@@ -12,6 +12,12 @@ return [
     'timezone' => 'Asia/Kolkata',      // release times are Indian Standard Time
 
     'releases' => [
+        ['version' => '2.46.0', 'date' => '2026-11-22 13:27', 'title' => 'Consolidated tax invoice statement for the month', 'type' => 'feature', 'notes' => [
+            'Month bill page: new "Consolidated tax invoice statement" (screen and PDF) in the regular tax invoice layout: agency header, FROM / TO, bank details, posts of all work orders, EPF 12% / EDLI 0.5% / admin 0.5%, ESI, sub total, service charge, CGST / SGST, grand total and amount in words',
+            'The same post at the same rate across all work orders is one row (manpower and days added up), as on each tax invoice',
+            'It lists the tax invoices it combines (number, GeM contract, amount); every figure is the sum of those tax invoices',
+            'Titled "Consolidated tax invoice statement" with no new number: it is not a separate tax invoice, so the month is not billed twice under GST',
+        ]],
         ['version' => '2.45.0', 'date' => '2026-11-22 13:08', 'title' => 'PDFs of a month split by work order', 'type' => 'feature', 'notes' => [
             'Sub-bills (with a month chosen): "Download PDFs (ZIP)" on each work order\'s row gives just that work order\'s sub-bills, covering letters and tax invoice (e.g. SW-GEMC-511687731718030-documents-2026-10.zip)',
             'The whole-month ZIP now has a folder per work order (GEMC-…/sub-bills, covering-letters, tax-invoice), with the bank letter at the top',

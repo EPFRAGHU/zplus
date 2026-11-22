@@ -20,7 +20,8 @@ class MonthBillController extends Controller
         Gate::authorize('billing');
         [$agency, $month] = $this->pick($request);
 
-        return view('month-bill.show', ['agency' => $agency, 'month' => $month, 'agencies' => Agency::query()->orderBy('name')->get()]
+        return view('month-bill.show', ['agency' => $agency, 'month' => $month, 'agencies' => Agency::query()->orderBy('name')->get(),
+            'consolidated' => $agency ? $monthBill->consolidated($agency, $month) : null]
             + ($agency ? $monthBill->build($agency, $month) : ['rows' => collect(), 'total' => null]));
     }
 
@@ -33,6 +34,20 @@ class MonthBillController extends Controller
 
         return Pdf::loadView('pdf.month-bill', ['agency' => $agency, 'month' => $month] + $monthBill->build($agency, $month))
             ->setPaper('a4', 'landscape')->stream('month-bill-'.$agency->code.'-'.$month->format('Y-m').'.pdf');
+    }
+
+    /** Consolidated tax invoice statement PDF: the month's tax invoices in the tax invoice layout, not a new tax invoice (owner, 22 Nov 2026). */
+    public function consolidated(Request $request, MonthBill $monthBill): Response
+    {
+        Gate::authorize('billing');
+        [$agency, $month] = $this->pick($request);
+        abort_unless($agency, 404);
+        $c = $monthBill->consolidated($agency, $month);
+        abort_unless($c, 404, 'No tax invoices for this month yet.');
+        Activity::log('downloaded', $agency, [], 'Consolidated tax invoice statement '.$month->format('F Y').' (PDF)', section: 'Billing', label: $agency->code.' '.$month->format('M Y'));
+
+        return Pdf::loadView('pdf.consolidated-tax-invoice', ['agency' => $agency, 'month' => $month, 'c' => $c])
+            ->setPaper('a4')->stream('consolidated-tax-invoice-statement-'.$agency->code.'-'.$month->format('Y-m').'.pdf');
     }
 
     /** Agency (only the login's own: other agencies are out of scope and give 404) and month (default: last month). */

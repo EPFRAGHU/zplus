@@ -52,4 +52,62 @@ final class MonthBill
 
         return ['rows' => $rows, 'total' => $total];
     }
+
+    /**
+     * Consolidated tax invoice statement (owner, 22 Nov 2026): the month's tax invoices of one agency in the tax invoice
+     * layout, NOT a new tax invoice and not numbered (each work order's own tax invoice stays the GST invoice). Every figure
+     * is the sum of those tax invoices' own figures; the same post at the same per-day rate is one row (manpower and days
+     * added up), as on each tax invoice.
+     *
+     * @return array{taxes: Collection, rows: list<array>, manpower: int, days: string, t: array<string, string>, epfSplit: ?array<string, string>,
+     *               client: ?\App\Models\Client, serviceCharge: string, includesGst: bool, gst: string, igst: bool}|null
+     */
+    public function consolidated(Agency $agency, CarbonImmutable $month): ?array
+    {
+        $taxes = TaxInvoice::query()->with('contract')->where('agency_id', $agency->id)->where('month', $month->startOfMonth()->toDateString())->get()
+            ->sortBy(fn (TaxInvoice $t) => $t->number, SORT_NATURAL)->values();
+        if ($taxes->isEmpty()) {
+            return null;
+        }
+        $fields = ['wages', 'epf', 'esic', 'subtotal', 'serviceCharge', 'taxable', 'cgst', 'sgst', 'igst', 'total', 'roundedTotal'];
+        $t = array_fill_keys($fields, '0.00');
+        $rows = [];
+        $split = ['epf' => '0.00', 'edli' => '0.00', 'admin' => '0.00'];
+        $allSplit = true;
+        $days = '0';
+        $first = null;
+        foreach ($taxes as $tax) {
+            $d = \App\Http\Controllers\TaxInvoiceController::pdfData($tax);
+            $first ??= $d['tax']->subBills->first();
+            foreach ($fields as $f) {
+                $t[$f] = self::add($t[$f], (string) $d['t']->{$f});
+            }
+            foreach ($d['p']['rows'] as $r) {
+                $key = mb_strtoupper(preg_replace('/\s+/', ' ', trim($r['designation']))).'|'.$r['perDay'];
+                $rows[$key] ??= ['designation' => $r['designation'], 'manpower' => 0, 'days' => '0', 'perDay' => $r['perDay'], 'amount' => '0.00'];
+                $rows[$key]['manpower'] += $r['manpower'];
+                $rows[$key]['days'] = (string) BigDecimal::of($rows[$key]['days'])->plus(BigDecimal::of($r['days']));
+                $rows[$key]['amount'] = self::add($rows[$key]['amount'], $r['amount']);
+            }
+            $days = (string) BigDecimal::of($days)->plus(BigDecimal::of($d['p']['days']));
+            if ($d['p']['epfSplit']) {
+                foreach ($split as $k => $v) {
+                    $split[$k] = self::add($v, $d['p']['epfSplit'][$k]);
+                }
+            } else {
+                $allSplit = false;
+            }
+        }
+        $rows = array_values($rows);
+        $trim = fn (string $v) => str_contains($v, '.') ? rtrim(rtrim($v, '0'), '.') : $v;
+        foreach ($rows as &$r) {
+            $r['days'] = $trim($r['days']);
+        }
+        unset($r);
+
+        return ['taxes' => $taxes, 'rows' => $rows, 'manpower' => array_sum(array_column($rows, 'manpower')), 'days' => $trim($days), 't' => $t,
+            'epfSplit' => $allSplit ? $split : null, 'client' => $taxes->first()->client,
+            'serviceCharge' => rtrim(rtrim((string) $first?->service_charge_percent, '0'), '.'), 'includesGst' => (bool) $first?->service_charge_includes_gst,
+            'gst' => rtrim(rtrim((string) $first?->gst_percent, '0'), '.'), 'igst' => (float) $t['igst'] > 0];
+    }
 }

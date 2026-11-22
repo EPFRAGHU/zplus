@@ -77,4 +77,22 @@ class MonthBillTest extends TestCase
     {
         $this->actingAs(User::factory()->create(['role' => 'supervisor']))->get(route('month-bill.show', ['agency' => $this->zps->id]))->assertForbidden();
     }
+
+    public function test_consolidated_tax_invoice_statement_adds_up_the_months_tax_invoices(): void
+    {
+        $c = app(\App\Services\Billing\MonthBill::class)->consolidated($this->zps, \Carbon\CarbonImmutable::parse('2026-10-01'));
+        $this->assertSame(2, $c['taxes']->count());
+        $this->assertSame(number_format((float) TaxInvoice::query()->sum('rounded_total'), 2, '.', ''), $c['t']['roundedTotal']);
+        $this->assertSame(number_format((float) TaxInvoice::query()->sum('taxable'), 2, '.', ''), $c['t']['taxable']);
+        $this->assertSame(Invoice::query()->withCount('lines')->get()->sum('lines_count'), $c['manpower']);
+        $field = collect($c['rows'])->firstWhere('designation', 'Field Worker');
+        $this->assertSame(2, $field['manpower'], 'the same post at the same rate is one row');
+
+        $this->actingAs($this->dev)->get(route('month-bill.show', ['agency' => $this->zps->id, 'month' => '2026-10']))->assertOk()
+            ->assertSee('Consolidated tax invoice statement – October 2026')->assertSee('not a separate tax invoice');
+        $pdf = $this->get(route('month-bill.consolidated', ['agency' => $this->zps->id, 'month' => '2026-10']))->assertOk()
+            ->assertHeader('content-type', 'application/pdf')->getContent();
+        $this->assertSame(1, preg_match_all('#/Type\s*/Page[^s]#', $pdf));
+        $this->get(route('month-bill.consolidated', ['agency' => $this->zps->id, 'month' => '2026-12']))->assertNotFound();   // no tax invoices that month
+    }
 }

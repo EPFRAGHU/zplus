@@ -157,6 +157,7 @@ Route::middleware(['auth', 'active', 'role:admin,accounts,supervisor', \App\Http
     // Month bill: an agency's month in one sheet, one row per work order (internal summary, owner 22 Nov 2026)
     Route::get('month-bill', [\App\Http\Controllers\MonthBillController::class, 'show'])->name('month-bill.show');
     Route::get('month-bill/pdf', [\App\Http\Controllers\MonthBillController::class, 'pdf'])->name('month-bill.pdf');
+    Route::get('month-bill/consolidated-tax-invoice', [\App\Http\Controllers\MonthBillController::class, 'consolidated'])->name('month-bill.consolidated');
 
     // Tax invoices (combine a client's sub-bills for a month)
     Route::get('tax-invoices', [TaxInvoiceController::class, 'index'])->name('tax-invoices.index');
