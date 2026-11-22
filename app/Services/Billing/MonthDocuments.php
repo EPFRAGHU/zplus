@@ -23,14 +23,19 @@ final class MonthDocuments
     public function __construct(private readonly BankLetter $letters) {}
 
     /** @return array{0: string, 1: string, 2: int} [temp file path, download name, number of PDFs] */
-    public function zip(Agency $agency, CarbonImmutable $month, bool $withBankLetter): array
+    public function zip(Agency $agency, CarbonImmutable $month, bool $withBankLetter, ?\App\Models\GemContract $contract = null): array
     {
         $month = $month->startOfMonth();
-        $bills = Invoice::query()->where('agency_id', $agency->id)->where('month', $month->toDateString())->orderBy('invoice_no')->get();
-        $taxes = TaxInvoice::query()->where('agency_id', $agency->id)->where('month', $month->toDateString())->orderBy('number')->get();
+        // One work order only (owner, 22 Nov 2026), or the whole month with a folder per work order.
+        $bills = Invoice::query()->with('contract')->where('agency_id', $agency->id)->where('month', $month->toDateString())
+            ->when($contract, fn ($q) => $q->where('gem_contract_id', $contract->id))->orderBy('invoice_no')->get();
+        $taxes = TaxInvoice::query()->with('contract')->where('agency_id', $agency->id)->where('month', $month->toDateString())
+            ->when($contract, fn ($q) => $q->where('gem_contract_id', $contract->id))->orderBy('number')->get();
         if ($bills->isEmpty() && $taxes->isEmpty()) {
-            throw new RuntimeException("No sub-bills or tax invoices for {$agency->name} in {$month->format('F Y')}.");
+            throw new RuntimeException('No sub-bills or tax invoices for '.($contract ? "work order {$contract->contract_no}" : $agency->name)." in {$month->format('F Y')}.");
         }
+        $folder = fn ($k) => $contract ? '' : Codes::fileSafe((string) ($k?->contract_no ?: 'no-work-order')).'/';
+        $withBankLetter = $withBankLetter && ! $contract;   // the bank letter covers the whole agency, so only in the month ZIP
 
         // Each PDF goes to its own temp file as soon as it is made (addFromString would keep them all in memory until the
         // ZIP is closed: a month of 50+ PDFs ran out of memory, owner 22 Nov 2026). A higher limit just for this download.
@@ -54,12 +59,12 @@ final class MonthDocuments
         try {
             foreach ($bills as $bill) {
                 $data = InvoiceController::pdfData($bill);
-                $add('sub-bills/'.Codes::fileSafe($bill->invoice_no).'.pdf', 'pdf.invoice', $data);
-                $add('covering-letters/covering-letter-'.Codes::fileSafe($bill->invoice_no).'.pdf', 'pdf.covering-letter', $data);
+                $add($folder($bill->contract).'sub-bills/'.Codes::fileSafe($bill->invoice_no).'.pdf', 'pdf.invoice', $data);
+                $add($folder($bill->contract).'covering-letters/covering-letter-'.Codes::fileSafe($bill->invoice_no).'.pdf', 'pdf.covering-letter', $data);
                 unset($data);
             }
             foreach ($taxes as $tax) {
-                $add('tax-invoices/'.Codes::fileSafe($tax->number).'.pdf', 'pdf.tax-invoice', TaxInvoiceController::pdfData($tax));
+                $add($folder($tax->contract).'tax-invoice/'.Codes::fileSafe($tax->number).'.pdf', 'pdf.tax-invoice', TaxInvoiceController::pdfData($tax));
             }
             if ($withBankLetter) {
                 [$locked] = $this->letters->sheets($agency, $month);
@@ -76,7 +81,7 @@ final class MonthDocuments
             @rmdir($dir);
         }
 
-        return [$tmp, $agency->numberPrefix().'-documents-'.$month->format('Y-m').'.zip', $count];
+        return [$tmp, $agency->numberPrefix().'-'.($contract ? Codes::fileSafe($contract->contract_no).'-' : '').'documents-'.$month->format('Y-m').'.zip', $count];
     }
 
     /** Raises PHP's memory limit for this request only, never lowers it (-1 = no limit stays). */

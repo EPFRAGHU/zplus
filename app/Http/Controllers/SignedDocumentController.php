@@ -55,11 +55,14 @@ class SignedDocumentController extends Controller
     public function zip(Request $request, \App\Services\Billing\MonthDocuments $documents): Response
     {
         Gate::authorize('billing');
-        $request->validate(['agency' => ['required', new \App\Rules\ExistsInMyAgency(Agency::class)], 'month' => ['required', 'date_format:Y-m']]);
+        $request->validate(['agency' => ['required', new \App\Rules\ExistsInMyAgency(Agency::class)], 'month' => ['required', 'date_format:Y-m'],
+            'contract' => ['nullable', new \App\Rules\ExistsInMyAgency(\App\Models\GemContract::class)]]);
         $agency = Agency::query()->findOrFail($request->integer('agency'));
+        $contract = $request->integer('contract') ? \App\Models\GemContract::query()->findOrFail($request->integer('contract')) : null;   // one work order's ZIP (owner, 22 Nov 2026)
+        abort_if($contract && (int) $contract->agency_id !== (int) $agency->id, 404);
         try {
             [$path, $name, $count] = $documents->zip($agency, CarbonImmutable::createFromFormat('!Y-m', $request->input('month')), Gate::allows('view-bank-details')
-                && (\App\Services\Approvals\Approvals::canApprove($request->user()) || app(\App\Services\Approvals\Approvals::class)->cleared('payout', ['agency' => $agency, 'month' => CarbonImmutable::createFromFormat('!Y-m', $request->input('month'))])));
+                && (\App\Services\Approvals\Approvals::canApprove($request->user()) || app(\App\Services\Approvals\Approvals::class)->cleared('payout', ['agency' => $agency, 'month' => CarbonImmutable::createFromFormat('!Y-m', $request->input('month'))])), $contract);
         } catch (\RuntimeException $e) {
             return back()->withErrors(['zip' => $e->getMessage()]);
         }

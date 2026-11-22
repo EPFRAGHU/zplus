@@ -12,6 +12,11 @@ return [
     'timezone' => 'Asia/Kolkata',      // release times are Indian Standard Time
 
     'releases' => [
+        ['version' => '2.45.0', 'date' => '2026-11-22 13:08', 'title' => 'PDFs of a month split by work order', 'type' => 'feature', 'notes' => [
+            'Sub-bills (with a month chosen): "Download PDFs (ZIP)" on each work order\'s row gives just that work order\'s sub-bills, covering letters and tax invoice (e.g. SW-GEMC-511687731718030-documents-2026-10.zip)',
+            'The whole-month ZIP now has a folder per work order (GEMC-…/sub-bills, covering-letters, tax-invoice), with the bank letter at the top',
+            'No amounts or numbers change',
+        ]],
         ['version' => '2.44.2', 'date' => '2026-11-22 13:06', 'title' => 'Month ZIP: no time-out, faster letterhead', 'type' => 'fix', 'notes' => [
             'Fixed: the month ZIP stopped with "Maximum execution time of 30 seconds exceeded"; it may now take up to 10 minutes',
             'A large letterhead logo (e.g. a 7 MB scan) is shrunk to print size (at most 1200 px wide) once per download and reused for every PDF, instead of being read and decoded in full for each one: a 55-PDF month now takes about 14 seconds in the test; the uploaded logo file itself is not changed',

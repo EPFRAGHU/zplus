@@ -2,6 +2,12 @@
 
 Versions follow MAJOR.MINOR.PATCH. Dates are Indian Standard Time.
 
+## 2.45.0 (2026-11-22): PDFs of a month split by work order
+
+- Sub-bills (with a month chosen): "Download PDFs (ZIP)" on each work order's row gives just that work order's sub-bills, covering letters and tax invoice (e.g. SW-GEMC-511687731718030-documents-2026-10.zip)
+- The whole-month ZIP now has a folder per work order (GEMC-…/sub-bills, covering-letters, tax-invoice), with the bank letter at the top
+- No amounts or numbers change
+
 ## 2.44.2 (2026-11-22): Month ZIP: no time-out, faster letterhead
 
 - Fixed: the month ZIP stopped with "Maximum execution time of 30 seconds exceeded"; it may now take up to 10 minutes

@@ -89,4 +89,40 @@ class BillListsOrderTest extends TestCase
         $pdf = $this->actingAs($this->dev)->get(route('tax-invoices.pdf', $tax))->assertOk()->getContent();
         $this->assertSame(1, preg_match_all('#/Type\s*/Page[^s]#', $pdf), 'one page');
     }
+
+    public function test_month_zip_has_a_folder_per_work_order_and_each_work_order_has_its_own_zip(): void
+    {
+        $this->actingAs($this->dev);
+        $agency = \App\Models\Agency::query()->where('code', 'ZPS')->firstOrFail();
+        $second = GemContract::query()->where('contract_no', 'GEMC-000000000000002')->firstOrFail();
+        $entries = function (string $path): array {
+            $zip = new \ZipArchive;
+            $zip->open($path);
+            $names = [];
+            for ($i = 0; $i < $zip->numFiles; $i++) {
+                $names[] = $zip->getNameIndex($i);
+            }
+            $zip->close();
+            @unlink($path);
+            sort($names);
+
+            return $names;
+        };
+        $docs = app(\App\Services\Billing\MonthDocuments::class);
+
+        [$path, $name] = $docs->zip($agency, \Carbon\CarbonImmutable::parse('2026-10-01'), false);
+        $all = $entries($path);
+        $this->assertContains('GEMC-000000000000002/sub-bills/ZP-001-26-27-AAA.pdf', $all);
+        $this->assertContains('GEMC-000000000000002/tax-invoice/ZP-001-26-27.pdf', $all);
+        $this->assertContains('GEMC-511687731718030/sub-bills/ZP-002-26-27-MPH.pdf', $all);
+
+        [$path, $name] = $docs->zip($agency, \Carbon\CarbonImmutable::parse('2026-10-01'), true, $second);
+        $one = $entries($path);
+        $this->assertSame('ZP-GEMC-000000000000002-documents-2026-10.zip', $name);
+        $this->assertSame(['covering-letters/covering-letter-ZP-001-26-27-AAA.pdf', 'covering-letters/covering-letter-ZP-001-26-27-BBB.pdf',
+            'sub-bills/ZP-001-26-27-AAA.pdf', 'sub-bills/ZP-001-26-27-BBB.pdf', 'tax-invoice/ZP-001-26-27.pdf'], $one, 'only this work order, no bank letter');
+
+        $this->get('/invoices?month=2026-10&agency='.$agency->id)->assertSee(route('month-documents.zip', ['agency' => $agency->id, 'month' => '2026-10', 'contract' => $second->id]));
+        $this->get(route('month-documents.zip', ['agency' => $agency->id, 'month' => '2026-10', 'contract' => $second->id]))->assertOk()->assertHeader('content-type', 'application/zip');
+    }
 }
