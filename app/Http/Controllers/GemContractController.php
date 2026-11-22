@@ -183,7 +183,7 @@ class GemContractController extends Controller
         $request->merge(['setup' => $projects]);
         $validated = $request->validate([
             'setup' => ['array', 'max:30'],
-            'setup.*.code' => ['required', \App\Support\Codes::PATTERN, 'max:20', 'distinct:ignore_case'],
+            'setup.*.code' => ['required', \App\Support\Codes::PROJECT_PATTERN, 'max:20', 'distinct:ignore_case'],
             'setup.*.name' => ['required', 'string', 'max:255'],
             'setup.*.project_incharge_id' => ['nullable', new \App\Rules\ExistsInMyAgency(\App\Models\ProjectIncharge::class)],
             'setup.*.pi_name' => ['nullable', 'string', 'max:255'],
@@ -203,6 +203,7 @@ class GemContractController extends Controller
         ], [
             'setup.*.code.required' => 'Enter the short project name (e.g. MPH) for every project.',
             'setup.*.code.distinct' => 'Two projects have the same short name.',
+            'setup.*.code.regex' => \App\Support\Codes::PROJECT_MESSAGE,
             'setup.*.name.required' => 'Enter the project name for every project.',
             'setup.*.posts.*.designation.required' => 'Every post needs a designation.',
             'setup.*.posts.*.sanctioned_qty.required' => 'Every post needs the number of sanctioned posts.',

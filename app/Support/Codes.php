@@ -10,6 +10,11 @@ final class Codes
 {
     public const PATTERN = 'regex:/^[A-Za-z0-9 \/\-._()&+#,]+$/';
 
+    /** Short project name: as above but without "/", because it goes inside sub-bill numbers SW/001/26-27(CODE) (owner, 22 Nov 2026). */
+    public const PROJECT_PATTERN = 'regex:/^[A-Za-z0-9 \-._()&+#,]+$/';
+
+    public const PROJECT_MESSAGE = 'Use letters, numbers, spaces and - . _ ( ) & + # , only (up to 20); no "/", because the short name goes inside the sub-bill number.';
+
     public const MAX = 20;
 
     public const MESSAGE = 'Use letters, numbers, spaces and / - . _ ( ) & + # , only (up to 20).';

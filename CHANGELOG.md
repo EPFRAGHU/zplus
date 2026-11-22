@@ -2,6 +2,13 @@
 
 Versions follow MAJOR.MINOR.PATCH. Dates are Indian Standard Time.
 
+## 2.43.0 (2026-11-22): Sub-bills take a project's new short name
+
+- Changing a project's short name (Edit project) now renames its open sub-bills: SW/004/26-27(SW/007/26-27) becomes SW/004/26-27(SDOH); the serial (004) never changes
+- Paid bills, and bills in a paid tax invoice, keep their number; the message lists what was renamed and what was kept
+- A tax invoice holding a renamed sub-bill is worked out again (its own number stays); a renamed bill that was approved needs approving again; each rename is in the Activity log
+- Short project names can no longer contain "/" (it goes inside the sub-bill number); client and agency codes are unchanged. A project that has "/" in its short name must get a new one the next time it is edited
+
 ## 2.42.0 (2026-11-22): Bill components and totals on the Sub-bills and Tax Invoices lists
 
 - Sub-bills list: columns Wages, EPF, ESIC, Service charge, Before GST, CGST, SGST (IGST when any) and Bill amount for every sub-bill (Agency, Client and Work order columns dropped: they head their blocks)

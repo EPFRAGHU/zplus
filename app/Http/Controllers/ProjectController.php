@@ -25,9 +25,23 @@ class ProjectController extends Controller
         Gate::authorize('manage-masters');
         $data = $this->validated($request);
         \App\Support\PiAllotment::assertSameAgency($data['project_incharge_id'] ?? null, $project->contract);
+        $oldCode = $project->code;
         $project->update($data);
+        if ($project->code === $oldCode) {
+            return back()->with('status', 'Project saved.');
+        }
+        // New short name: the project's open sub-bills take it in their number, the serial stays (owner, 22 Nov 2026).
+        $result = app(\App\Services\Billing\SubBillRenamer::class)->forProject($project, $request->user());
+        $message = "Project saved. Short name changed from {$oldCode} to {$project->code}.";
+        if ($result['renamed']) {
+            $message .= ' Sub-bills renamed: '.collect($result['renamed'])->map(fn ($new, $old) => "{$old} → {$new}")->implode(', ')
+                .'. Send the new PDF of any bill already sent to the client; an approved bill needs approving again.';
+        }
+        if ($result['kept']) {
+            $message .= ' Paid bills keep their number: '.implode(', ', $result['kept']).'.';
+        }
 
-        return back()->with('status', 'Project saved.');
+        return back()->with('status', $message);
     }
 
     /**
@@ -73,13 +87,13 @@ class ProjectController extends Controller
     {
         $data = $request->validate([
             'name' => ['required', 'string', 'max:255'],
-            'code' => ['required', \App\Support\Codes::PATTERN, 'max:20'],
+            'code' => ['required', \App\Support\Codes::PROJECT_PATTERN, 'max:20'],
             'title' => ['nullable', 'string', 'max:2000'],
             'project_incharge_id' => ['nullable', new \App\Rules\ExistsInMyAgency(\App\Models\ProjectIncharge::class)],
             'pi_name' => ['nullable', 'string', 'max:255'],
             'pi_designation' => ['nullable', 'string', 'max:255'],
             'location' => ['nullable', 'string', 'max:255'],
-        ], [], ['code' => 'short project name']);
+        ], ['code.regex' => \App\Support\Codes::PROJECT_MESSAGE], ['code' => 'short project name']);
         $data['code'] = strtoupper($data['code']);
         $data = \App\Support\PiAllotment::syncNames($data);
         $data['saturday_off'] = $request->boolean('saturday_off');

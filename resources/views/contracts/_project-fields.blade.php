@@ -1,7 +1,7 @@
 @php($pis = $incharges ?? collect())
 <div class="row g-2">
   <div class="col-md-3"><label class="form-label small text-secondary mb-1">Project name *</label><input class="form-control form-control-sm" name="name" value="{{ $p?->name }}" required></div>
-  <div class="col-md-3"><label class="form-label small text-secondary mb-1" title="Used in sub-bill numbers and appointment letters, e.g. MPH">Short project name *</label><input class="form-control form-control-sm mono" name="code" value="{{ $p?->code }}" required maxlength="20" placeholder="e.g. HTA" title="{{ \App\Support\Codes::MESSAGE }}"></div>
+  <div class="col-md-3"><label class="form-label small text-secondary mb-1" title="Used in sub-bill numbers and appointment letters, e.g. MPH">Short project name *</label><input class="form-control form-control-sm mono" name="code" value="{{ $p?->code }}" required maxlength="20" placeholder="e.g. HTA" title="{{ \App\Support\Codes::PROJECT_MESSAGE }}"></div>
   <div class="col-md-3"><label class="form-label small text-secondary mb-1">Project In-charge</label>
     <select class="form-select form-select-sm" name="project_incharge_id">
       <option value="">{{ $p?->pi_name && ! $p?->project_incharge_id ? $p->pi_name.' (not in Project In-charge list)' : 'Choose PI' }}</option>
