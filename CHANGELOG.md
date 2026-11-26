@@ -2,6 +2,13 @@
 
 Versions follow MAJOR.MINOR.PATCH. Dates are Indian Standard Time.
 
+## 2.53.0 (2026-11-26): Approvals page in the Work Orders style, details in columns
+
+- Approvals page redesigned like Work Orders, Posts and Employees: heading, five figure boxes (waiting, new employees, attendance/bills/payouts, payments received, returned to you), tabs Waiting / Returned to you / Recent decisions, Agency and Type filters
+- One table per kind with details in columns and Approve / Return at the row end: new employees (post, bank, EPF/ESIC/TDS), attendance / sub-bills / tax invoices / salary payouts (month, amount, PDF, sent by, sent on, days waiting), staff / pay / post rate changes (now → changed to), payments received (work order, UTR / cheque, credit date, sub-bills, amount)
+- Returned items show the reason in a column; recent decisions show who decided, approved or returned, and why
+- Same rules as before: only a Super Admin approves, never the one who sent it; nothing else changes
+
 ## 2.52.0 (2026-11-26): NEFT file for the bank (Excel and PDF) on the Bank Letter page
 
 - Bank Letter page: green "NEFT file (Excel)" and red "NEFT file (PDF)" buttons for the chosen agency and month, next to the bank letter

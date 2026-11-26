@@ -23,7 +23,7 @@ class ApprovalController extends Controller
     public function index(Request $request): View
     {
         $me = $request->user();
-        $base = fn () => Approval::query()->with('agency', 'submitter', 'decider', 'employee');
+        $base = fn () => Approval::query()->with('agency', 'submitter', 'decider', 'employee', 'invoice.project', 'taxInvoice', 'sheet.project', 'post.project');
 
         return view('approvals.index', [
             'canApprove' => Approvals::canApprove($me),
@@ -34,6 +34,9 @@ class ApprovalController extends Controller
             'returned' => $base()->where('status', 'returned')->where('submitted_by', $me->id)->latest('decided_at')->limit(30)->get()
                 ->filter(fn ($a) => ! Approval::query()->where('type', $a->type)->where('id', '>', $a->id)->where(self::sameRecord($a))->exists())->values(),
             'recent' => $base()->whereIn('status', ['approved', 'returned'])->latest('decided_at')->limit(25)->get(),
+            // Payments received waiting for a Super Admin (approved on each payment's page).
+            'payments' => \App\Models\PaymentReceipt::query()->where('status', 'pending')->with('contract:id,contract_no', 'agency:id,code,name', 'enteredBy:id,name', 'lines.invoice:id,invoice_no')->oldest()->get(),
+            'agencies' => Agency::query()->orderBy('name')->get(['id', 'name', 'code']),
         ]);
     }
 
