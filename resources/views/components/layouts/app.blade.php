@@ -59,6 +59,7 @@
       @endcan
       @can('view-activity')
       <a class="{{ $is('activity.*') }}" href="{{ route('activity.index') }}"><i class="bi bi-journal-text"></i>Activity log</a>
+      <a class="{{ $is('backups.*') }}" href="{{ route('backups.index') }}"><i class="bi bi-database-check"></i>Backups <span class="z-dot ms-auto" style="width:9px;height:9px;border-radius:50%;display:inline-block;background:{{ ['green' => '#16a34a', 'amber' => '#d97706', 'red' => '#dc2626'][\App\Models\BackupRun::health('primary')] }}" title="Last database backup"></span></a>
       @endcan
     </nav>
     @endif

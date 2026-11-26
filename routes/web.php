@@ -54,6 +54,7 @@ Route::middleware(['auth', 'active', 'role:admin,accounts,supervisor', \App\Http
 
     // Activity log (Super Admin)
     Route::get('activity', [\App\Http\Controllers\ActivityLogController::class, 'index'])->name('activity.index');
+    Route::get('backups', [\App\Http\Controllers\BackupStatusController::class, 'index'])->name('backups.index');   // developer only (owner, 26 Nov 2026)
     Route::get('activity/export', [\App\Http\Controllers\ActivityLogController::class, 'export'])->middleware('throttle:20,1')->name('activity.export');
 
     // Users (Admin)

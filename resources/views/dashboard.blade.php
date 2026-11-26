@@ -66,6 +66,7 @@
       <a class="ms-auto" href="{{ route('payments.index') }}">Payments received →</a>
     </div>
   @endcan
+  @include('backups._card')
   @include('dashboard._reminders')
   <div class="row g-3">
     <div class="col-xl-8">
