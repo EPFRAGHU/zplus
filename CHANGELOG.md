@@ -2,6 +2,15 @@
 
 Versions follow MAJOR.MINOR.PATCH. Dates are Indian Standard Time.
 
+## 2.56.0 (2026-11-26): Setup and admin pages in the Work Orders style (Agencies, Users, Activity log, Data Upload, GeM import, What's new)
+
+- Agencies: figure boxes (agencies, work orders, employees, bank details complete, NEFT codes complete); each agency in three columns: contact & registration, billing & signatory, bank & NEFT upload codes (corporate ID, name, address code now shown), with a warning when NEFT codes are missing
+- Users: figure boxes and tabs All / Super Admins / Accounts / PIs / Switched off; failed sign-ins counted in Recent sign-ins
+- Activity log: figure boxes (today, this week, deleted, downloads, failed sign-ins) and one filter bar; green Download Excel
+- Data Upload: figure boxes, the how-to as a folding note, template cards in the new style; the check page shows new / update / no change / errors / will be saved as boxes
+- GeM Workbook Import and What's new: new heading; What's new gets figure boxes and a search box to find when something changed
+- Design only: who can see each page, the data and the rules stay the same
+
 ## 2.55.0 (2026-11-26): Detail pages in the Work Orders style (work order, sub-bill, tax invoice, employee, attendance sheet, make tax invoice)
 
 - Each detail page gets the Work Orders heading (number, status, agency and client, its own buttons on the right) and five figure boxes

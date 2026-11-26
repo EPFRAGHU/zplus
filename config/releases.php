@@ -12,6 +12,14 @@ return [
     'timezone' => 'Asia/Kolkata',      // release times are Indian Standard Time
 
     'releases' => [
+        ['version' => '2.56.0', 'date' => '2026-11-26 21:38', 'title' => 'Setup and admin pages in the Work Orders style (Agencies, Users, Activity log, Data Upload, GeM import, What\'s new)', 'type' => 'feature', 'notes' => [
+            'Agencies: figure boxes (agencies, work orders, employees, bank details complete, NEFT codes complete); each agency in three columns: contact & registration, billing & signatory, bank & NEFT upload codes (corporate ID, name, address code now shown), with a warning when NEFT codes are missing',
+            'Users: figure boxes and tabs All / Super Admins / Accounts / PIs / Switched off; failed sign-ins counted in Recent sign-ins',
+            'Activity log: figure boxes (today, this week, deleted, downloads, failed sign-ins) and one filter bar; green Download Excel',
+            'Data Upload: figure boxes, the how-to as a folding note, template cards in the new style; the check page shows new / update / no change / errors / will be saved as boxes',
+            'GeM Workbook Import and What\'s new: new heading; What\'s new gets figure boxes and a search box to find when something changed',
+            'Design only: who can see each page, the data and the rules stay the same',
+        ]],
         ['version' => '2.55.0', 'date' => '2026-11-26 21:24', 'title' => 'Detail pages in the Work Orders style (work order, sub-bill, tax invoice, employee, attendance sheet, make tax invoice)', 'type' => 'feature', 'notes' => [
             'Each detail page gets the Work Orders heading (number, status, agency and client, its own buttons on the right) and five figure boxes',
             'Work order: projects, posts filled / sanctioned, sub-bills of the month, billed to date (of the contract value), service period end',

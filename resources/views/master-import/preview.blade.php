@@ -2,14 +2,28 @@
 @php($toSave = $c['new'] + $c['update'])
 @php($badge = ['new' => ['New', 'success'], 'update' => ['Update', 'info'], 'unchanged' => ['No change', 'secondary'], 'error' => ['Error', 'danger']])
 @php($headers = collect($sheet->columns())->mapWithKeys(fn ($col) => [$col->key => $col->header])->all() + ['agency_id' => 'Agency', 'client_id' => 'Client', 'gem_contract_id' => 'Work order', 'project_id' => 'Project', 'post_id' => 'Post'])
-<x-layouts.app :title="'Check: '.$sheet->title()" :crumb="'Setup / <a href=\''.route('master-import.index').'\'>Data Upload</a>'">
+<x-layouts.app :title="'Check: '.$sheet->title()" :crumb="'Setup / <a href=\''.route('master-import.index').'\'>Data Upload</a>'" :quiet-title="true">
+  <div class="wo">
+  <div class="wo-head">
+    <div class="wo-head-icon"><i class="bi bi-file-earmark-check"></i></div>
+    <div class="me-auto"><h1>Check: {{ $sheet->title() }}</h1>
+      <p>File <b class="text-body">{{ $fileName }}</b>. Rows with errors are skipped; nothing is saved until you click Save.</p></div>
+    <div class="wo-actions d-flex gap-2 flex-wrap align-items-center">
+    
+    </div>
+  </div>
+  <div class="wo-kpis">
+    <div class="wo-kpi k-green"><i class="bi bi-plus-circle"></i><div><div class="l">New</div><div class="v">{{ $c['new'] }}</div></div></div>
+    <div class="wo-kpi k-blue"><i class="bi bi-arrow-repeat"></i><div><div class="l">To update</div><div class="v">{{ $c['update'] }}</div></div></div>
+    <div class="wo-kpi k-violet"><i class="bi bi-dash-circle"></i><div><div class="l">No change</div><div class="v">{{ $c['unchanged'] }}</div></div></div>
+    <div class="wo-kpi k-red"><i class="bi bi-exclamation-triangle"></i><div><div class="l">With errors</div><div class="v">{{ $c['error'] }}</div></div></div>
+    <div class="wo-kpi k-amber"><i class="bi bi-check2-circle"></i><div><div class="l">Will be saved</div><div class="v">{{ $toSave }}</div></div></div>
+  </div>
+
   <div class="z-card p-3 mb-3">
     <div class="d-flex flex-wrap gap-3 align-items-center">
       <div><div class="small text-secondary">File</div><div class="fw-semibold">{{ $fileName }}</div></div>
-      <span class="badge text-bg-success fs-6">{{ $c['new'] }} new</span>
-      <span class="badge text-bg-info fs-6">{{ $c['update'] }} to update</span>
-      <span class="badge text-bg-secondary fs-6">{{ $c['unchanged'] }} no change</span>
-      <span class="badge text-bg-danger fs-6">{{ $c['error'] }} with errors</span>
+      <span class="small text-secondary">{{ $c['new'] }} new · {{ $c['update'] }} to update · {{ $c['unchanged'] }} no change · {{ $c['error'] }} with errors</span>
       <div class="ms-auto d-flex gap-2">
         <a class="btn btn-outline-secondary" href="{{ route('master-import.index') }}">Cancel</a>
         <form method="post" action="{{ route('master-import.commit', $sheet->type()) }}">@csrf
@@ -43,5 +57,6 @@
         </tbody>
       </table>
     </div>
+  </div>
   </div>
 </x-layouts.app>
