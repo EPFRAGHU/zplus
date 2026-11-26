@@ -1,7 +1,7 @@
 # Database backups and the dashboard backup card
 
-The app does not back itself up: a script on the server makes the backup every night (the **primary**), and a copy is
-kept off the server, on the owner's laptop (the **secondary**). Each script then tells the app what it did, and the
+The app does not back itself up: a script on the server makes the backup every night (the **primary**) and uploads a
+copy to Cloudflare R2 (the **secondary**, off the server; the owner's laptop is an alternative). Each script then tells the app what it did, and the
 developer login sees it on the dashboard: green = backed up in the last 26 hours, amber = older, red = failed or none.
 **Setup → Backups** shows the history.
 
@@ -38,6 +38,13 @@ if tail -1 $OUT/db-$D.sql | grep -q "Dump completed"; then
   gzip -f $OUT/db-$D.sql
   docker cp "$APP":/var/www/html/storage/app $OUT/files-$D && tar -czf $OUT/files-$D.tar.gz -C $OUT files-$D && rm -rf $OUT/files-$D
   /root/zplus-record.sh primary "$H" ok "db-$D.sql.gz" "$(stat -c %s $OUT/db-$D.sql.gz)"
+  # Secondary: copy to Cloudflare R2 (section 2), check it arrived, report it. Remove these lines if R2 is not set up.
+  if rclone copy $OUT/db-$D.sql.gz r2:zplus-backups/ && rclone copy $OUT/files-$D.tar.gz r2:zplus-backups/ \
+     && rclone lsf r2:zplus-backups/db-$D.sql.gz | grep -q "db-$D.sql.gz"; then
+    /root/zplus-record.sh secondary cloudflare-r2 ok "db-$D.sql.gz" "$(stat -c %s $OUT/db-$D.sql.gz)"
+  else
+    /root/zplus-record.sh secondary cloudflare-r2 failed "db-$D.sql.gz" "" "upload to R2 failed"
+  fi
 else
   /root/zplus-record.sh primary "$H" failed "db-$D.sql" "" "dump did not finish"
 fi
@@ -57,7 +64,30 @@ crontab -l
 
 The dashboard card now shows **Primary: Backed up** in green with the server name and time.
 
-## 2. Secondary: copy to the laptop
+## 2. Secondary: Cloudflare R2 (recommended)
+
+Set this up **before** section 1c, so the first run already uploads. Free up to 10 GB; the backups are about 1 MB a day.
+
+1. Cloudflare → **R2 Object Storage** → **Create bucket** `zplus-backups` (private; never turn on public access). Bucket
+   → Settings → **Object lifecycle rules**: delete objects after 30 days (or 90).
+2. R2 API tokens (direct link `https://dash.cloudflare.com/?to=/:account/r2/api-tokens`; if missing, activate R2 once
+   with "Purchase R2"; it stays on the free tier) → **Create API token**: Object Read & Write, **only bucket
+   `zplus-backups`**, TTL Forever. Copy the Access Key ID, Secret Access Key and the endpoint
+   `https://<account-id>.r2.cloudflarestorage.com` (shown once). Never paste them into the app, GitHub or chat.
+3. On the VPS (as root):
+
+```sh
+curl -fsSL https://rclone.org/install.sh | bash
+rclone config create r2 s3 provider=Cloudflare access_key_id=YOUR_ACCESS_KEY_ID secret_access_key=YOUR_SECRET_ACCESS_KEY endpoint=https://YOUR_ACCOUNT_ID.r2.cloudflarestorage.com acl=private no_check_bucket=true
+chmod 600 /root/.config/rclone/rclone.conf
+rclone lsf r2:zplus-backups          # no error = connected
+```
+
+The nightly script (section 1b) then uploads `db-….sql.gz` and `files-….tar.gz` to R2 and reports **Secondary:
+cloudflare-r2** on the dashboard card. To fetch one back: `rclone copy r2:zplus-backups/db-YYYY-MM-DD.sql.gz /root/restore-test/`
+(or download it in the Cloudflare dashboard).
+
+## 2b. Alternative secondary: copy to the laptop
 
 Once, set up a key so the laptop can copy without typing the server password (PowerShell):
 

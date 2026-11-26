@@ -15,7 +15,7 @@ return [
         ['version' => '2.58.0', 'date' => '2026-11-26 22:43', 'title' => 'Database backup status on the dashboard (developer only)', 'type' => 'feature', 'notes' => [
             'New "Database backup" card on the dashboard, for the developer login only: Primary (backup on the server) and Secondary (copy kept off the server), each with the server name, date and time in IST, file and size',
             'Green = backed up in the last 26 hours, amber = older, red = failed or none (the reason of a failed run is shown); a coloured dot next to the new Setup → Backups menu, which lists every backup reported',
-            'The backup scripts report each run with `php artisan backups:record`; ready-made server (nightly, keeps 14 days) and laptop (copy + report) scripts in docs/guides/BACKUPS.md',
+            'The backup scripts report each run with `php artisan backups:record`; docs/guides/BACKUPS.md has the ready-made nightly server script (keeps 14 days) with the secondary copy uploaded to Cloudflare R2 (laptop copy as an alternative)',
             'New table backup_runs only; no other data changes',
         ]],
         ['version' => '2.57.1', 'date' => '2026-11-26 22:19', 'title' => 'Security fixes from the audit (M1, M2, M3)', 'type' => 'fix', 'notes' => [
