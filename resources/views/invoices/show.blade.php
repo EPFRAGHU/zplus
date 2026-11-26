@@ -49,7 +49,9 @@
           <tr class="fs-5 fw-bold"><td>Bill amount</td><td class="num">{{ inr($invoice->rounded_total, true) }}</td></tr>
         </table>
         <div class="small text-secondary mb-3">{{ $invoice->amountInWords() }}</div>
-        @if($next)
+        @if($next && $next[0] === 'paid' && ! \App\Services\Approvals\Approvals::canApprove(auth()->user()))
+          <div class="alert alert-light border small mb-2"><i class="bi bi-lock me-1"></i>When the client pays, enter it under <a href="#payments">Payments received</a>; the bill turns Paid when a Super Admin approves the payment. Only a Super Admin can mark it paid by hand.</div>
+        @elseif($next)
           <form method="post" action="{{ route('invoices.status', $invoice) }}" class="d-grid gap-2">@csrf
             <input type="hidden" name="status" value="{{ $next[0] }}">
             @if($next[0] === 'paid')<label class="small text-secondary" for="paid_on">Payment received on</label><input id="paid_on" type="date" name="paid_on" class="form-control" value="{{ now()->toDateString() }}" required><div class="small text-secondary mt-1">Better: <a href="#payments">Enter payment</a> with the UTR and the client's TDS; the bill turns Paid when it is approved. Use this button only for bills paid before payments were entered in the app.</div>@endif

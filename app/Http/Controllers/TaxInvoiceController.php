@@ -101,6 +101,10 @@ class TaxInvoiceController extends Controller
             'status' => ['required', Rule::in([self::NEXT[$taxInvoice->status] ?? null])],
             'paid_on' => ['required_if:status,paid', 'nullable', 'date'],
         ]);
+        // Security audit M3 (owner, 26 Nov 2026): Paid locks the bills for good, so only a Super Admin marks it by hand.
+        if ($data['status'] === 'paid' && ! \App\Services\Approvals\Approvals::canApprove($request->user())) {
+            return back()->withErrors(['status' => 'Only a Super Admin can mark a bill paid. Enter the payment under Payments received instead (a Super Admin approves it, then the bill turns Paid).']);
+        }
         if ($data['status'] === 'submitted' && ! app(\App\Services\Approvals\Approvals::class)->cleared('tax_invoice', $taxInvoice)) {
             return back()->withErrors(['tax' => 'The owner has not approved this tax invoice yet. Use "Send for approval" first.']);
         }

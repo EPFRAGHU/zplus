@@ -35,7 +35,7 @@ class AgencyController extends Controller
     {
         Gate::authorize('manage-masters');
         Gate::authorize('add-agency');
-        $agency = Agency::query()->create(Arr::except($this->validated($request), ['logo']));
+        $agency = Agency::query()->create(Arr::except($this->guardBank($request, $this->validated($request)), ['logo']));
         $this->saveLogo($request, $agency);
 
         return redirect()->route('agencies.index')->with('status', 'Agency added.');
@@ -51,10 +51,34 @@ class AgencyController extends Controller
     public function update(Request $request, Agency $agency): RedirectResponse
     {
         Gate::authorize('manage-masters');
-        $agency->update(Arr::except($this->validated($request, $agency), ['logo']));
+        $agency->update(Arr::except($this->guardBank($request, $this->validated($request, $agency), $agency), ['logo']));
         $this->saveLogo($request, $agency);
 
         return redirect()->route('agencies.index')->with('status', 'Agency saved.');
+    }
+
+    /** The agency's bank account (printed on tax invoices, where the client pays) and its NEFT upload codes. */
+    public const BANK_FIELDS = ['bank_name', 'bank_account_no', 'bank_ifsc', 'bank_branch', 'bank_corp_id', 'bank_corp_name', 'bank_address_code'];
+
+    /**
+     * Security audit M2 (owner, 26 Nov 2026): only a Super Admin changes the bank details. For anyone else they stay as
+     * they are (the form shows them read-only); a request that tries to change them is refused.
+     */
+    private function guardBank(Request $request, array $data, ?Agency $agency = null): array
+    {
+        if (\App\Services\Approvals\Approvals::canApprove($request->user())) {
+            return $data;
+        }
+        foreach (self::BANK_FIELDS as $f) {
+            $sent = $request->exists($f) ? trim((string) $request->input($f)) : null;
+            $now = (string) ($agency?->{$f} ?? '');
+            if ($sent !== null && $sent !== '' && strcasecmp($sent, $now) !== 0) {
+                throw \Illuminate\Validation\ValidationException::withMessages([$f => 'Only a Super Admin can change the bank details. Ask a Super Admin to make this change.']);
+            }
+            unset($data[$f]);
+        }
+
+        return $data;
     }
 
     private function validated(Request $request, ?Agency $agency = null): array

@@ -86,6 +86,10 @@ class WebFlowTest extends TestCase
         $this->post('/invoices/1/status', ['status' => 'paid'])->assertSessionHasErrors('status');
         $this->post('/invoices/1/status', ['status' => 'approved'])->assertSessionHasErrors('status');
         $this->post('/invoices/1/status', ['status' => 'submitted'])->assertSessionHasNoErrors();
+        // Security audit M3 (26 Nov 2026): only a Super Admin marks a bill paid by hand.
+        $this->post('/invoices/1/status', ['status' => 'paid', 'paid_on' => '2026-12-10'])->assertSessionHasErrors('status');
+        $this->assertSame('submitted', $invoice->fresh()->status);
+        auth()->user()->forceFill(['is_super_admin' => true, 'role' => 'admin'])->save();
         $this->post('/invoices/1/status', ['status' => 'paid', 'paid_on' => '2026-12-10'])->assertSessionHasNoErrors();
         $this->assertSame('paid', $invoice->fresh()->status);
     }

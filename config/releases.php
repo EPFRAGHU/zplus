@@ -12,6 +12,12 @@ return [
     'timezone' => 'Asia/Kolkata',      // release times are Indian Standard Time
 
     'releases' => [
+        ['version' => '2.57.1', 'date' => '2026-11-26 22:19', 'title' => 'Security fixes from the audit (M1, M2, M3)', 'type' => 'fix', 'notes' => [
+            'M1: security updates for the Symfony components the app is built on (7.4.24), including the two for e-mail sent through Gmail; no known advisories remain',
+            'M2: an agency\'s bank details (bank, branch, account number, IFSC) and NEFT upload codes can be changed only by a Super Admin, because the account is printed on every tax invoice where the client pays; others see them read-only, and a changed value sent by anyone else is refused. Changes stay in the Activity log',
+            'M3: "Mark paid" on a sub-bill or tax invoice is now for Super Admins only, because Paid locks the bill for good; Accounts enter the payment under Payments received, and the bill turns Paid when a Super Admin approves it',
+            'No amounts, numbers or stored data change',
+        ]],
         ['version' => '2.57.0', 'date' => '2026-11-26 21:52', 'title' => 'Add / edit forms in the Work Orders style (employee, work order, client, Project In-charge, agency, user)', 'type' => 'feature', 'notes' => [
             'Every form gets the Work Orders heading (what is being added or edited, its agency and client) with Cancel and Save at the top, and a Save bar that stays at the bottom of the screen on long forms',
             'Fields grouped in numbered cards with a short note: Employee (agency & client, 1 Personal, 2 Work, 3 Bank & payout, 4 Statutory & KYC; the four tabs are now all visible so no mistake hides on another tab), Work order (1 number, 2 contract details, 3 billing rules, 4 projects, posts and staff when adding), Client (1 client, 2 billing, 3 contact), Project In-charge, Agency (1 agency, 2 letterhead, 3 bank, 4 NEFT upload) and User',

@@ -52,6 +52,10 @@
       <x-field name="phones" label="Mobile numbers on letterhead" :value="$agency->phones" col="col-md-3" />
     </div>
     </div>
+    {{-- Security audit M2 (owner, 26 Nov 2026): only a Super Admin changes the bank details and NEFT codes; others see them read-only. --}}
+    @php($canBank = \App\Services\Approvals\Approvals::canApprove(auth()->user()))
+    <fieldset @disabled(! $canBank) class="m-0 p-0 border-0">
+    @unless($canBank)<div class="alert alert-light border small"><i class="bi bi-lock me-1"></i>The bank details and NEFT codes can be changed only by a <b>Super Admin</b>, because the bank account is printed on every tax invoice where the client pays. Ask a Super Admin to change them.</div>@endunless
     <div class="wo-card p-3 mb-3"><h2 class="wo-sec"><span>3</span>Bank details</h2>
     <p class="small text-secondary mb-2">Printed on tax invoices so the client knows where to pay.</p>
     <div class="row g-3">
@@ -69,6 +73,7 @@
       <x-field name="bank_address_code" label="Address (e.g. BBSR)" :value="$agency->bank_address_code" col="col-md-3" class="text-uppercase" />
     </div>
     </div>
+    </fieldset>
     <div class="wo-savebar"><a class="btn wo-btn-line" href="{{ route('agencies.index') }}">Cancel</a><button class="btn wo-btn-primary">Save agency</button></div>
   </form>
   </div>

@@ -166,6 +166,10 @@ class InvoiceController extends Controller
             'paid_on' => ['required_if:status,paid', 'nullable', 'date'],
         ]);
         Gate::authorize($data['status'] === 'approved' ? 'approve-invoice' : 'billing');
+        // Security audit M3 (owner, 26 Nov 2026): Paid locks the bill for good, so only a Super Admin marks it by hand.
+        if ($data['status'] === 'paid' && ! \App\Services\Approvals\Approvals::canApprove($request->user())) {
+            return back()->withErrors(['status' => 'Only a Super Admin can mark a bill paid. Enter the payment under Payments received instead (a Super Admin approves it, then the bill turns Paid).']);
+        }
         if ($data['status'] === 'submitted' && ! app(\App\Services\Approvals\Approvals::class)->cleared('sub_bill', $invoice)) {
             return back()->withErrors(['invoice' => 'The owner has not approved this sub-bill yet. Use "Send for approval" first.']);
         }

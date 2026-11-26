@@ -143,6 +143,10 @@ class TaxInvoiceTest extends TestCase
         $this->delete("/invoices/{$bills[0]->id}")->assertSessionHasErrors('invoice');
 
         $this->post("/tax-invoices/{$tax->id}/status", ['status' => 'submitted'])->assertSessionHasNoErrors();
+        // Security audit M3 (26 Nov 2026): only a Super Admin marks a tax invoice paid by hand.
+        $this->post("/tax-invoices/{$tax->id}/status", ['status' => 'paid', 'paid_on' => '2026-12-15'])->assertSessionHasErrors('status');
+        $this->assertSame('submitted', $tax->fresh()->status);
+        auth()->user()->forceFill(['is_super_admin' => true, 'role' => 'admin'])->save();
         $this->post("/tax-invoices/{$tax->id}/status", ['status' => 'paid', 'paid_on' => '2026-12-15'])->assertSessionHasNoErrors();
         $this->assertSame('paid', $tax->fresh()->status);
         $this->assertSame(2, Invoice::query()->where('status', 'paid')->count());   // paying the tax invoice settles its sub-bills
