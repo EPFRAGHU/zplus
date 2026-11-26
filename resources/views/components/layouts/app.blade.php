@@ -149,5 +149,14 @@
   })();
 </script>
 @endif
+<script>
+  // Forms (owner, 26 Nov 2026): after a save with mistakes, go to the first one and mark its section card.
+  document.addEventListener('DOMContentLoaded', function () {
+    const bad = document.querySelector('form.wo-form .is-invalid');
+    if (!bad) return;
+    const card = bad.closest('.wo-card'); if (card) card.classList.add('wo-card-error');
+    bad.scrollIntoView({ block: 'center' }); try { bad.focus({ preventScroll: true }); } catch (e) {}
+  });
+</script>
 </body>
 </html>

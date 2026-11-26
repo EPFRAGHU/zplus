@@ -1,6 +1,14 @@
-<x-layouts.app :title="$agency->exists ? 'Edit agency' : 'Add agency'" crumb="Masters / Agencies">
-  <form method="post" action="{{ $agency->exists ? route('agencies.update', $agency) : route('agencies.store') }}" class="z-card p-3" enctype="multipart/form-data">
+<x-layouts.app :title="$agency->exists ? 'Edit agency' : 'Add agency'" crumb="Masters / Agencies" :quiet-title="true">
+  <div class="wo">
+  <div class="wo-head">
+    <div class="wo-head-icon"><i class="bi bi-building"></i></div>
+    <div class="me-auto"><h1>{{ $agency->exists ? 'Edit '.$agency->name : 'Add agency' }}</h1>
+      <p>Letterhead, GST and registration details, bank account and the codes for the bank's NEFT upload. Fields marked <span class="text-danger">*</span> are required.</p></div>
+    <div class="wo-actions d-flex gap-2"><a class="btn wo-btn-line" href="{{ route('agencies.index') }}">Cancel</a><button class="btn wo-btn-primary" form="agency-form">Save agency</button></div>
+  </div>
+  <form method="post" action="{{ $agency->exists ? route('agencies.update', $agency) : route('agencies.store') }}" id="agency-form" class="wo-form" enctype="multipart/form-data">
     @csrf @if($agency->exists) @method('put') @endif
+    <div class="wo-card p-3 mb-3"><h2 class="wo-sec"><span>1</span>Agency &amp; registrations</h2>
     <div class="row g-3">
       <x-field name="name" label="Agency name" :value="$agency->name" required />
       <x-field name="code" label="Short code" :value="$agency->code" required col="col-md-2" hint="Used in letter numbers, e.g. SWH" />
@@ -13,7 +21,8 @@
       <x-field name="signatory_name" label="Signatory name" :value="$agency->signatory_name" col="col-md-3" />
       <x-field name="signatory_title" label="Signatory title" :value="$agency->signatory_title" col="col-md-3" hint="e.g. Managing Partner" />
     </div>
-    <h2 class="h6 fw-bold mt-4 mb-1">Letterhead</h2>
+    </div>
+    <div class="wo-card p-3 mb-3"><h2 class="wo-sec"><span>2</span>Letterhead</h2>
     <p class="small text-secondary mb-2">Printed at the top of bills, covering letters and appointment letters. The footer line uses the website, e-mails and mobile numbers.</p>
     <div class="row g-3">
       <div class="col-md-3">
@@ -42,7 +51,8 @@
       <x-field name="letterhead_emails" label="E-mails on letterhead" :value="$agency->letterhead_emails" col="col-md-5" hint="Separate with commas" />
       <x-field name="phones" label="Mobile numbers on letterhead" :value="$agency->phones" col="col-md-3" />
     </div>
-    <h2 class="h6 fw-bold mt-4 mb-1">Bank details</h2>
+    </div>
+    <div class="wo-card p-3 mb-3"><h2 class="wo-sec"><span>3</span>Bank details</h2>
     <p class="small text-secondary mb-2">Printed on tax invoices so the client knows where to pay.</p>
     <div class="row g-3">
       <x-field name="bank_name" label="Bank name" :value="$agency->bank_name" col="col-md-3" />
@@ -50,13 +60,16 @@
       <x-field name="bank_ifsc" label="IFSC" :value="$agency->bank_ifsc" col="col-md-3" class="mono text-uppercase" />
       <x-field name="bank_branch" label="Branch" :value="$agency->bank_branch" col="col-md-3" />
     </div>
-    <h2 class="h6 fw-bold mt-4 mb-1">Bank salary upload (NEFT file)</h2>
+    </div>
+    <div class="wo-card p-3 mb-3"><h2 class="wo-sec"><span>4</span>Bank salary upload (NEFT file)</h2>
     <p class="small text-secondary mb-2">As given by the bank for corporate internet banking. Printed in every row of the NEFT file on the Bank Letter page; the debit account is the account number above.</p>
     <div class="row g-3">
       <x-field name="bank_corp_id" label="Corporate ID (corp id)" :value="$agency->bank_corp_id" col="col-md-3" class="mono" />
       <x-field name="bank_corp_name" label="Corporate name (corp name)" :value="$agency->bank_corp_name" col="col-md-3" class="text-uppercase" />
       <x-field name="bank_address_code" label="Address (e.g. BBSR)" :value="$agency->bank_address_code" col="col-md-3" class="text-uppercase" />
     </div>
-    <div class="d-flex gap-2 justify-content-end mt-3"><a class="btn btn-outline-secondary" href="{{ route('agencies.index') }}">Cancel</a><button class="btn btn-primary">Save agency</button></div>
+    </div>
+    <div class="wo-savebar"><a class="btn wo-btn-line" href="{{ route('agencies.index') }}">Cancel</a><button class="btn wo-btn-primary">Save agency</button></div>
   </form>
+  </div>
 </x-layouts.app>

@@ -213,3 +213,10 @@ tfoot tr.bills-grand > td{background:#0f2a5c!important;color:#fff;font-weight:70
 /* Dashboard: six figure boxes, wrapping like the five-box rows (owner, 26 Nov 2026). */
 @media (max-width:1200px){.wo-kpis.wo-kpis-6{grid-template-columns:repeat(3,minmax(0,1fr))}}
 @media (max-width:768px){.wo-kpis.wo-kpis-6{grid-template-columns:repeat(2,minmax(0,1fr))}}
+
+/* Forms in the Work Orders style (owner, 26 Nov 2026): numbered section cards, a save bar that stays in view, the card with the first error marked. */
+.wo-sec{display:flex;align-items:center;gap:10px;font-size:1rem;font-weight:700;margin:0 0 2px}
+.wo-sec > span{width:26px;height:26px;border-radius:50%;display:grid;place-items:center;background:var(--wo-blue);color:#fff;font-size:.8rem}
+.wo-sec-note{color:var(--wo-muted);font-size:.85rem;margin:0 0 12px 36px}
+.wo-savebar{position:sticky;bottom:0;z-index:20;display:flex;gap:8px;justify-content:flex-end;align-items:center;flex-wrap:wrap;padding:12px 16px;margin-top:4px;background:rgba(255,255,255,.96);border:1px solid var(--wo-line);border-radius:14px;box-shadow:0 -4px 16px rgba(15,23,42,.06)}
+.wo-card.wo-card-error{border-color:#dc3545;box-shadow:0 0 0 3px rgba(220,53,69,.15)}

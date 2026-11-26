@@ -1,5 +1,13 @@
-<x-layouts.app :title="$employee->exists ? 'Edit '.$employee->name : 'Add employee'" crumb="Masters / Employees">
-  <form method="post" action="{{ $employee->exists ? route('employees.update', $employee) : route('employees.store') }}" class="z-card">
+<x-layouts.app :title="$employee->exists ? 'Edit '.$employee->name : 'Add employee'" crumb="Masters / Employees" :quiet-title="true">
+  {{-- Work Orders style form (owner, 26 Nov 2026): the four tabs became numbered cards, all visible, so no mistake hides on another tab. Fields unchanged. --}}
+  <div class="wo">
+  <div class="wo-head">
+    <div class="wo-head-icon"><i class="bi bi-person{{ $employee->exists ? '' : '-plus' }}"></i></div>
+    <div class="me-auto"><h1>{{ $employee->exists ? 'Edit '.$employee->name : 'Add employee' }}@if($employee->exists) <span class="mono small text-secondary">{{ $employee->emp_code }}</span>@endif</h1>
+      <p>@if($employee->exists)Agency: <b class="text-body">{{ $employee->agency?->name ?? '—' }}</b> · Client: <b class="text-body">{{ $employee->client?->name ?? 'not assigned' }}</b> · @endif Fields marked <span class="text-danger">*</span> are required.</p></div>
+    <div class="wo-actions d-flex gap-2"><a class="btn wo-btn-line" href="{{ $employee->exists ? route('employees.show', $employee) : route('employees.index') }}">Cancel</a><button class="btn wo-btn-primary" form="employee-form">Save employee</button></div>
+  </div>
+  <form method="post" id="employee-form" action="{{ $employee->exists ? route('employees.update', $employee) : route('employees.store') }}" class="wo-form">
     @csrf @if($employee->exists) @method('put') @endif
     @if(\App\Services\Approvals\StaffChanges::applies())
       <div class="alert alert-info small m-3 mb-0"><i class="bi bi-person-check me-1"></i>{{ $employee->exists
@@ -10,7 +18,9 @@
     @php($agencyId = (string) old('agency_id', $employee->agency_id ?? $employee->post?->project->contract->agency_id))
     @php($clientId = (string) old('client_id', $employee->client_id ?? $employee->post?->project->contract->client_id))
     @php($postId = (string) old('post_id', $employee->post_id))
-    <div class="row g-3 px-3 pt-3">
+    <div class="wo-card p-3 mb-3">
+    <h2 class="wo-sec"><span><i class="bi bi-building"></i></span>Agency and client</h2><p class="wo-sec-note">Choose these first: the post list below shows only their posts.</p>
+    <div class="row g-3">
         <div class="col-md-6">
           <label for="f-agency_id" class="form-label small fw-semibold text-secondary mb-1">Agency <span class="text-danger">*</span></label>
           <select id="f-agency_id" name="agency_id" class="form-select @error('agency_id') is-invalid @enderror" required>
@@ -27,14 +37,9 @@
           </select>
           @error('client_id')<div class="invalid-feedback">{{ $message }}</div>@enderror
         </div>
-    </div>
-    <ul class="nav nav-tabs px-3 pt-3" role="tablist">
-      @foreach(['basic' => 'Basic info', 'work' => 'Work info', 'bank' => 'Bank & payout', 'kyc' => 'KYC & statutory'] as $k => $v)
-        <li class="nav-item"><button class="nav-link @if($loop->first) active @endif" data-bs-toggle="tab" data-bs-target="#t-{{ $k }}" type="button" role="tab">{{ $v }}</button></li>
-      @endforeach
-    </ul>
-    <div class="tab-content p-3">
-      <div class="tab-pane fade show active" id="t-basic" role="tabpanel"><div class="row g-3">
+    </div></div>
+    <div>
+      <div class="wo-card p-3 mb-3" id="t-basic"><h2 class="wo-sec"><span>1</span>Personal</h2><p class="wo-sec-note">Name, family, contact and address.</p><div class="row g-3">
         <x-field name="name" label="Employee name" :value="$employee->name" required />
         <x-field name="father_name" label="Father's name" :value="$employee->father_name" />
         <x-field name="dob" label="Date of birth" type="date" :value="$employee->dob?->toDateString()" col="col-md-3" />
@@ -45,7 +50,7 @@
         <x-field name="qualification" label="Qualification" :value="$employee->qualification" />
         <x-textarea name="address" label="Address" :value="$employee->address" />
       </div></div>
-      <div class="tab-pane fade" id="t-work" role="tabpanel"><div class="row g-3">
+      <div class="wo-card p-3 mb-3" id="t-work"><h2 class="wo-sec"><span>2</span>Work</h2><p class="wo-sec-note">Post, employee ID, dates and status. A full post cannot be chosen.</p><div class="row g-3">
         <div class="col-12">
           <div class="d-flex align-items-end justify-content-between gap-2">
             <label for="f-post_id" class="form-label small fw-semibold text-secondary mb-1">GeM post (project · designation · rate)</label>
@@ -78,7 +83,7 @@
         <x-select name="status" label="Status" :options="\App\Models\Employee::STATUSES" :value="$employee->status" required col="col-md-3" />
         <x-field name="rate_override" label="Salary if different from post (₹)" type="number" step="0.01" :value="$employee->rate_override" col="col-md-3" />
       </div></div>
-      <div class="tab-pane fade" id="t-bank" role="tabpanel"><div class="row g-3">
+      <div class="wo-card p-3 mb-3" id="t-bank"><h2 class="wo-sec"><span>3</span>Bank &amp; payout</h2><p class="wo-sec-note">Used for the salary payout sheet, bank letter and NEFT file. Name exactly as on the passbook.</p><div class="row g-3">
         <x-field name="bank_name" label="Bank name" :value="$employee->bank_name" />
         <x-field name="account_holder" label="Account holder name" :value="$employee->account_holder" hint="As printed on the passbook" />
         @can('view-bank-details')
@@ -89,7 +94,7 @@
         <x-field name="upi_id" label="UPI ID (optional)" :value="$employee->upi_id" col="col-md-4" class="mono" />
         <div class="col-12"><div class="alert alert-light border small mb-0">Bank account verification and Cashfree payouts arrive in the next update. Changing the account number clears any earlier verification.</div></div>
       </div></div>
-      <div class="tab-pane fade" id="t-kyc" role="tabpanel"><div class="row g-3">
+      <div class="wo-card p-3 mb-3" id="t-kyc"><h2 class="wo-sec"><span>4</span>Statutory &amp; KYC</h2><p class="wo-sec-note">Aadhaar, PAN, UAN, ESIC and the EPF / ESIC / TDS switches.</p><div class="row g-3">
         @can('view-bank-details')
           <x-field name="aadhaar" label="Aadhaar number" value="" col="col-md-4" class="mono" autocomplete="off"
             :hint="$employee->aadhaar_last4 ? 'Saved: XXXX XXXX '.$employee->aadhaar_last4.'. Leave blank to keep it.' : 'Stored encrypted'" />
@@ -110,9 +115,9 @@
         </div></div>
       </div></div>
     </div>
-    <div class="d-flex gap-2 justify-content-end p-3 border-top">
-      <a class="btn btn-outline-secondary" href="{{ $employee->exists ? route('employees.show', $employee) : route('employees.index') }}">Cancel</a>
-      <button class="btn btn-primary">Save employee</button>
+    <div class="wo-savebar">
+      <a class="btn wo-btn-line" href="{{ $employee->exists ? route('employees.show', $employee) : route('employees.index') }}">Cancel</a>
+      <button class="btn wo-btn-primary">Save employee</button>
       @if($employee->exists)
         @can('delete-masters')
           {{-- After Save (owner, 23 Nov 2026); submits the separate delete form below. Only someone not yet on attendance or bills. --}}
@@ -173,4 +178,5 @@
   @if($errors->any())
   <script>document.addEventListener('DOMContentLoaded',()=>{const bad=document.querySelector('.is-invalid');const pane=bad&&bad.closest('.tab-pane');if(pane){bootstrap.Tab.getOrCreateInstance(document.querySelector('[data-bs-target="#'+pane.id+'"]')).show();}});</script>
   @endif
+  </div>
 </x-layouts.app>

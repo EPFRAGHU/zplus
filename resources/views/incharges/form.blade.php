@@ -1,6 +1,14 @@
-<x-layouts.app :title="$incharge->exists ? 'Edit '.$incharge->name : 'Add Project In-charge'" :crumb="'Masters / <a href=\''.route('incharges.index').'\'>Project In-charge</a>'">
-  <form method="post" action="{{ $incharge->exists ? route('incharges.update', $incharge) : route('incharges.store') }}" class="z-card p-3">
+<x-layouts.app :title="$incharge->exists ? 'Edit '.$incharge->name : 'Add Project In-charge'" :crumb="'Masters / <a href=\''.route('incharges.index').'\'>Project In-charge</a>'" :quiet-title="true">
+  <div class="wo">
+  <div class="wo-head">
+    <div class="wo-head-icon"><i class="bi bi-person-badge"></i></div>
+    <div class="me-auto"><h1>{{ $incharge->exists ? 'Edit '.$incharge->name : 'Add Project In-charge' }}</h1>
+      <p>@if($incharge->exists)Agency: <b class="text-body">{{ $incharge->agency?->name }}</b> · @endif The Project In-charge signs the monthly attendance certificate. Fields marked <span class="text-danger">*</span> are required.</p></div>
+    <div class="wo-actions d-flex gap-2"><a class="btn wo-btn-line" href="{{ route('incharges.index') }}">Cancel</a><button class="btn wo-btn-primary" form="incharge-form">Save</button></div>
+  </div>
+  <form method="post" action="{{ $incharge->exists ? route('incharges.update', $incharge) : route('incharges.store') }}" id="incharge-form" class="wo-form">
     @csrf @if($incharge->exists) @method('put') @endif
+    <div class="wo-card p-3 mb-3"><h2 class="wo-sec"><span>1</span>Project In-charge</h2>
     <div class="row g-3">
       <x-select name="agency_id" label="Agency" :options="$agencies->pluck('name', 'id')" :value="$incharge->agency_id" required placeholder="Choose agency" col="col-md-4" />
       <x-field name="name" label="Name of the Project In-charge" :value="$incharge->name" required col="col-md-4" hint="e.g. Dr. A. Kumar" />
@@ -25,7 +33,8 @@
     </div>
 
     {{-- Mapping-style allotment (owner, 23 Nov 2026): choose a work order, tick its projects; every ticked project shows as a chip. --}}
-    <h2 class="h6 fw-bold mt-4">Projects of this In-charge</h2>
+    </div>
+    <div class="wo-card p-3 mb-3"><h2 class="wo-sec"><span>2</span>Projects of this In-charge</h2>
     <p class="small text-secondary">Choose a work order, then tick the projects this In-charge looks after. Repeat for other work orders. A project has one In-charge: ticking a project that has another In-charge moves it here.</p>
     @error('projects')<div class="alert alert-danger small">{{ $message }}</div>@enderror
     @php($ticked = collect(old('projects', $incharge->exists ? $incharge->projects()->pluck('id')->all() : []))->map(fn ($v) => (int) $v))
@@ -67,7 +76,8 @@
         </div>
       </div>
     @endif
-    <div class="d-flex gap-2 justify-content-end mt-3"><a class="btn btn-outline-secondary" href="{{ route('incharges.index') }}">Cancel</a><button class="btn btn-primary">Save</button></div>
+    </div>
+    <div class="wo-savebar"><a class="btn wo-btn-line" href="{{ route('incharges.index') }}">Cancel</a><button class="btn wo-btn-primary">Save</button></div>
   </form>
   @if($incharge->exists)
     @can('delete-masters')
@@ -109,4 +119,5 @@
       byAgency();
     })();
   </script>
+  </div>
 </x-layouts.app>

@@ -12,6 +12,13 @@ return [
     'timezone' => 'Asia/Kolkata',      // release times are Indian Standard Time
 
     'releases' => [
+        ['version' => '2.57.0', 'date' => '2026-11-26 21:52', 'title' => 'Add / edit forms in the Work Orders style (employee, work order, client, Project In-charge, agency, user)', 'type' => 'feature', 'notes' => [
+            'Every form gets the Work Orders heading (what is being added or edited, its agency and client) with Cancel and Save at the top, and a Save bar that stays at the bottom of the screen on long forms',
+            'Fields grouped in numbered cards with a short note: Employee (agency & client, 1 Personal, 2 Work, 3 Bank & payout, 4 Statutory & KYC; the four tabs are now all visible so no mistake hides on another tab), Work order (1 number, 2 contract details, 3 billing rules, 4 projects, posts and staff when adding), Client (1 client, 2 billing, 3 contact), Project In-charge, Agency (1 agency, 2 letterhead, 3 bank, 4 NEFT upload) and User',
+            'Work order form: a live "How a bill will be worked out" line with the rates typed in (one person at ₹20,000 with EPF and ESIC on)',
+            'After a save with a mistake, the page goes to the first wrong field and outlines its card in red',
+            'Design only: every field, check, approval rule and saved value stays the same',
+        ]],
         ['version' => '2.56.0', 'date' => '2026-11-26 21:38', 'title' => 'Setup and admin pages in the Work Orders style (Agencies, Users, Activity log, Data Upload, GeM import, What\'s new)', 'type' => 'feature', 'notes' => [
             'Agencies: figure boxes (agencies, work orders, employees, bank details complete, NEFT codes complete); each agency in three columns: contact & registration, billing & signatory, bank & NEFT upload codes (corporate ID, name, address code now shown), with a warning when NEFT codes are missing',
             'Users: figure boxes and tabs All / Super Admins / Accounts / PIs / Switched off; failed sign-ins counted in Recent sign-ins',
