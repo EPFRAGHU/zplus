@@ -29,7 +29,17 @@ class ClientController extends Controller
             ->withCount(['clients', 'contracts', 'employees' => fn ($q) => $q->whereIn('status', ['active', 'notice'])])
             ->get()->keyBy('id');
 
-        return view('clients.index', ['clients' => $clients, 'agencies' => Agency::query()->orderBy('name')->get(), 'blockTotals' => $blockTotals]);
+        // Figure boxes (owner, 26 Nov 2026): for the chosen agency, or both.
+        $agencyId = $request->integer('agency') ?: null;
+        $kpi = [
+            'clients' => Client::query()->when($agencyId, fn ($q, $id) => $q->where('agency_id', $id))->count(),
+            'contracts' => \App\Models\GemContract::query()->when($agencyId, fn ($q, $id) => $q->where('agency_id', $id))->count(),
+            'active' => \App\Models\GemContract::query()->when($agencyId, fn ($q, $id) => $q->where('agency_id', $id))->where('status', 'active')->count(),
+            'employees' => \App\Models\Employee::query()->when($agencyId, fn ($q, $id) => $q->where('agency_id', $id))->whereIn('status', ['active', 'notice'])->count(),
+            'sanctioned' => (int) \App\Models\Post::query()->when($agencyId, fn ($q, $id) => $q->whereHas('project.contract', fn ($c) => $c->where('agency_id', $id)))->sum('sanctioned_qty'),
+        ];
+
+        return view('clients.index', ['clients' => $clients, 'agencies' => Agency::query()->orderBy('name')->get(), 'blockTotals' => $blockTotals, 'kpi' => $kpi]);
     }
 
     public function create(Request $request): View

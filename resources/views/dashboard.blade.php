@@ -1,29 +1,26 @@
-<x-layouts.app title="Dashboard" crumb="Admin dashboard">
+<x-layouts.app title="Dashboard" crumb="Admin dashboard" :quiet-title="true">
   @php($q = array_filter(['agency' => $agencyId, 'client' => $clientId, 'contract' => $contractId, 'project' => $projectId]))
   @php($me = auth()->user())
   @php($myAgency = \App\Support\Agency\AgencyContext::agency())
-  <div class="z-card mb-3 d-flex align-items-center gap-3 p-3" style="border-left:5px solid var(--z-accent)">
-    @if($myAgency)
-      @if($myAgency->logo_path)<img src="{{ route('agencies.logo', $myAgency) }}" alt="" style="width:56px;height:56px;object-fit:contain">@endif
-      <div>
-        <div class="small text-secondary text-uppercase" style="letter-spacing:.06em">You are working for</div>
-        <div class="fs-4 fw-bold lh-sm">{{ $myAgency->name }}</div>
-        <div class="small text-secondary">Agency code {{ $myAgency->code }}@if($myAgency->gstin) · GSTIN {{ $myAgency->gstin }}@endif · all data you see and enter is for this agency only</div>
-      </div>
-    @else
-      <div>
-        <div class="small text-secondary text-uppercase" style="letter-spacing:.06em">You are working for</div>
-        <div class="fs-4 fw-bold lh-sm">Both agencies</div>
-        <div class="small text-secondary">{{ $agencies->pluck('name')->implode(' and ') ?: 'No agencies added yet' }} · use the Agency filter below to look at one</div>
-      </div>
-    @endif
-    <div class="ms-auto text-end small text-secondary d-none d-md-block">{{ $me->name }}<br>{{ \App\Models\User::ROLES[$me->role] ?? $me->role }}</div>
+  <div class="wo">
+  {{-- Work Orders style (owner, 26 Nov 2026): heading with the agency you work for, figure boxes and a filter bar. --}}
+  <div class="wo-head">
+    @if($myAgency && $myAgency->logo_path)<img src="{{ route('agencies.logo', $myAgency) }}" alt="" class="wo-head-icon" style="object-fit:contain;padding:4px">@else<div class="wo-head-icon"><i class="bi bi-grid"></i></div>@endif
+    <div class="me-auto">
+      <h1>Dashboard</h1>
+      @if($myAgency)
+        <p>You are working for <b class="text-body">{{ $myAgency->name }}</b> · agency code {{ $myAgency->code }}@if($myAgency->gstin) · GSTIN {{ $myAgency->gstin }}@endif · all data you see and enter is for this agency only</p>
+      @else
+        <p>You are working for <b class="text-body">Both agencies</b> · {{ $agencies->pluck('name')->implode(' and ') ?: 'No agencies added yet' }} · use the Agency filter below to look at one</p>
+      @endif
+    </div>
+    <div class="text-end small text-secondary d-none d-md-block">{{ $me->name }}<br>{{ \App\Models\User::ROLES[$me->role] ?? $me->role }}</div>
   </div>
   @unless(\App\Services\Approvals\Approvals::canApprove($me))
     @php($mkWaiting = \App\Models\Approval::query()->where('status', 'pending')->count())
     @php($mkReturned = \App\Models\Approval::query()->where('status', 'returned')->where('submitted_by', $me->id)->where('decided_at', '>=', now()->subDays(14))->count())
     @if($mkWaiting || $mkReturned)
-    <a href="{{ route('approvals.index') }}" class="z-card mb-3 p-3 d-flex flex-wrap gap-3 align-items-center text-decoration-none text-body" id="my-approvals">
+    <a href="{{ route('approvals.index') }}" class="wo-card mb-3 p-3 d-flex flex-wrap gap-3 align-items-center text-decoration-none text-body" id="my-approvals">
       <i class="bi bi-person-check fs-4"></i>
       <span class="fw-semibold">Your approvals</span>
       <span class="badge text-bg-secondary">{{ $mkWaiting }} waiting for Super Admin</span>
@@ -32,37 +29,37 @@
     </a>
     @endif
   @endunless
-  <form class="z-card p-3 mb-3 d-flex gap-2 align-items-end flex-wrap">
+  <form class="wo-bar" method="get" action="{{ route('dashboard') }}">
     @unless($myAgency)
-    <div><label class="form-label small text-secondary mb-1" for="f-agency">Agency</label>
-      <select id="f-agency" name="agency" class="form-select"><option value="">All agencies</option>@foreach($agencies as $a)<option value="{{ $a->id }}" @selected($agencyId === $a->id)>{{ $a->name }}</option>@endforeach</select></div>
+    <label class="wo-pick" for="f-agency"><span>Agency:</span>
+      <select id="f-agency" name="agency" class="form-select"><option value="">All agencies</option>@foreach($agencies as $a)<option value="{{ $a->id }}" @selected($agencyId === $a->id)>{{ $a->name }}</option>@endforeach</select></label>
     @endunless
-    <div><label class="form-label small text-secondary mb-1" for="f-client">Client</label>
-      <select id="f-client" name="client" class="form-select"><option value="">All clients</option>@foreach($clients as $c)<option value="{{ $c->id }}" data-agency="{{ $c->agency_id }}" @selected($clientId === $c->id)>{{ $c->name }}</option>@endforeach</select></div>
-    <div><label class="form-label small text-secondary mb-1" for="f-contract">Work order</label>
-      <select id="f-contract" name="contract" class="form-select"><option value="">All contracts</option>@foreach($contractOptions as $k)<option value="{{ $k->id }}" data-agency="{{ $k->agency_id }}" data-client="{{ $k->client_id }}" @selected($contractId === $k->id)>{{ $k->pickLabel() }}</option>@endforeach</select></div>
-    <div><label class="form-label small text-secondary mb-1" for="f-project">Project</label>
-      <select id="f-project" name="project" class="form-select"><option value="">All projects</option>@foreach($projectOptions as $pp)<option value="{{ $pp->id }}" data-agency="{{ $pp->contract->agency_id }}" data-client="{{ $pp->contract->client_id }}" data-contract="{{ $pp->gem_contract_id }}" @selected($projectId === $pp->id)>{{ $pp->label() }}</option>@endforeach</select></div>
-    <button class="btn btn-outline-secondary">Show</button>
-    @if($q)<a class="btn btn-link" href="{{ route('dashboard') }}">Clear</a>@endif
+    <label class="wo-pick" for="f-client"><span>Client:</span>
+      <select id="f-client" name="client" class="form-select"><option value="">All clients</option>@foreach($clients as $c)<option value="{{ $c->id }}" data-agency="{{ $c->agency_id }}" @selected($clientId === $c->id)>{{ $c->name }}</option>@endforeach</select></label>
+    <label class="wo-pick" for="f-contract"><span>Work order:</span>
+      <select id="f-contract" name="contract" class="form-select"><option value="">All work orders</option>@foreach($contractOptions as $k)<option value="{{ $k->id }}" data-agency="{{ $k->agency_id }}" data-client="{{ $k->client_id }}" @selected($contractId === $k->id)>{{ $k->pickLabel() }}</option>@endforeach</select></label>
+    <label class="wo-pick" for="f-project"><span>Project:</span>
+      <select id="f-project" name="project" class="form-select"><option value="">All projects</option>@foreach($projectOptions as $pp)<option value="{{ $pp->id }}" data-agency="{{ $pp->contract->agency_id }}" data-client="{{ $pp->contract->client_id }}" data-contract="{{ $pp->gem_contract_id }}" @selected($projectId === $pp->id)>{{ $pp->label() }}</option>@endforeach</select></label>
+    <button class="btn wo-btn-primary">Show</button>
+    @if($q)<a class="btn btn-link px-1" href="{{ route('dashboard') }}">Clear</a>@endif
     <span class="small text-secondary w-100">
       Showing {{ $myAgency ? $myAgency->name : ($agencyId ? $agencies->firstWhere('id', $agencyId)?->name : 'all agencies') }}{{ $clientId ? ' · '.$clients->firstWhere('id', $clientId)?->name : '' }}{{ $contractId ? ' · '.$contractOptions->firstWhere('id', $contractId)?->bid_no : '' }}{{ $projectId ? ' · '.$projectOptions->firstWhere('id', $projectId)?->name : '' }}
     </span>
   </form>
-  <div class="row row-cols-2 row-cols-md-3 row-cols-xl-6 g-3 mb-3">
-    <x-kpi label="Clients" icon="bank" :value="$stats['clients']" />
-    <x-kpi label="Active work orders" icon="folder2" :value="$stats['contracts']" color="#1f63c4" />
-    <x-kpi label="Employees deployed" icon="people" :value="$stats['employees']" color="#1f8a4c" />
-    <x-kpi label="Posts vacant" icon="person-dash" :value="$stats['vacant']" :meta="'of '.$stats['sanctioned'].' sanctioned'" color="#b26b00" />
-    <x-kpi label="Billed this year" icon="receipt" :value="inr($stats['billedThisYear'])" color="#1d1a1c" />
-    <x-kpi label="Awaiting payment" icon="hourglass-split" :value="inr($stats['unpaid'])" meta="Approved and submitted bills" color="#5b3fd1" />
+  <div class="wo-kpis wo-kpis-6">
+    <div class="wo-kpi k-blue"><i class="bi bi-bank"></i><div><div class="l">Clients</div><div class="v">{{ $stats['clients'] }}</div></div></div>
+    <div class="wo-kpi k-violet"><i class="bi bi-folder2"></i><div><div class="l">Active work orders</div><div class="v">{{ $stats['contracts'] }}</div></div></div>
+    <div class="wo-kpi k-green"><i class="bi bi-people"></i><div><div class="l">Employees deployed</div><div class="v">{{ $stats['employees'] }}</div></div></div>
+    <div class="wo-kpi k-amber"><i class="bi bi-person-dash"></i><div><div class="l">Posts vacant</div><div class="v">{{ $stats['vacant'] }} <small>of {{ $stats['sanctioned'] }}</small></div></div></div>
+    <div class="wo-kpi k-blue"><i class="bi bi-receipt"></i><div><div class="l">Billed this year</div><div class="v" style="font-size:1.2rem">{{ inr($stats['billedThisYear']) }}</div></div></div>
+    <div class="wo-kpi k-red"><i class="bi bi-hourglass-split"></i><div><div class="l">Awaiting payment</div><div class="v" style="font-size:1.2rem">{{ inr($stats['unpaid']) }}</div></div></div>
   </div>
   {{-- Payments received (owner, 22 Nov 2026): this month's approved credits and what is still due after part payments. --}}
   @can('billing')
     @php($payMonth = \App\Models\PaymentReceiptLine::query()->whereHas('receipt', fn ($q) => $q->where('status', 'approved')->whereBetween('credit_date', [now()->startOfMonth()->toDateString(), now()->endOfMonth()->toDateString()]))->sum('received'))
     @php($payDue = app(\App\Services\Payments\PaymentReports::class)->outstanding(null))
     @php($payWaiting = \App\Models\PaymentReceipt::query()->where('status', 'pending')->count())
-    <div class="z-card px-3 py-2 mb-3 d-flex flex-wrap gap-3 align-items-center small dash-payments">
+    <div class="wo-card px-3 py-2 mb-3 d-flex flex-wrap gap-3 align-items-center small dash-payments">
       <span><i class="bi bi-cash-coin me-1 text-success"></i>Received in {{ now()->format('F') }}: <b>{{ inr((float) $payMonth, true) }}</b></span>
       <span><i class="bi bi-hourglass-split me-1 text-danger"></i>Still due from the client: <b>{{ inr((float) $payDue['total']['due'], true) }}</b> ({{ $payDue['rows']->count() }} sub-bills{{ (float) $payDue['ages']['90+'] > 0 ? ', '.inr((float) $payDue['ages']['90+'], true).' over 90 days' : '' }})</span>
       @if($payWaiting)<span class="badge text-bg-warning">{{ $payWaiting }} {{ \Illuminate\Support\Str::plural('payment', $payWaiting) }} waiting for approval</span>@endif
@@ -217,4 +214,5 @@
       [agency, client, contract].forEach(el => el.addEventListener('change', update)); update();
     })();
   </script>
+  </div>
 </x-layouts.app>

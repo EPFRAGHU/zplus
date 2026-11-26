@@ -1,6 +1,50 @@
-<x-layouts.app title="Sub-bills" crumb="Billing / <span class='text-danger'>Sub-bills</span>">
-  <x-slot:actions>@can('billing')<a class="btn btn-outline-primary" href="{{ route('reports.post-wise', array_filter(['month' => substr((string) request('month'), 0, 7) ?: null])) }}"><i class="bi bi-diagram-3 me-1"></i>Post-wise sub-bills</a>@endcan</x-slot:actions>
-  <div class="alert alert-light border small">One sub-bill per project per month. Combine a client's sub-bills into one GST <a href="{{ route('tax-invoices.index') }}">tax invoice</a> with <b>Make tax invoice</b> on the client's block.</div>
+<x-layouts.app title="Sub-bills" crumb="Billing / <span class='text-danger'>Sub-bills</span>" :quiet-title="true">
+  {{-- Work Orders style (owner, 26 Nov 2026): heading, figure boxes, status tabs and filter bar; the table below is unchanged. --}}
+  @php
+    $money = fn ($v) => inr((float) $v, true);
+    $tabUrl = fn (?string $st) => route('invoices.index', array_filter(array_merge(request()->except(['status', 'page']), ['status' => $st])));
+    $unpaid = $blockTotals->sum(fn ($t) => (float) $t->unpaid);
+  @endphp
+  <div class="wo">
+  <div class="wo-head">
+    <div class="wo-head-icon"><i class="bi bi-receipt"></i></div>
+    <div class="me-auto"><h1>Sub-bills</h1>
+      <p>One sub-bill per project per month. Combine a work order's sub-bills into one GST <a href="{{ route('tax-invoices.index') }}">tax invoice</a> with <b>Make tax invoice</b> on its row.</p></div>
+    @can('billing')<div class="wo-actions d-flex gap-2 flex-wrap">
+      <a class="btn wo-btn-line" href="{{ route('reports.post-wise', array_filter(['month' => substr((string) request('month'), 0, 7) ?: null])) }}"><i class="bi bi-diagram-3 me-1"></i>Post-wise sub-bills</a>
+      <a class="btn wo-btn-green" href="{{ route('post-summary.show', array_filter(['month' => substr((string) request('month'), 0, 7) ?: null, 'contract' => request()->integer('contract') ?: null])) }}"><i class="bi bi-table me-1"></i>Post-wise summary (GeM)</a>
+    </div>@endcan
+  </div>
+
+  <div class="wo-kpis">
+    <div class="wo-kpi k-blue"><i class="bi bi-receipt"></i><div><div class="l">Sub-bills listed</div><div class="v">{{ (int) ($grandTotal->bills ?? 0) }}</div></div></div>
+    <div class="wo-kpi k-green"><i class="bi bi-people"></i><div><div class="l">Staff billed</div><div class="v">{{ (int) ($grandTotal->staff ?? 0) }}</div></div></div>
+    <div class="wo-kpi k-violet"><i class="bi bi-cash-stack"></i><div><div class="l">Before GST</div><div class="v" style="font-size:1.2rem">{{ $money($grandTotal->taxable ?? 0) }}</div></div></div>
+    <div class="wo-kpi k-amber"><i class="bi bi-currency-rupee"></i><div><div class="l">Bill amount</div><div class="v" style="font-size:1.2rem">{{ $money($grandTotal->billed ?? 0) }}</div></div></div>
+    <div class="wo-kpi k-red"><i class="bi bi-hourglass-split"></i><div><div class="l">Awaiting payment</div><div class="v" style="font-size:1.2rem">{{ $money($unpaid) }}</div></div></div>
+  </div>
+
+  <form class="wo-bar" method="get" action="{{ route('invoices.index') }}">
+    <nav class="wo-tabs" aria-label="Sub-bill status">
+      <a href="{{ $tabUrl(null) }}" @class(['on' => ! request('status')])>All ({{ $statusCounts->sum() }})</a>
+      @foreach(\App\Models\Invoice::STATUSES as $k => $v)
+        @if($k !== 'approved' || ($statusCounts[$k] ?? 0))<a href="{{ $tabUrl($k) }}" @class(['on' => request('status') === $k])>{{ $v }} ({{ $statusCounts[$k] ?? 0 }})</a>@endif
+      @endforeach
+    </nav>
+    @if(request('status'))<input type="hidden" name="status" value="{{ request('status') }}">@endif
+    <div class="wo-pick"><span>Month:</span><x-month-picker :value="request('month')" clearable /></div>
+    <label class="wo-pick" for="f-agency"><span>Agency:</span>
+      <select id="f-agency" name="agency" class="form-select"><option value="">All agencies</option>@foreach($agencies as $a)<option value="{{ $a->id }}" @selected($agencyId === $a->id)>{{ $a->name }}</option>@endforeach</select></label>
+    <label class="wo-pick" for="f-client"><span>Client:</span>
+      <select id="f-client" name="client" class="form-select"><option value="">All clients</option>@foreach($clients as $c)<option value="{{ $c->id }}" data-agency="{{ $c->agency_id }}" @selected($clientId === $c->id)>{{ $c->name }}</option>@endforeach</select></label>
+    <label class="wo-pick" for="f-contract"><span>Work order:</span>
+      <select id="f-contract" name="contract" class="form-select"><option value="">All work orders</option>@foreach($contracts as $k)<option value="{{ $k->id }}" data-agency="{{ $k->agency_id }}" data-client="{{ $k->client_id }}" @selected(request('contract') == $k->id)>{{ $k->pickLabel() }}</option>@endforeach</select></label>
+    <label class="wo-pick" for="f-project"><span>Project:</span>
+      <select id="f-project" name="project" class="form-select"><option value="">All projects</option>@foreach($allProjects as $pp)<option value="{{ $pp->id }}" data-agency="{{ $pp->contract->agency_id }}" data-client="{{ $pp->contract->client_id }}" data-contract="{{ $pp->gem_contract_id }}" @selected(request('project') == $pp->id)>{{ $pp->label() }}</option>@endforeach</select></label>
+    <button class="btn wo-btn-primary">Show</button>
+    @if(request()->hasAny(['month', 'agency', 'client', 'contract', 'project', 'status']))<a class="btn btn-link px-1" href="{{ route('invoices.index') }}">Clear</a>@endif
+  </form>
+
   @can('billing')
   @php($outdated = \App\Services\Billing\InvoiceGenerator::outdated()->get(['id', 'invoice_no'])
       ->concat(\App\Services\Billing\TaxInvoiceBuilder::outdated()->get(['id', 'number'])->map(fn ($t) => (object) ['invoice_no' => $t->number.' (tax invoice)'])))
@@ -14,20 +58,24 @@
   @endif
   @endcan
   @if($ready->isNotEmpty())
-  <div class="z-card mb-3">
-    <div class="z-card-h"><h2>Ready to bill</h2><span class="small text-secondary">Locked attendance without a bill</span></div>
-    <ul class="list-group list-group-flush">
+  <div class="wo-card mb-3">
+    <div class="px-3 pt-3 pb-2 d-flex align-items-center gap-2"><i class="bi bi-lightning-charge text-success"></i><b>Ready to bill</b><span class="badge text-bg-light border">{{ $ready->count() }}</span><span class="small text-secondary ms-2">Locked attendance without a bill</span></div>
+    <div class="table-responsive"><table class="table align-middle wo-table m-0">
+      <thead><tr><th>Agency</th><th>Client</th><th>Work order</th><th>Project</th><th>Month</th><th class="text-end">Action</th></tr></thead>
+      <tbody>
       @foreach($ready as $s)
-        <li class="list-group-item d-flex align-items-center gap-2 flex-wrap"><span class="badge text-bg-light border">{{ $s->project->contract->agency->code }}</span><span>{{ $s->project->contract->client->name }}</span><span class="mono small text-secondary">{{ $s->project->contract->contract_no }}</span><b>{{ $s->project->name }}</b><span class="text-secondary">{{ $s->month->format('F Y') }}</span>
-          @can('billing')<form method="post" action="{{ route('invoices.store') }}" class="ms-auto">@csrf<input type="hidden" name="attendance_sheet_id" value="{{ $s->id }}"><button class="btn btn-sm btn-primary">Make bill</button></form>@endcan</li>
+        <tr><td><span class="wo-code">{{ $s->project->contract->agency->code }}</span></td><td>{{ $s->project->contract->client->name }}</td><td class="mono small">{{ $s->project->contract->contract_no }}</td>
+          <td class="fw-semibold">{{ $s->project->name }}</td><td>{{ $s->month->format('F Y') }}</td>
+          <td class="text-end">@can('billing')<form method="post" action="{{ route('invoices.store') }}">@csrf<input type="hidden" name="attendance_sheet_id" value="{{ $s->id }}"><button class="btn btn-sm wo-btn-primary">Make bill</button></form>@endcan</td></tr>
       @endforeach
-    </ul>
+      </tbody>
+    </table></div>
   </div>
   @endif
   @if($ready->isEmpty())
-  <div class="z-card p-3 mb-3">
-    <h2 class="h6 fw-bold">How a bill is made</h2>
-    <ol class="mb-2 small">
+  <details class="wo-card p-3 mb-3" @if($invoices->isEmpty()) open @endif>
+    <summary class="fw-semibold">How a bill is made</summary>
+    <ol class="mb-2 mt-2 small">
       <li>Open <a href="{{ route('attendance.index') }}">Attendance</a>, choose the month and click <b>Start sheet</b> on the project.</li>
       <li>Check the daily codes, upload the certificate signed by the PI and click <b>Lock month</b>.</li>
       <li>The month then appears here under <b>Ready to bill</b>. Click <b>Make bill</b>.</li>
@@ -36,33 +84,20 @@
       <div class="small text-secondary mb-1">Attendance started but not locked yet:</div>
       <ul class="list-group list-group-flush small">
         @foreach($drafts as $s)
-          <li class="list-group-item d-flex gap-2 align-items-center px-0"><span class="badge text-bg-light border">{{ $s->project->contract->agency->code }}</span><span>{{ $s->project->contract->client->name }}</span><span class="mono small text-secondary">{{ $s->project->contract->contract_no }}</span><b>{{ $s->project->name }}</b><span class="text-secondary">{{ $s->month->format('F Y') }}</span>
-            <a class="btn btn-sm btn-outline-secondary ms-auto" href="{{ route('attendance.show', $s) }}">Open and lock</a></li>
+          <li class="list-group-item d-flex gap-2 align-items-center px-0"><span class="wo-code">{{ $s->project->contract->agency->code }}</span><span>{{ $s->project->contract->client->name }}</span><span class="mono small text-secondary">{{ $s->project->contract->contract_no }}</span><b>{{ $s->project->name }}</b><span class="text-secondary">{{ $s->month->format('F Y') }}</span>
+            <a class="btn btn-sm wo-btn-line ms-auto" href="{{ route('attendance.show', $s) }}">Open and lock</a></li>
         @endforeach
       </ul>
     @else
       <div class="small text-secondary">No attendance is waiting to be locked.</div>
     @endif
-  </div>
+  </details>
   @endif
-  <form class="z-card p-3 mb-3 d-flex gap-2 flex-wrap align-items-end">
-    <div><label class="form-label small text-secondary mb-1" for="m">Bill month</label><x-month-picker :value="request('month')" clearable /></div>
-    <div><label class="form-label small text-secondary mb-1" for="f-agency">Agency</label>
-      <select id="f-agency" name="agency" class="form-select"><option value="">All agencies</option>@foreach($agencies as $a)<option value="{{ $a->id }}" @selected($agencyId === $a->id)>{{ $a->name }}</option>@endforeach</select></div>
-    <div><label class="form-label small text-secondary mb-1" for="f-client">Client</label>
-      <select id="f-client" name="client" class="form-select"><option value="">All clients</option>@foreach($clients as $c)<option value="{{ $c->id }}" data-agency="{{ $c->agency_id }}" @selected($clientId === $c->id)>{{ $c->name }}</option>@endforeach</select></div>
-    <div><label class="form-label small text-secondary mb-1" for="f-contract">Work order</label>
-      <select id="f-contract" name="contract" class="form-select"><option value="">All contracts</option>@foreach($contracts as $k)<option value="{{ $k->id }}" data-agency="{{ $k->agency_id }}" data-client="{{ $k->client_id }}" @selected(request('contract') == $k->id)>{{ $k->pickLabel() }}</option>@endforeach</select></div>
-    <div><label class="form-label small text-secondary mb-1" for="f-project">Project</label>
-      <select id="f-project" name="project" class="form-select"><option value="">All projects</option>@foreach($allProjects as $pp)<option value="{{ $pp->id }}" data-agency="{{ $pp->contract->agency_id }}" data-client="{{ $pp->contract->client_id }}" data-contract="{{ $pp->gem_contract_id }}" @selected(request('project') == $pp->id)>{{ $pp->label() }}</option>@endforeach</select></div>
-    <div><label class="form-label small text-secondary mb-1" for="s">Status</label><select id="s" name="status" class="form-select"><option value="">Any</option>@foreach(\App\Models\Invoice::STATUSES as $k => $v)<option value="{{ $k }}" @selected(request('status') === $k)>{{ $v }}</option>@endforeach</select></div>
-    <button class="btn btn-outline-secondary">Filter</button>
-  </form>
   @can('billing')
   @php($zipAgency = $agencyId ?: ($agencies->count() === 1 ? $agencies->first()->id : null))
   @if(request('month') && $zipAgency)
     <div class="mb-3 d-flex flex-wrap gap-2 align-items-center">
-      <a class="btn btn-outline-secondary" href="{{ route('month-documents.zip', ['agency' => $zipAgency, 'month' => substr(request('month'), 0, 7)]) }}"><i class="bi bi-file-zip me-1"></i>Download all PDFs of this month (ZIP)</a>
+      <a class="btn wo-btn-line" href="{{ route('month-documents.zip', ['agency' => $zipAgency, 'month' => substr(request('month'), 0, 7)]) }}"><i class="bi bi-file-zip me-1"></i>Download all PDFs of this month (ZIP)</a>
       <span class="small text-secondary">A folder per work order with its sub-bills, covering letters, attendance sheets (and the PI's signed certificates) and tax invoice{{ \Illuminate\Support\Facades\Gate::allows('view-bank-details') ? ', plus the bank letter' : '' }}. One work order only: <b>Download PDFs (ZIP)</b> on its row below. Sign them with the DSC token, then upload each signed copy on its page.</span>
       @error('zip')<span class="small text-danger">{{ $message }}</span>@enderror
     </div>
@@ -74,7 +109,7 @@
   @php($igst = (float) ($grandTotal->igst ?? 0) > 0)
   @php($cols = $igst ? 14 : 13)
   @php($money = fn ($v) => inr((float) $v, true))
-  <div class="z-card"><div class="table-responsive"><table class="table table-hover align-middle bills-table">
+  <div class="wo-card"><div class="table-responsive"><table class="table table-hover align-middle wo-table m-0 bills-table">
     <thead><tr><th>Bill no.</th><th>Project</th><th>Month</th><th class="text-center">Staff</th><th class="num">Wages</th><th class="num">EPF</th><th class="num">ESIC</th><th class="num">Service charge</th>
       <th class="num">Before GST</th><th class="num">CGST</th><th class="num">SGST</th>@if($igst)<th class="num">IGST</th>@endif<th class="num">Bill amount</th><th>Status</th></tr></thead>
     <tbody>
@@ -156,6 +191,7 @@
   @endif
   @endcan
   <div class="mt-3">{{ $invoices->links() }}</div>
+  </div>
   <script>
     (function () {
       // Agency narrows clients; agency and client narrow contracts; contract narrows projects.

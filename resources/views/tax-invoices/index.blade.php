@@ -1,19 +1,43 @@
-<x-layouts.app title="Tax Invoices" crumb="Billing / <span class='text-danger'>Tax Invoices</span>">
-  <x-slot:actions>@can('billing')<a class="btn btn-primary" href="{{ route('tax-invoices.create') }}"><i class="bi bi-plus-lg me-1"></i>Make tax invoice</a>@endcan</x-slot:actions>
-  <div class="alert alert-light border small">A tax invoice combines a client's sub-bills for one month (one sub-bill per project) into a single GST invoice.</div>
-  <form class="z-card p-3 mb-3 d-flex gap-2 flex-wrap align-items-end">
-    <div><label class="form-label small text-secondary mb-1" for="m">Month</label><x-month-picker :value="request('month')" clearable /></div>
-    <div><label class="form-label small text-secondary mb-1" for="f-agency">Agency</label>
-      <select id="f-agency" name="agency" class="form-select"><option value="">All agencies</option>@foreach($agencies as $a)<option value="{{ $a->id }}" @selected($agencyId === $a->id)>{{ $a->name }}</option>@endforeach</select></div>
-    <div><label class="form-label small text-secondary mb-1" for="f-client">Client</label>
-      <select id="f-client" name="client" class="form-select"><option value="">All clients</option>@foreach($clients as $c)<option value="{{ $c->id }}" @selected($clientId === $c->id)>{{ $c->label() }}</option>@endforeach</select></div>
-    <div><label class="form-label small text-secondary mb-1" for="s">Status</label><select id="s" name="status" class="form-select"><option value="">Any</option>@foreach(\App\Models\TaxInvoice::STATUSES as $k => $v)<option value="{{ $k }}" @selected(request('status') === $k)>{{ $v }}</option>@endforeach</select></div>
-    <button class="btn btn-outline-secondary">Filter</button>
+<x-layouts.app title="Tax Invoices" crumb="Billing / <span class='text-danger'>Tax Invoices</span>" :quiet-title="true">
+  {{-- Work Orders style (owner, 26 Nov 2026): heading, figure boxes, status tabs and filter bar; the table below is unchanged. --}}
+  @php
+    $tabUrl = fn (?string $st) => route('tax-invoices.index', array_filter(array_merge(request()->except(['status']), ['status' => $st])));
+    $sumOf = fn (string $f) => $taxInvoices->sum(fn ($x) => (float) $x->{$f});
+  @endphp
+  <div class="wo">
+  <div class="wo-head">
+    <div class="wo-head-icon"><i class="bi bi-file-earmark-ruled"></i></div>
+    <div class="me-auto"><h1>Tax Invoices</h1>
+      <p>A tax invoice combines a work order's sub-bills for one month (one sub-bill per project) into a single GST invoice.</p></div>
+    @can('billing')<div class="wo-actions"><a class="btn wo-btn-primary" href="{{ route('tax-invoices.create') }}"><i class="bi bi-plus-lg me-1"></i>Make tax invoice</a></div>@endcan
+  </div>
+
+  <div class="wo-kpis">
+    <div class="wo-kpi k-blue"><i class="bi bi-file-earmark-ruled"></i><div><div class="l">Tax invoices listed</div><div class="v">{{ $taxInvoices->count() }} <small>/ {{ $taxInvoices->sum('sub_bills_count') }} sub-bills</small></div></div></div>
+    <div class="wo-kpi k-violet"><i class="bi bi-cash-stack"></i><div><div class="l">Before GST</div><div class="v" style="font-size:1.2rem">{{ inr($sumOf('taxable'), true) }}</div></div></div>
+    <div class="wo-kpi k-green"><i class="bi bi-percent"></i><div><div class="l">GST</div><div class="v" style="font-size:1.2rem">{{ inr($sumOf('cgst') + $sumOf('sgst') + $sumOf('igst'), true) }}</div></div></div>
+    <div class="wo-kpi k-amber"><i class="bi bi-currency-rupee"></i><div><div class="l">Invoice amount</div><div class="v" style="font-size:1.2rem">{{ inr($sumOf('rounded_total'), true) }}</div></div></div>
+    <div class="wo-kpi k-red"><i class="bi bi-hourglass-split"></i><div><div class="l">Not yet paid</div><div class="v" style="font-size:1.2rem">{{ inr($taxInvoices->where('status', '!=', 'paid')->sum(fn ($x) => (float) $x->rounded_total), true) }}</div></div></div>
+  </div>
+
+  <form class="wo-bar" method="get" action="{{ route('tax-invoices.index') }}">
+    <nav class="wo-tabs" aria-label="Tax invoice status">
+      <a href="{{ $tabUrl(null) }}" @class(['on' => ! request('status')])>All ({{ $statusCounts->sum() }})</a>
+      @foreach(\App\Models\TaxInvoice::STATUSES as $k => $v)<a href="{{ $tabUrl($k) }}" @class(['on' => request('status') === $k])>{{ $v }} ({{ $statusCounts[$k] ?? 0 }})</a>@endforeach
+    </nav>
+    @if(request('status'))<input type="hidden" name="status" value="{{ request('status') }}">@endif
+    <div class="wo-pick"><span>Month:</span><x-month-picker :value="request('month')" clearable /></div>
+    <label class="wo-pick" for="f-agency"><span>Agency:</span>
+      <select id="f-agency" name="agency" class="form-select"><option value="">All agencies</option>@foreach($agencies as $a)<option value="{{ $a->id }}" @selected($agencyId === $a->id)>{{ $a->name }}</option>@endforeach</select></label>
+    <label class="wo-pick" for="f-client"><span>Client:</span>
+      <select id="f-client" name="client" class="form-select"><option value="">All clients</option>@foreach($clients as $c)<option value="{{ $c->id }}" @selected($clientId === $c->id)>{{ $c->label() }}</option>@endforeach</select></label>
+    <button class="btn wo-btn-primary">Show</button>
+    @if(request()->hasAny(['month', 'agency', 'client', 'status']))<a class="btn btn-link px-1" href="{{ route('tax-invoices.index') }}">Clear</a>@endif
   </form>
   {{-- GST split in columns and a total of everything listed at the bottom (owner, 22 Nov 2026). --}}
   @php($igst = $taxInvoices->sum(fn ($x) => (float) $x->igst) > 0)
   @php($cols = $igst ? 10 : 9)
-  <div class="z-card"><div class="table-responsive"><table class="table table-hover align-middle bills-table">
+  <div class="wo-card"><div class="table-responsive"><table class="table table-hover align-middle wo-table m-0 bills-table">
     <thead><tr><th>Tax invoice no.</th><th class="text-center">Sub-bills</th><th>Month</th><th>Date</th><th class="num">Before GST</th><th class="num">CGST</th><th class="num">SGST</th>@if($igst)<th class="num">IGST</th>@endif<th class="num">Invoice amount</th><th>Status</th></tr></thead>
     <tbody>
     @php($agencyBlock = false) @php($clientBlock = false)
@@ -55,4 +79,5 @@
       <td class="num">{{ inr($taxInvoices->sum(fn ($x) => (float) $x->rounded_total), true) }}</td><td></td></tr></tfoot>
     @endif
     </table></div></div>
+  </div>
 </x-layouts.app>

@@ -2,6 +2,15 @@
 
 Versions follow MAJOR.MINOR.PATCH. Dates are Indian Standard Time.
 
+## 2.54.0 (2026-11-26): Sub-bills, Tax Invoices, Clients, Dashboard and Bank Letter in the Work Orders style
+
+- Sub-bills: heading with Post-wise buttons, five figure boxes (sub-bills, staff, before GST, bill amount, awaiting payment), status tabs with counts (All / Draft / Submitted / Paid), one filter bar (month, agency, client, work order, project); Ready to bill as a table; "How a bill is made" folds away once bills exist
+- Tax Invoices: heading with Make tax invoice, figure boxes (count, before GST, GST, invoice amount, not yet paid), status tabs and filter bar
+- Clients: heading with Add buttons, figure boxes (clients, work orders, active, employees deployed, posts sanctioned), agency tabs and search
+- Dashboard: heading naming the agency you work for, the filter bar, six figure boxes in the new style; the rest of the dashboard as before
+- Bank Letter: heading, figure boxes (employees, SBI, NEFT, total to be debited, bank details missing), filter bar; letter, NEFT file and approval as before
+- Design only: every table, total, button and rule stays the same; no amounts change
+
 ## 2.53.0 (2026-11-26): Approvals page in the Work Orders style, details in columns
 
 - Approvals page redesigned like Work Orders, Posts and Employees: heading, five figure boxes (waiting, new employees, attendance/bills/payouts, payments received, returned to you), tabs Waiting / Returned to you / Recent decisions, Agency and Type filters

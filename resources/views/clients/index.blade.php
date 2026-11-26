@@ -1,10 +1,39 @@
-<x-layouts.app title="Clients" crumb="Masters / <span class='text-danger'>Clients</span>">
-  <x-slot:actions>@can('merge-clients')<a class="btn btn-outline-danger" href="{{ route('clients.merge') }}"><i class="bi bi-intersect me-1"></i>Merge into one client</a>@endcan @can('manage-masters')<a class="btn btn-outline-primary" href="{{ route('clients.create') }}"><i class="bi bi-plus-lg me-1"></i>Add client</a> <a class="btn btn-primary" href="{{ route('contracts.create') }}"><i class="bi bi-ui-checks me-1"></i>Add work order, projects and staff</a>@endcan</x-slot:actions>
-  <form class="z-card p-3 mb-3 d-flex gap-2 flex-wrap">
-    <input class="form-control flex-grow-1 w-auto" name="q" value="{{ request('q') }}" placeholder="Search by name or GSTIN" aria-label="Search">
-    <select class="form-select w-auto" name="agency" aria-label="Agency"><option value="">All agencies</option>@foreach($agencies as $a)<option value="{{ $a->id }}" @selected(request('agency') == $a->id)>{{ $a->name }}</option>@endforeach</select>
-    <button class="btn btn-outline-secondary"><i class="bi bi-search"></i></button></form>
-  <div class="z-card"><div class="table-responsive"><table class="table table-hover">
+<x-layouts.app title="Clients" crumb="Masters / <span class='text-danger'>Clients</span>" :quiet-title="true">
+  {{-- Work Orders style (owner, 26 Nov 2026): heading, figure boxes, agency tabs and search; the table below is unchanged. --}}
+  @php($tabUrl = fn ($id) => route('clients.index', array_filter(['agency' => $id, 'q' => request('q')])))
+  <div class="wo">
+  <div class="wo-head">
+    <div class="wo-head-icon"><i class="bi bi-bank"></i></div>
+    <div class="me-auto"><h1>Clients</h1>
+      <p>Each client with its work orders, projects and posts. A client served by both agencies is added once under each agency.</p></div>
+    <div class="wo-actions d-flex gap-2 flex-wrap">
+      @can('merge-clients')<a class="btn btn-outline-danger" href="{{ route('clients.merge') }}"><i class="bi bi-intersect me-1"></i>Merge into one client</a>@endcan
+      @can('manage-masters')<a class="btn wo-btn-line" href="{{ route('clients.create') }}"><i class="bi bi-plus-lg me-1"></i>Add client</a>
+        <a class="btn wo-btn-primary" href="{{ route('contracts.create') }}"><i class="bi bi-ui-checks me-1"></i>Add work order, projects and staff</a>@endcan
+    </div>
+  </div>
+
+  <div class="wo-kpis">
+    <div class="wo-kpi k-blue"><i class="bi bi-bank"></i><div><div class="l">Clients</div><div class="v">{{ $kpi['clients'] }}</div></div></div>
+    <div class="wo-kpi k-violet"><i class="bi bi-file-earmark-text"></i><div><div class="l">Work orders</div><div class="v">{{ $kpi['contracts'] }}</div></div></div>
+    <div class="wo-kpi k-green"><i class="bi bi-check2-circle"></i><div><div class="l">Active work orders</div><div class="v">{{ $kpi['active'] }}</div></div></div>
+    <div class="wo-kpi k-amber"><i class="bi bi-people"></i><div><div class="l">Employees deployed</div><div class="v">{{ $kpi['employees'] }}</div></div></div>
+    <div class="wo-kpi k-red"><i class="bi bi-diagram-3"></i><div><div class="l">Posts sanctioned</div><div class="v">{{ $kpi['sanctioned'] }}</div></div></div>
+  </div>
+
+  <form class="wo-bar" method="get" action="{{ route('clients.index') }}">
+    @if($agencies->count() > 1)
+      <nav class="wo-tabs" aria-label="Agency">
+        <a href="{{ $tabUrl(null) }}" @class(['on' => ! request('agency')])>All agencies</a>
+        @foreach($agencies as $a)<a href="{{ $tabUrl($a->id) }}" @class(['on' => request('agency') == $a->id])>{{ $a->name }} ({{ $blockTotals[$a->id]->clients_count ?? 0 }})</a>@endforeach
+      </nav>
+      @if(request('agency'))<input type="hidden" name="agency" value="{{ request('agency') }}">@endif
+    @endif
+    <div class="wo-search"><i class="bi bi-search"></i><input class="form-control" name="q" value="{{ request('q') }}" placeholder="Search by name or GSTIN" aria-label="Search"></div>
+    <button class="btn wo-btn-primary">Show</button>
+    @if(request()->hasAny(['q', 'agency']))<a class="btn btn-link px-1" href="{{ route('clients.index') }}">Clear</a>@endif
+  </form>
+  <div class="wo-card"><div class="table-responsive"><table class="table table-hover align-middle wo-table m-0">
     <thead><tr><th>Work order</th><th>Contract no.</th><th>Billing</th><th class="num">Projects</th><th class="num">Posts filled / sanctioned</th><th>Status</th><th></th></tr></thead>
     <tbody>
     @php($block = false)
@@ -52,4 +81,5 @@
     @endforelse
     </tbody></table></div></div>
   <div class="mt-3">{{ $clients->links() }}</div>
+  </div>
 </x-layouts.app>

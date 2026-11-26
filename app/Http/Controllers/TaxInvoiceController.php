@@ -37,8 +37,15 @@ class TaxInvoiceController extends Controller
             ->sortBy([fn ($a, $b) => strcmp($a->agency->name, $b->agency->name), fn ($a, $b) => strcmp($a->client->name, $b->client->name),
                 fn ($a, $b) => strnatcmp($a->number, $b->number)])->values();
 
+        // Counts for the status tabs: the same filters, any status (owner, 26 Nov 2026).
+        $statusCounts = TaxInvoice::query()
+            ->when($agencyId, fn ($q) => $q->where('agency_id', $agencyId))
+            ->when($clientId, fn ($q) => $q->where('client_id', $clientId))
+            ->when($request->input('month'), fn ($q, $m) => $q->where('month', $m.'-01'))
+            ->selectRaw('status, count(*) as n')->groupBy('status')->pluck('n', 'status');
+
         return view('tax-invoices.index', [
-            'taxInvoices' => $taxInvoices, 'agencyId' => $agencyId, 'clientId' => $clientId,
+            'taxInvoices' => $taxInvoices, 'agencyId' => $agencyId, 'clientId' => $clientId, 'statusCounts' => $statusCounts,
             'agencies' => Agency::query()->orderBy('name')->get(), 'clients' => Client::query()->with('agency')->orderBy('name')->get(),
         ]);
     }

@@ -1,10 +1,28 @@
-<x-layouts.app title="Bank Letter" crumb="Operations / <span class='text-danger'>Bank Letter</span>">
-  <form method="get" class="z-card p-3 mb-3 d-flex gap-2 flex-wrap align-items-end">
-    <div><label class="form-label small text-secondary mb-1" for="ag">Agency</label>
-      <select id="ag" name="agency" class="form-select" required><option value="">Choose agency</option>@foreach($agencies as $a)<option value="{{ $a->id }}" @selected($agency?->id === $a->id)>{{ $a->name }}</option>@endforeach</select></div>
-    <div><label class="form-label small text-secondary mb-1" for="m">Month</label><x-month-picker :value="$month->format('Y-m')" required /></div>
-    <button class="btn btn-outline-secondary">Show employees</button>
-    <span class="small text-secondary align-self-center">One salary transfer letter for all the agency's employees of the month, on its own letterhead. Net pay as on the salary payout sheet.</span>
+<x-layouts.app title="Bank Letter" crumb="Operations / <span class='text-danger'>Bank Letter</span>" :quiet-title="true">
+  {{-- Work Orders style (owner, 26 Nov 2026): heading, figure boxes and a filter bar; the letter table below is unchanged. --}}
+  <div class="wo">
+  <div class="wo-head">
+    <div class="wo-head-icon"><i class="bi bi-bank"></i></div>
+    <div class="me-auto"><h1>Bank Letter</h1>
+      <p>One salary transfer letter for all the agency's employees of the month, on its own letterhead, plus the NEFT file for the bank's bulk upload. Net pay as on the salary payout sheet.</p></div>
+  </div>
+
+  @if($letter && $all->isNotEmpty())
+    @php($rsK = fn (int $paise) => inr($paise / 100, true))
+    <div class="wo-kpis">
+      <div class="wo-kpi k-blue"><i class="bi bi-people"></i><div><div class="l">Employees in the letter</div><div class="v">{{ $letter['sbi']->count() + $letter['neft']->count() }}</div></div></div>
+      <div class="wo-kpi k-violet"><i class="bi bi-bank2"></i><div><div class="l">SBI accounts ({{ $letter['sbi']->count() }})</div><div class="v" style="font-size:1.2rem">{{ $rsK((int) $letter['sbi']->sum('net')) }}</div></div></div>
+      <div class="wo-kpi k-green"><i class="bi bi-arrow-left-right"></i><div><div class="l">Other banks, NEFT ({{ $letter['neft']->count() }})</div><div class="v" style="font-size:1.2rem">{{ $rsK((int) $letter['neft']->sum('net')) }}</div></div></div>
+      <div class="wo-kpi k-amber"><i class="bi bi-currency-rupee"></i><div><div class="l">Total to be debited</div><div class="v" style="font-size:1.2rem">{{ $rsK($letter['total']) }}</div></div></div>
+      <div class="wo-kpi k-red"><i class="bi bi-exclamation-triangle"></i><div><div class="l">Bank details missing</div><div class="v">{{ $letter['missing']->count() }}</div></div></div>
+    </div>
+  @endif
+
+  <form method="get" class="wo-bar" action="{{ route('bank-letters.index') }}">
+    <label class="wo-pick" for="ag"><span>Agency:</span>
+      <select id="ag" name="agency" class="form-select" required><option value="">Choose agency</option>@foreach($agencies as $a)<option value="{{ $a->id }}" @selected($agency?->id === $a->id)>{{ $a->name }}</option>@endforeach</select></label>
+    <div class="wo-pick"><span>Month:</span><x-month-picker :value="$month->format('Y-m')" required /></div>
+    <button class="btn wo-btn-primary">Show employees</button>
   </form>
 
   @if($agency && $all->isNotEmpty())
@@ -17,14 +35,14 @@
       <div class="alert alert-warning small"><b>Not included – attendance not locked yet:</b> {{ $pending->map(fn ($s) => $s->project->name.' ('.$s->project->code.')')->implode(', ') }}. Lock those months on the Attendance page to include their staff.</div>
     @endif
     @if($all->isEmpty())
-      <div class="z-card p-4 text-center text-secondary">No locked attendance for {{ $agency->name }} in {{ $month->format('F Y') }}.</div>
+      <div class="wo-empty">No locked attendance for {{ $agency->name }} in {{ $month->format('F Y') }}.</div>
     @else
-    <form method="get" action="{{ route('bank-letters.pdf') }}" target="_blank" class="z-card mb-3">
+    <form method="get" action="{{ route('bank-letters.pdf') }}" target="_blank" class="wo-card mb-3">
       <input type="hidden" name="agency" value="{{ $agency->id }}"><input type="hidden" name="month" value="{{ $month->format('Y-m') }}">
-      <div class="z-card-h flex-wrap gap-2"><h2>{{ $agency->name }} · {{ $month->format('F Y') }}</h2>
+      <div class="d-flex align-items-center flex-wrap gap-2 px-3 pt-3 pb-2"><h2 class="h5 fw-bold m-0"><span class="wo-code me-1">{{ $agency->code }}</span>{{ $agency->name }} · {{ $month->format('F Y') }}</h2>
         <span class="small text-secondary">{{ $letter['sbi']->count() + $letter['neft']->count() }} employees · total <b>{{ $rs($letter['total']) }}</b></span>
         @php($payoutOk = \App\Services\Approvals\Approvals::canApprove(auth()->user()) || $all->every(fn ($s) => app(\App\Services\Approvals\Approvals::class)->payoutClearedFor($s)))
-        <button class="btn btn-primary ms-auto" @disabled(! $payoutOk) title="{{ $payoutOk ? '' : 'The owner must approve this month\'s salary payout first' }}"><i class="bi bi-file-earmark-pdf me-1"></i>Bank letter PDF</button>
+        <button class="btn wo-btn-primary ms-auto" @disabled(! $payoutOk) title="{{ $payoutOk ? '' : 'The owner must approve this month\'s salary payout first' }}"><i class="bi bi-file-earmark-pdf me-1"></i>Bank letter PDF</button>
         <button class="btn btn-outline-success" formaction="{{ route('bank-letters.excel') }}" formtarget="_self" @disabled(! $payoutOk)><i class="bi bi-file-earmark-excel me-1"></i>Excel</button>
         {{-- NEFT intimation file in the bank's bulk upload layout (owner, 26 Nov 2026). --}}
         <button class="btn btn-success" formaction="{{ route('bank-letters.neft-excel') }}" formtarget="_self" @disabled(! $payoutOk) title="Bulk upload sheet for the bank: sn, corp id, corp name, corp acct no, product code, benf name, benf acct no, amount, ifsc, remarks, CURRENCY, ADDRESS"><i class="bi bi-file-earmark-excel me-1"></i>NEFT file (Excel)</button>
@@ -36,7 +54,7 @@
         @endforeach
         <button class="btn btn-sm btn-outline-secondary ms-2" form="pick">Update</button>
       </div>
-      <div class="table-responsive"><table class="table mb-0">
+      <div class="table-responsive"><table class="table align-middle wo-table mb-0">
         <thead><tr><th>Emp ID</th><th>Employee (name as per bank)</th><th>Project</th><th>Bank</th><th>Account no.</th><th>IFSC</th><th class="num">Net salary</th><th>Paid by</th></tr></thead>
         <tbody>
         @foreach($letter['sbi']->concat($letter['neft'])->sortBy(fn ($l) => $l['employee']->emp_code, SORT_NATURAL) as $l)
@@ -65,11 +83,12 @@
     </form>
     @include('partials.signed-copy', ['signed' => \App\Models\SignedDocument::latestFor('bank_letter', agencyId: $agency->id, month: $month->toDateString()),
       'action' => route('bank-letters.signed'), 'hidden' => ['agency' => $agency->id, 'month' => $month->format('Y-m')]])
-    <div class="mt-2"><a class="btn btn-outline-secondary" href="{{ route('month-documents.zip', ['agency' => $agency->id, 'month' => $month->format('Y-m')]) }}"><i class="bi bi-file-zip me-1"></i>Download all {{ $month->format('M Y') }} PDFs (ZIP)</a>
+    <div class="mt-2"><a class="btn wo-btn-line" href="{{ route('month-documents.zip', ['agency' => $agency->id, 'month' => $month->format('Y-m')]) }}"><i class="bi bi-file-zip me-1"></i>Download all {{ $month->format('M Y') }} PDFs (ZIP)</a>
       <span class="small text-secondary ms-2">Sub-bills, covering letters, tax invoices and this bank letter – sign them together with the DSC token.</span></div>
     <form id="pick" method="get" action="{{ route('bank-letters.index') }}"><input type="hidden" name="agency" value="{{ $agency->id }}"><input type="hidden" name="month" value="{{ $month->format('Y-m') }}"></form>
     @endif
   @elseif($agencies->count() > 1)
-    <div class="z-card p-4 text-center text-secondary">Choose the agency and month, then click <b>Show employees</b>.</div>
+    <div class="wo-empty">Choose the agency and month, then click <b>Show employees</b>.</div>
   @endif
+  </div>
 </x-layouts.app>

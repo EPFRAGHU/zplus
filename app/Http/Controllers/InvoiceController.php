@@ -38,6 +38,15 @@ class InvoiceController extends Controller
             ->when($request->string('status')->value(), fn ($q, $s) => $q->where('status', $s))
             ->when($request->input('month'), fn ($q, $m) => $q->where('month', $m.'-01'));
 
+        // Counts for the status tabs: the same filters, any status (owner, 26 Nov 2026).
+        $statusCounts = Invoice::query()
+            ->when($agencyId, fn ($q) => $q->whereHas('contract', fn ($c) => $c->where('agency_id', $agencyId)))
+            ->when($clientId, fn ($q) => $q->whereHas('contract', fn ($c) => $c->where('client_id', $clientId)))
+            ->when($request->integer('contract'), fn ($q, $id) => $q->where('gem_contract_id', $id))
+            ->when($request->integer('project'), fn ($q, $id) => $q->where('project_id', $id))
+            ->when($request->input('month'), fn ($q, $m) => $q->where('month', $m.'-01'))
+            ->selectRaw('status, count(*) as n')->groupBy('status')->pluck('n', 'status');
+
         // One block per agency and client, then grouped by GeM contract, bills in serial order (owner, 22 Nov 2026):
         // SW/001/26-27(HTA), SW/001/26-27(NTM), SW/002/26-27(…), …
         $agencyName = Agency::query()->select('name')->whereColumn('agencies.id', 'invoices.agency_id');
@@ -70,7 +79,7 @@ class InvoiceController extends Controller
             ->with('project.contract.agency', 'project.contract.client')->orderByDesc('month')->limit(20)->get();
 
         return view('invoices.index', [
-            'invoices' => $invoices, 'ready' => $ready, 'drafts' => $drafts, 'blockTotals' => $blockTotals, 'carriedAgency' => $carriedAgency, 'clientTotals' => $clientTotals, 'contractTotals' => $contractTotals, 'grandTotal' => $grandTotal,
+            'invoices' => $invoices, 'ready' => $ready, 'drafts' => $drafts, 'blockTotals' => $blockTotals, 'carriedAgency' => $carriedAgency, 'clientTotals' => $clientTotals, 'contractTotals' => $contractTotals, 'grandTotal' => $grandTotal, 'statusCounts' => $statusCounts,
             'agencies' => Agency::query()->orderBy('name')->get(),
             'clients' => Client::query()->with('agency')->orderBy('name')->get(),
             'agencyId' => $agencyId, 'clientId' => $clientId,

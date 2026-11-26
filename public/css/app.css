@@ -99,6 +99,7 @@ div.client-block{background:#f2f7ff!important;border-color:#dbe6fb!important;bor
 .wo-btn-green{background:#16a34a;border-color:#16a34a;color:#fff;font-weight:600}
 .wo-btn-green:hover,.wo-btn-green:focus{background:#15803d;border-color:#15803d;color:#fff}
 .wo-kpis{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:14px;margin-bottom:18px}
+.wo-kpis.wo-kpis-6{grid-template-columns:repeat(6,minmax(0,1fr))}
 .wo-kpi{display:flex;align-items:center;gap:14px;padding:16px 18px;border-radius:14px;border:1px solid var(--wo-line);background:var(--k-bg)}
 .wo-kpi > i{width:46px;height:46px;border-radius:50%;display:grid;place-items:center;font-size:1.3rem;color:var(--k-fg);background:var(--k-ring)}
 .wo-kpi .l{color:#334155;font-size:.84rem;font-weight:500}
@@ -208,3 +209,7 @@ tfoot tr.bills-grand > td{background:#0f2a5c!important;color:#fff;font-weight:70
 .mb-table{font-size:.8rem}
 .mb-table th,.mb-table th.num{white-space:normal;vertical-align:bottom}
 .mb-table td{padding-left:.4rem;padding-right:.4rem}
+
+/* Dashboard: six figure boxes, wrapping like the five-box rows (owner, 26 Nov 2026). */
+@media (max-width:1200px){.wo-kpis.wo-kpis-6{grid-template-columns:repeat(3,minmax(0,1fr))}}
+@media (max-width:768px){.wo-kpis.wo-kpis-6{grid-template-columns:repeat(2,minmax(0,1fr))}}
