@@ -2,6 +2,14 @@
 
 Versions follow MAJOR.MINOR.PATCH. Dates are Indian Standard Time.
 
+## 2.52.0 (2026-11-26): NEFT file for the bank (Excel and PDF) on the Bank Letter page
+
+- Bank Letter page: green "NEFT file (Excel)" and red "NEFT file (PDF)" buttons for the chosen agency and month, next to the bank letter
+- Exactly the owner's bulk upload sheet: sn, corp id, corp name, corp acct no, product code, benf name, benf acct no, amount, ifsc, remarks, CURRENCY, ADDRESS (same column widths, fonts and borders); one row per employee of the bank letter, net pay in whole rupees, remarks "SAL OCT 2026"
+- Employee name (name as per bank), account number and IFSC from the employee record; SBI accounts as DCR with IFSC blank, other banks as NEFT with the IFSC; staff without bank details are left out, as in the letter
+- New agency fields under Agencies → Edit → "Bank salary upload (NEFT file)": corporate ID, corporate name and address code (e.g. BBSR); the corp acct no is the agency's account number. The page warns when any is missing
+- Same rules as the bank letter: Admin / Accounts only, own agency only, and only after the owner has approved the month's salary payout. Downloads are recorded in the Activity log. No amounts change
+
 ## 2.51.0 (2026-11-22): Payments received from the client (UTR, cheque, TDS, GST TDS)
 
 - New menu Operations → Payments received: enter each bank credit or cheque once (mode, UTR, NEFT/RTGS date, cheque no., date and bank, credit date, our account credited, amount, payment advice PDF, remarks) and split it over the sub-bills it pays

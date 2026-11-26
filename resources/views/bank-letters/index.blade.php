@@ -25,7 +25,10 @@
         <span class="small text-secondary">{{ $letter['sbi']->count() + $letter['neft']->count() }} employees · total <b>{{ $rs($letter['total']) }}</b></span>
         @php($payoutOk = \App\Services\Approvals\Approvals::canApprove(auth()->user()) || $all->every(fn ($s) => app(\App\Services\Approvals\Approvals::class)->payoutClearedFor($s)))
         <button class="btn btn-primary ms-auto" @disabled(! $payoutOk) title="{{ $payoutOk ? '' : 'The owner must approve this month\'s salary payout first' }}"><i class="bi bi-file-earmark-pdf me-1"></i>Bank letter PDF</button>
-        <button class="btn btn-outline-success" formaction="{{ route('bank-letters.excel') }}" formtarget="_self" @disabled(! $payoutOk)><i class="bi bi-file-earmark-excel me-1"></i>Excel</button></div>
+        <button class="btn btn-outline-success" formaction="{{ route('bank-letters.excel') }}" formtarget="_self" @disabled(! $payoutOk)><i class="bi bi-file-earmark-excel me-1"></i>Excel</button>
+        {{-- NEFT intimation file in the bank's bulk upload layout (owner, 26 Nov 2026). --}}
+        <button class="btn btn-success" formaction="{{ route('bank-letters.neft-excel') }}" formtarget="_self" @disabled(! $payoutOk) title="Bulk upload sheet for the bank: sn, corp id, corp name, corp acct no, product code, benf name, benf acct no, amount, ifsc, remarks, CURRENCY, ADDRESS"><i class="bi bi-file-earmark-excel me-1"></i>NEFT file (Excel)</button>
+        <button class="btn btn-danger" formaction="{{ route('bank-letters.neft-pdf') }}" formtarget="_blank" @disabled(! $payoutOk)><i class="bi bi-file-earmark-pdf me-1"></i>NEFT file (PDF)</button></div>
       <div class="px-3 pt-2 small"><b>Projects in the letter</b> (untick to leave one out, then click <b>Update</b>):
         @foreach($all as $s)
           <label class="ms-2 text-nowrap"><input type="checkbox" class="form-check-input" name="projects[]" value="{{ $s->project_id }}" form="pick" @checked(in_array($s->project_id, $chosen))> {{ $s->project->name }} <span class="mono">({{ $s->project->code }})</span></label>
@@ -53,6 +56,9 @@
       @if($letter['missing']->isNotEmpty())
         <div class="alert alert-danger small m-3"><b>Bank details missing</b> – not in the letter until added on the employee: {{ $letter['missing']->map(fn ($l) => $l['employee']->emp_code.' '.$l['employee']->name.' ('.inr($l['net'] / 100, true).')')->implode('; ') }}</div>
       @endif
+      @unless($agency->bank_corp_id && $agency->bank_corp_name && $agency->bank_account_no && $agency->bank_address_code)
+        <div class="alert alert-warning small m-3">The NEFT file needs the agency's <b>corporate ID, corporate name, account number and address code</b> (as given by the bank); missing ones stay blank in the file. Add them under <a href="{{ route('agencies.edit', $agency) }}">Agencies → Edit → Bank salary upload</a>.</div>
+      @endunless
       @unless($agency->bank_account_no && $agency->bank_name)
         <div class="alert alert-warning small m-3">The agency's own bank (name, branch, account no.) is not filled in, so the letter shows blanks. Add it under <a href="{{ route('agencies.edit', $agency) }}">Agencies → Edit</a>.</div>
       @endunless

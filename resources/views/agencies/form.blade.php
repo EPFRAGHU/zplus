@@ -50,6 +50,13 @@
       <x-field name="bank_ifsc" label="IFSC" :value="$agency->bank_ifsc" col="col-md-3" class="mono text-uppercase" />
       <x-field name="bank_branch" label="Branch" :value="$agency->bank_branch" col="col-md-3" />
     </div>
+    <h2 class="h6 fw-bold mt-4 mb-1">Bank salary upload (NEFT file)</h2>
+    <p class="small text-secondary mb-2">As given by the bank for corporate internet banking. Printed in every row of the NEFT file on the Bank Letter page; the debit account is the account number above.</p>
+    <div class="row g-3">
+      <x-field name="bank_corp_id" label="Corporate ID (corp id)" :value="$agency->bank_corp_id" col="col-md-3" class="mono" />
+      <x-field name="bank_corp_name" label="Corporate name (corp name)" :value="$agency->bank_corp_name" col="col-md-3" class="text-uppercase" />
+      <x-field name="bank_address_code" label="Address (e.g. BBSR)" :value="$agency->bank_address_code" col="col-md-3" class="text-uppercase" />
+    </div>
     <div class="d-flex gap-2 justify-content-end mt-3"><a class="btn btn-outline-secondary" href="{{ route('agencies.index') }}">Cancel</a><button class="btn btn-primary">Save agency</button></div>
   </form>
 </x-layouts.app>

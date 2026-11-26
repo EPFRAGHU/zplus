@@ -9,7 +9,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Support\Facades\Storage;
 
-#[Fillable(['name', 'code', 'number_prefix', 'tagline', 'registrations', 'address', 'email', 'website', 'letterhead_emails', 'phone', 'phones', 'logo_path', 'letterhead_style', 'gstin', 'pan', 'signatory_name', 'signatory_title', 'bank_name', 'bank_account_no', 'bank_ifsc', 'bank_branch'])]
+#[Fillable(['name', 'code', 'number_prefix', 'tagline', 'registrations', 'address', 'email', 'website', 'letterhead_emails', 'phone', 'phones', 'logo_path', 'letterhead_style', 'gstin', 'pan', 'signatory_name', 'signatory_title', 'bank_name', 'bank_account_no', 'bank_ifsc', 'bank_branch', 'bank_corp_id', 'bank_corp_name', 'bank_address_code'])]
 class Agency extends Model
 {
     use LogsActivity, ScopedToAgency;

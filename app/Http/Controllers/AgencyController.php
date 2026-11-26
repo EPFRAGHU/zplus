@@ -81,7 +81,13 @@ class AgencyController extends Controller
             'bank_account_no' => ['nullable', 'regex:/^\d{6,20}$/'],
             'bank_ifsc' => ['nullable', fn ($a, $v, $fail) => Ifsc::isValid($v) || $fail('An IFSC has 11 characters: 4 letters, a zero, then 6 letters or digits.')],
             'bank_branch' => ['nullable', 'string', 'max:255'],
+            'bank_corp_id' => ['nullable', 'regex:/^[A-Za-z0-9]{1,20}$/'],
+            'bank_corp_name' => ['nullable', 'regex:/^[A-Za-z0-9 .&-]{1,40}$/'],
+            'bank_address_code' => ['nullable', 'regex:/^[A-Za-z0-9 .,-]{1,40}$/'],
         ], [
+            'bank_corp_id.regex' => 'Enter the corporate ID with letters and digits only.',
+            'bank_corp_name.regex' => 'Enter the corporate name as the bank has it (letters, digits, spaces).',
+            'bank_address_code.regex' => 'Enter the address code (e.g. BBSR) with letters, digits and spaces.',
             'gstin.regex' => 'Enter a 15-character GSTIN, e.g. 21AAAGO1234F1Z5.', 'pan.regex' => 'Enter a 10-character PAN, e.g. ABCDE1234F.',
             'bank_account_no.regex' => 'Enter the account number using digits only.',
             'logo.max' => 'The logo must be 1 MB or smaller.', 'logo.image' => 'Upload the logo as a PNG or JPG image.',

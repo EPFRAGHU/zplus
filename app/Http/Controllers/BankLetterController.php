@@ -85,6 +85,25 @@ class BankLetterController extends Controller
             ['Content-Type' => 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'])->deleteFileAfterSend();
     }
 
+    /** NEFT intimation file for the bank's bulk upload, in the owner's sheet layout (owner, 26 Nov 2026). */
+    public function neftExcel(Request $request, \App\Services\Payroll\NeftFile $neft): Response
+    {
+        $data = $this->approvedLetter($request);
+        \App\Support\Activity\Activity::log('downloaded', $data['agency'], [], 'NEFT file '.$data['month']->format('F Y').' (Excel)', section: 'Bank Letter', label: $data['agency']->code.' '.$data['month']->format('M Y'));
+
+        return response()->download($neft->xlsx($neft->rows($data)), $neft->fileName($data['agency'], $data['month'], 'xlsx'),
+            ['Content-Type' => 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'])->deleteFileAfterSend();
+    }
+
+    public function neftPdf(Request $request, \App\Services\Payroll\NeftFile $neft): Response
+    {
+        $data = $this->approvedLetter($request);
+        \App\Support\Activity\Activity::log('downloaded', $data['agency'], [], 'NEFT file '.$data['month']->format('F Y').' (PDF)', section: 'Bank Letter', label: $data['agency']->code.' '.$data['month']->format('M Y'));
+
+        return Pdf::loadView('pdf.neft-file', ['rows' => $neft->rows($data), 'agency' => $data['agency'], 'month' => $data['month'], 'reference' => $data['reference']])
+            ->setPaper('a4', 'landscape')->stream($neft->fileName($data['agency'], $data['month'], 'pdf'));
+    }
+
     /** Bank details leave the app only after the owner has approved the month's salary payout. */
     private function approvedLetter(Request $request): array
     {
