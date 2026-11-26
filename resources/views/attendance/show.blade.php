@@ -1,6 +1,12 @@
 @php($locked = $sheet->isLocked())
-<x-layouts.app :title="$sheet->project->name.' · '.$sheet->month->format('F Y')" :crumb="'Operations / <a href=\''.route('attendance.index', ['month' => $sheet->month->format('Y-m')]).'\'>Attendance</a>'">
-  <x-slot:actions>
+<x-layouts.app :title="$sheet->project->name.' · '.$sheet->month->format('F Y')" :crumb="'Operations / <a href=\''.route('attendance.index', ['month' => $sheet->month->format('Y-m')]).'\'>Attendance</a>'" :quiet-title="true">
+  <div class="wo">
+  <div class="wo-head">
+    <div class="wo-head-icon"><i class="bi bi-calendar-check"></i></div>
+    <div class="me-auto"><h1>{{ $sheet->project->name }} <span class="text-secondary fw-normal">· {{ $sheet->month->format('F Y') }}</span></h1>
+      <p>Agency: <b class="text-body">{{ $sheet->project->contract->agency->name }}</b> · Client: <b class="text-body">{{ $sheet->project->contract->client->name }}</b>
+        · PI: <b class="text-body">{{ $sheet->project->pi_name ?? '—' }}</b> · work order <span class="mono">{{ $sheet->project->contract->contract_no }}</span></p></div>
+    <div class="wo-actions d-flex gap-2 flex-wrap align-items-center">
     <a class="btn btn-outline-secondary" href="{{ route('attendance.certificate', $sheet) }}" target="_blank"><i class="bi bi-printer me-1"></i>Print certificate for PI</a>
     @if($locked)
       @can('view-bank-details')
@@ -14,7 +20,16 @@
     @endif
     @if($sheet->certificate_path)<a class="btn btn-outline-secondary" href="{{ route('attendance.scan', $sheet) }}" target="_blank"><i class="bi bi-file-earmark-check me-1"></i>Signed scan</a>@endif
     @can('reset-month')<button class="btn btn-outline-danger" type="button" data-bs-toggle="collapse" data-bs-target="#reset-month"><i class="bi bi-arrow-counterclockwise me-1"></i>Reset this month</button>@endcan
-  </x-slot:actions>
+    </div>
+  </div>
+  <div class="wo-kpis">
+    <div class="wo-kpi k-blue"><i class="bi bi-people"></i><div><div class="l">Staff</div><div class="v">{{ $sheet->entries->count() }}</div></div></div>
+    <div class="wo-kpi k-violet"><i class="bi bi-flag"></i><div><div class="l">Status</div><div class="v"><span style="font-size:1rem"><x-status :value="$sheet->status" /></span></div></div></div>
+    <div class="wo-kpi k-green"><i class="bi bi-person-check"></i><div><div class="l">Submitted by PI</div><div class="v"><span style="font-size:1rem">{{ $sheet->submitted_at ? $sheet->submitted_at->timezone('Asia/Kolkata')->format('d M Y') : 'Not yet' }}</span></div></div></div>
+    <div class="wo-kpi k-amber"><i class="bi bi-pencil-square"></i><div><div class="l">Changed after PI</div><div class="v">{{ $sheet->changes->count() }}</div></div></div>
+    <div class="wo-kpi k-red"><i class="bi bi-receipt"></i><div><div class="l">Sub-bill</div><div class="v"><span style="font-size:1rem">@if($sheet->invoice)<a class="mono" href="{{ route('invoices.show', $sheet->invoice) }}">{{ $sheet->invoice->invoice_no }}</a>@else Not made yet @endif</span></div></div></div>
+  </div>
+
   @if($locked)
   @include('partials.approval-box', ['type' => 'attendance', 'subject' => $sheet, 'sendAction' => route('approvals.send.attendance', $sheet), 'canSend' => ! auth()->user()->isPi()])
   @endif
@@ -36,15 +51,6 @@
     </form>
   </div></div>
   @endcan
-
-  <div class="d-flex flex-wrap gap-3 small mb-3">
-    <span>Status: <x-status :value="$sheet->status" /></span>
-    <span>Agency: <b>{{ $sheet->project->contract->agency->name }}</b></span>
-    <span>Client: <b>{{ $sheet->project->contract->client->name }}</b></span>
-    <span>PI: <b>{{ $sheet->project->pi_name ?? '—' }}</b></span>
-    <span>Work order: <span class="mono">{{ $sheet->project->contract->contract_no }}</span></span>
-    @if($sheet->invoice)<span>Bill: <a class="mono" href="{{ route('invoices.show', $sheet->invoice) }}">{{ $sheet->invoice->invoice_no }}</a></span>@endif
-  </div>
 
   @if($sheet->isSubmitted() || $sheet->submitted_at)
   <div class="alert alert-info d-flex flex-wrap gap-2 align-items-center">
@@ -84,4 +90,5 @@
     @endif
   </div>
   @endif
+  </div>
 </x-layouts.app>

@@ -2,6 +2,15 @@
 
 Versions follow MAJOR.MINOR.PATCH. Dates are Indian Standard Time.
 
+## 2.55.0 (2026-11-26): Detail pages in the Work Orders style (work order, sub-bill, tax invoice, employee, attendance sheet, make tax invoice)
+
+- Each detail page gets the Work Orders heading (number, status, agency and client, its own buttons on the right) and five figure boxes
+- Work order: projects, posts filled / sanctioned, sub-bills of the month, billed to date (of the contract value), service period end
+- Sub-bill: staff, wages, before GST, bill amount, still due (from Payments received). Tax invoice: sub-bills and staff, before GST, GST, invoice amount, still due; the sub-bills table gets a Staff column and a "Sub-bills total" row
+- Employee: post, project, monthly rate, joined, bank details complete or missing; details in two columns (Work / Bank & personal) with an EPF / ESIC / TDS row
+- Attendance sheet: staff, status, submitted by PI, changed after PI, sub-bill; the daily codes grid is unchanged. Make tax invoice: filter bar and a total row of the sub-bills to combine
+- Design only: every figure, button, approval box and rule stays the same; no amounts change
+
 ## 2.54.0 (2026-11-26): Sub-bills, Tax Invoices, Clients, Dashboard and Bank Letter in the Work Orders style
 
 - Sub-bills: heading with Post-wise buttons, five figure boxes (sub-bills, staff, before GST, bill amount, awaiting payment), status tabs with counts (All / Draft / Submitted / Paid), one filter bar (month, agency, client, work order, project); Ready to bill as a table; "How a bill is made" folds away once bills exist

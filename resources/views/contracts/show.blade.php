@@ -1,6 +1,22 @@
-<x-layouts.app :title="'Work order '.$contract->contract_no" :crumb="'Masters / <a href=\''.route('contracts.index').'\'>Work Orders</a>'">
-  <x-slot:actions>@can('manage-masters')<a class="btn btn-outline-primary" href="#add-project"><i class="bi bi-plus-lg me-1"></i>Add project</a><a class="btn btn-outline-secondary" href="{{ route('contracts.edit', $contract) }}"><i class="bi bi-pencil me-1"></i>Edit work order</a>@endcan
-    @can('show-delete')<x-delete-button :action="route('contracts.destroy', $contract)" :small="false" label="Delete work order" :blocked="\App\Support\SafeDelete::contract($contract)" :confirm="'Delete work order '.$contract->contract_no.'? It has no projects or bills.'" />@endcan</x-slot:actions>
+<x-layouts.app :title="'Work order '.$contract->contract_no" :crumb="'Masters / <a href=\''.route('contracts.index').'\'>Work Orders</a>'" :quiet-title="true">
+  <div class="wo">
+  <div class="wo-head">
+    <div class="wo-head-icon"><i class="bi bi-file-earmark-text"></i></div>
+    <div class="me-auto"><h1>Work order <span class="mono">{{ $contract->contract_no }}</span> <span class="badge {{ $contract->contract_type === 'offline' ? 'text-bg-secondary' : 'text-bg-info' }} fs-6 align-middle">{{ $contract->typeLabel() }}</span> <x-status :value="$contract->status" /></h1>
+      <p>Agency: <b class="text-body">{{ $contract->agency->name }}</b> · Client: <b class="text-body">{{ $contract->client->name }}</b>@if($contract->bid_no) · GeM bid <span class="mono">{{ $contract->bid_no }}</span>@endif</p></div>
+    <div class="wo-actions d-flex gap-2 flex-wrap align-items-center">
+    @can('manage-masters')<a class="btn btn-outline-primary" href="#add-project"><i class="bi bi-plus-lg me-1"></i>Add project</a><a class="btn btn-outline-secondary" href="{{ route('contracts.edit', $contract) }}"><i class="bi bi-pencil me-1"></i>Edit work order</a>@endcan
+    @can('show-delete')<x-delete-button :action="route('contracts.destroy', $contract)" :small="false" label="Delete work order" :blocked="\App\Support\SafeDelete::contract($contract)" :confirm="'Delete work order '.$contract->contract_no.'? It has no projects or bills.'" />@endcan
+    </div>
+  </div>
+  <div class="wo-kpis">
+    <div class="wo-kpi k-blue"><i class="bi bi-diagram-3"></i><div><div class="l">Projects</div><div class="v">{{ $contract->projects->count() }}</div></div></div>
+    <div class="wo-kpi k-green"><i class="bi bi-people"></i><div><div class="l">Posts filled / sanctioned</div><div class="v">{{ $contract->projects->flatMap->posts->sum(fn ($p) => $p->activeEmployees->count()) }} <small>/ {{ $contract->projects->flatMap->posts->sum('sanctioned_qty') }}</small></div></div></div>
+    <div class="wo-kpi k-violet"><i class="bi bi-receipt"></i><div><div class="l">Sub-bills, {{ $month->format('M Y') }}</div><div class="v" style="font-size:1.2rem">{{ $subBills->count() }} <small>· {{ inr($subBills->sum(fn ($b) => (float) $b->rounded_total)) }}</small></div></div></div>
+    <div class="wo-kpi k-amber"><i class="bi bi-currency-rupee"></i><div><div class="l">Billed to date</div><div class="v" style="font-size:1.2rem">{{ inr((float) \App\Models\Invoice::query()->where('gem_contract_id', $contract->id)->sum('rounded_total')) }}@if($contract->contract_value !== null)<small> of {{ inr($contract->contract_value) }}</small>@endif</div></div></div>
+    <div class="wo-kpi k-red"><i class="bi bi-calendar-event"></i><div><div class="l">Service period ends</div><div class="v"><span style="font-size:1.05rem">{{ $contract->end_date?->format('d M Y') ?? '—' }}</span></div></div></div>
+  </div>
+
   @error('move')<div class="alert alert-danger small">{{ $message }}</div>@enderror
   <div class="z-card p-3 mb-3">
     <div class="row g-3 small">
@@ -173,4 +189,5 @@
       if (target && window.bootstrap) { bootstrap.Collapse.getOrCreateInstance(target).show(); target.scrollIntoView({block: 'center'}); }
     });
   </script>
+  </div>
 </x-layouts.app>

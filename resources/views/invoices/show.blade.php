@@ -1,23 +1,31 @@
 @php($next = ['draft' => ['submitted', 'Mark submitted to client'], 'approved' => ['submitted', 'Mark submitted to client'], 'submitted' => ['paid', 'Mark paid']][$invoice->status] ?? null)
-<x-layouts.app :title="'Sub-bill '.$invoice->invoice_no" :crumb="'Billing / <a href=\''.route('invoices.index').'\'>Bills</a>'">
-  <x-slot:actions>
+<x-layouts.app :title="'Sub-bill '.$invoice->invoice_no" :crumb="'Billing / <a href=\''.route('invoices.index').'\'>Bills</a>'" :quiet-title="true">
+  <div class="wo">
+  <div class="wo-head">
+    <div class="wo-head-icon"><i class="bi bi-receipt"></i></div>
+    <div class="me-auto"><h1>Sub-bill <span class="mono">{{ $invoice->invoice_no }}</span> <x-status :value="$invoice->status" /></h1>
+      <p>Agency: <b class="text-body">{{ $invoice->contract->agency->name }}</b> · Client: <b class="text-body">{{ $invoice->contract->client->name }}</b> · work order <a class="mono" href="{{ route('contracts.show', $invoice->contract) }}">{{ $invoice->contract->contract_no }}</a> · PI: {{ $invoice->project->pi_name ?? '—' }}
+        · tax invoice: @if($invoice->taxInvoice)<a class="mono" href="{{ route('tax-invoices.show', $invoice->taxInvoice) }}">{{ $invoice->taxInvoice->number }}</a>@else<span>not yet</span> @can('billing')<a href="{{ route('tax-invoices.create', ['client' => $invoice->contract->client_id, 'month' => $invoice->month->format('Y-m')]) }}">Make tax invoice</a>@endcan @endif</p></div>
+    <div class="wo-actions d-flex gap-2 flex-wrap align-items-center">
     <a class="btn btn-outline-secondary" href="{{ route('invoices.covering-letter', $invoice) }}" target="_blank"><i class="bi bi-envelope-paper me-1"></i>Covering letter</a>
     <a class="btn btn-outline-secondary" href="{{ route('invoices.pdf', $invoice) }}" target="_blank"><i class="bi bi-file-earmark-pdf me-1"></i>Sub-bill PDF</a>
     @can('show-delete-bills')@if(! in_array($invoice->status, ['draft', 'paid'], true))<x-delete-button :action="route('invoices.destroy', $invoice)" :small="false" label="Delete bill" :blocked="$invoice->taxInvoice?->status === 'paid' ? 'Its tax invoice is paid.' : null" :confirm="'Delete '.$invoice->status.' bill '.$invoice->invoice_no.'? It is taken out of its tax invoice. The attendance stays locked.'" />@endif @endcan
     @if($invoice->sheet->certificate_path)<a class="btn btn-outline-secondary" href="{{ route('attendance.scan', $invoice->sheet) }}" target="_blank"><i class="bi bi-file-earmark-check me-1"></i>PI certificate</a>@endif
-  </x-slot:actions>
-  <div class="d-flex flex-wrap gap-3 small mb-3">
-    <span>Agency: <b>{{ $invoice->contract->agency->name }}</b></span>
-    <span>Client: <b>{{ $invoice->contract->client->name }}</b></span>
-    <span>Work order: <span class="mono">{{ $invoice->contract->contract_no }}</span></span>
-    <span>PI: <b>{{ $invoice->project->pi_name ?? '—' }}</b></span>
-    <span>Tax invoice: @if($invoice->taxInvoice)<a class="mono" href="{{ route('tax-invoices.show', $invoice->taxInvoice) }}">{{ $invoice->taxInvoice->number }}</a>@else<span class="text-secondary">not yet</span> @can('billing')<a href="{{ route('tax-invoices.create', ['client' => $invoice->contract->client_id, 'month' => $invoice->month->format('Y-m')]) }}">Make tax invoice</a>@endcan @endif</span>
+    </div>
   </div>
+  <div class="wo-kpis">
+    <div class="wo-kpi k-blue"><i class="bi bi-people"></i><div><div class="l">Staff</div><div class="v">{{ $invoice->lines->count() }}</div></div></div>
+    <div class="wo-kpi k-green"><i class="bi bi-cash"></i><div><div class="l">Wages</div><div class="v" style="font-size:1.2rem">{{ inr($invoice->wages, true) }}</div></div></div>
+    <div class="wo-kpi k-violet"><i class="bi bi-cash-stack"></i><div><div class="l">Before GST</div><div class="v" style="font-size:1.2rem">{{ inr($invoice->taxable, true) }}</div></div></div>
+    <div class="wo-kpi k-amber"><i class="bi bi-currency-rupee"></i><div><div class="l">Bill amount</div><div class="v" style="font-size:1.2rem">{{ inr($invoice->rounded_total, true) }}</div></div></div>
+    <div class="wo-kpi k-red"><i class="bi bi-hourglass-split"></i><div><div class="l">Still due</div><div class="v" style="font-size:1.2rem">{{ $invoice->status === 'draft' ? '—' : inr((float) \App\Support\Exact::money(app(\App\Services\Payments\Receipts::class)->outstanding($invoice)), true) }}</div></div></div>
+  </div>
+
   <div class="row g-3">
     <div class="col-lg-8">
       <div class="z-card">
         <div class="z-card-h"><h2>{{ $invoice->project->name }}, {{ $invoice->month->format('F Y') }}</h2><x-status :value="$invoice->status" /><span class="small text-secondary ms-auto">Dated {{ $invoice->invoice_date->format('d/m/Y') }}</span></div>
-        <div class="table-responsive"><table class="table">
+        <div class="table-responsive"><table class="table align-middle wo-table m-0">
           <thead><tr><th>Sl.</th><th>Name</th><th>Post</th><th class="num">Rate</th>@if($invoice->billing_type === 'monthly')<th class="num">Days in month</th>@endif<th class="num">Paid days</th><th class="num">Amount</th></tr></thead>
           <tbody>@foreach($invoice->lines as $l)
             @php($exit = $l->employee?->exitIn($invoice->month))
@@ -71,4 +79,5 @@
     'subject' => 'Bill No. '.$invoice->invoice_no.' for '.$invoice->month->format('F Y').' – '.($invoice->project->title ?: $invoice->project->name),
     'body' => "Dear Sir / Madam,\n\nPlease find attached our bill no. {$invoice->invoice_no} dated {$invoice->invoice_date->format('d.m.Y')} for the manpower supplied under {$invoice->project->name} for the month of {$invoice->month->format('F Y')} (".($invoice->contract->contract_type === 'offline' ? 'work order' : 'GeM contract')." no. {$invoice->contract->contract_no}), with its covering letter.\n\nKindly arrange the payment at the earliest.\n\nThanking you,\nYours faithfully,\nFor {$agencyName}"])
   @endcan
+  </div>
 </x-layouts.app>

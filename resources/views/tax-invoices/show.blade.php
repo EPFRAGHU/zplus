@@ -1,22 +1,38 @@
 @php($next = ['draft' => ['submitted', 'Mark submitted to client'], 'submitted' => ['paid', 'Mark paid']][$tax->status] ?? null)
-<x-layouts.app :title="'Tax invoice '.$tax->number" :crumb="'Billing / <a href=\''.route('tax-invoices.index').'\'>Tax Invoices</a>'">
-  <x-slot:actions><a class="btn btn-outline-secondary" href="{{ route('tax-invoices.pdf', $tax) }}" target="_blank"><i class="bi bi-file-earmark-pdf me-1"></i>Tax invoice PDF</a>
-    @can('show-delete-bills')@if($tax->status === 'submitted')<x-delete-button :action="route('tax-invoices.destroy', $tax)" :small="false" label="Delete tax invoice" :confirm="'Delete submitted tax invoice '.$tax->number.'? Its sub-bills are released and can be invoiced again.'" />@endif @endcan</x-slot:actions>
-  <div class="d-flex flex-wrap gap-3 small mb-3">
-    <span>Agency: <b>{{ $tax->agency->name }}</b></span><span>Client: <b>{{ $tax->client->name }}</b></span>
-    @if($tax->contract)<span>Work order: <a class="mono" href="{{ route('contracts.show', $tax->contract) }}">{{ $tax->contract->contract_no }}</a> ({{ $tax->contract->typeLabel() }})</span>@endif
-    <span>Month: <b>{{ $tax->month->format('F Y') }}</b></span><span>Date: <b>{{ $tax->invoice_date->format('d/m/Y') }}</b></span>
-    <span>Status: <x-status :value="$tax->status" /></span>
+<x-layouts.app :title="'Tax invoice '.$tax->number" :crumb="'Billing / <a href=\''.route('tax-invoices.index').'\'>Tax Invoices</a>'" :quiet-title="true">
+  <div class="wo">
+  <div class="wo-head">
+    <div class="wo-head-icon"><i class="bi bi-file-earmark-ruled"></i></div>
+    <div class="me-auto"><h1>Tax invoice <span class="mono">{{ $tax->number }}</span> <x-status :value="$tax->status" /></h1>
+      <p>Agency: <b class="text-body">{{ $tax->agency->name }}</b> · Client: <b class="text-body">{{ $tax->client->name }}</b>
+        @if($tax->contract)· Work order: <a class="mono" href="{{ route('contracts.show', $tax->contract) }}">{{ $tax->contract->contract_no }}</a> ({{ $tax->contract->typeLabel() }})@endif
+        · Month: <b class="text-body">{{ $tax->month->format('F Y') }}</b> · Date: <b class="text-body">{{ $tax->invoice_date->format('d/m/Y') }}</b></p></div>
+    <div class="wo-actions d-flex gap-2 flex-wrap align-items-center">
+    <a class="btn btn-outline-secondary" href="{{ route('tax-invoices.pdf', $tax) }}" target="_blank"><i class="bi bi-file-earmark-pdf me-1"></i>Tax invoice PDF</a>
+    @can('show-delete-bills')@if($tax->status === 'submitted')<x-delete-button :action="route('tax-invoices.destroy', $tax)" :small="false" label="Delete tax invoice" :confirm="'Delete submitted tax invoice '.$tax->number.'? Its sub-bills are released and can be invoiced again.'" />@endif @endcan
+    </div>
   </div>
+  <div class="wo-kpis">
+    <div class="wo-kpi k-blue"><i class="bi bi-receipt"></i><div><div class="l">Sub-bills</div><div class="v">{{ $tax->subBills->count() }} <small>/ {{ $tax->subBills->sum(fn ($b) => $b->lines()->count()) }} staff</small></div></div></div>
+    <div class="wo-kpi k-violet"><i class="bi bi-cash-stack"></i><div><div class="l">Before GST</div><div class="v" style="font-size:1.2rem">{{ inr($tax->taxable, true) }}</div></div></div>
+    <div class="wo-kpi k-green"><i class="bi bi-percent"></i><div><div class="l">GST</div><div class="v" style="font-size:1.2rem">{{ inr((float) $tax->cgst + (float) $tax->sgst + (float) $tax->igst, true) }}</div></div></div>
+    <div class="wo-kpi k-amber"><i class="bi bi-currency-rupee"></i><div><div class="l">Invoice amount</div><div class="v" style="font-size:1.2rem">{{ inr($tax->rounded_total, true) }}</div></div></div>
+    <div class="wo-kpi k-red"><i class="bi bi-hourglass-split"></i><div><div class="l">Still due</div><div class="v" style="font-size:1.2rem">{{ $tax->status === 'draft' ? '—' : inr($tax->subBills->sum(fn ($b) => (float) \App\Support\Exact::money(app(\App\Services\Payments\Receipts::class)->outstanding($b))), true) }}</div></div></div>
+  </div>
+
   <div class="row g-3">
     <div class="col-lg-8"><div class="z-card">
       <div class="z-card-h"><h2>Sub-bills in this tax invoice</h2></div>
-      <div class="table-responsive"><table class="table">
-        <thead><tr><th>Sub-bill no.</th><th>Project</th><th>SAC</th><th class="num">Before GST</th><th class="num">CGST</th><th class="num">SGST</th><th class="num">Total</th></tr></thead>
+      <div class="table-responsive"><table class="table align-middle wo-table m-0">
+        <thead><tr><th>Sub-bill no.</th><th>Project</th><th class="text-center">Staff</th><th>SAC</th><th class="num">Before GST</th><th class="num">CGST</th><th class="num">SGST</th><th class="num">Total</th></tr></thead>
         <tbody>@foreach($tax->subBills as $b)
-          <tr><td><a class="mono" href="{{ route('invoices.show', $b) }}">{{ $b->invoice_no }}</a></td><td>{{ $b->project->name }}</td><td class="mono">{{ $b->contract->sac_code }}</td>
+          <tr><td><a class="mono" href="{{ route('invoices.show', $b) }}">{{ $b->invoice_no }}</a></td><td>{{ $b->project->name }}</td><td class="text-center">{{ $b->lines()->count() }}</td><td class="mono">{{ $b->contract->sac_code }}</td>
             <td class="num">{{ inr($b->taxable, true) }}</td><td class="num">{{ inr($b->cgst, true) }}</td><td class="num">{{ inr($b->sgst, true) }}</td><td class="num">{{ inr($b->total, true) }}</td></tr>
         @endforeach</tbody>
+        {{-- Total of the sub-bills (owner, 26 Nov 2026); the tax invoice itself works its figures out once on the combined sub total. --}}
+        <tfoot><tr class="bills-grand"><td colspan="2">Sub-bills total · {{ $tax->subBills->count() }} {{ \Illuminate\Support\Str::plural('sub-bill', $tax->subBills->count()) }}</td><td class="text-center">{{ $tax->subBills->sum(fn ($b) => $b->lines()->count()) }}</td><td></td>
+          <td class="num">{{ inr($tax->subBills->sum(fn ($b) => (float) $b->taxable), true) }}</td><td class="num">{{ inr($tax->subBills->sum(fn ($b) => (float) $b->cgst), true) }}</td>
+          <td class="num">{{ inr($tax->subBills->sum(fn ($b) => (float) $b->sgst), true) }}</td><td class="num">{{ inr($tax->subBills->sum(fn ($b) => (float) $b->total), true) }}</td></tr></tfoot>
       </table></div>
     </div>
     @include('payments._box', ['bills' => $tax->subBills])
@@ -77,4 +93,5 @@
     'subject' => 'Tax Invoice No. '.$tax->number.' for '.$tax->month->format('F Y').' – '.$tax->agency->name,
     'body' => "Dear Sir / Madam,\n\nPlease find attached our tax invoice no. {$tax->number} dated {$tax->invoice_date->format('d.m.Y')} for the manpower supplied in the month of {$tax->month->format('F Y')}".($tax->contract ? ' ('.($tax->contract->contract_type === 'offline' ? 'work order' : 'GeM contract')." no. {$tax->contract->contract_no})" : '').", together with the project-wise sub-bills.\n\nKindly arrange the payment at the earliest.\n\nThanking you,\nYours faithfully,\nFor {$tax->agency->name}"])
   @endcan
+  </div>
 </x-layouts.app>
